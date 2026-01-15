@@ -10,7 +10,7 @@ export type PayloadSubscribersConfig = {
   disabled?: boolean
 }
 
-export const payloadSubscribers =
+export const payloadSubscribersPlugin =
   (pluginOptions: PayloadSubscribersConfig) =>
   (config: Config): Config => {
     if (!config.collections) {
@@ -70,10 +70,10 @@ export const payloadSubscribers =
     }
 
     config.admin.components.beforeDashboard.push(
-      `payload-subscribers/client#BeforeDashboardClient`,
+      `payload-subscribers-plugin/client#BeforeDashboardClient`,
     )
     config.admin.components.beforeDashboard.push(
-      `payload-subscribers/rsc#BeforeDashboardServer`,
+      `payload-subscribers-plugin/rsc#BeforeDashboardServer`,
     )
 
     config.endpoints.push({
