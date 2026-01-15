@@ -12,7 +12,7 @@ export const BeforeDashboardClient = () => {
     const fetchMessage = async () => {
       const response = await fetch(
         formatAdminURL({
-          apiRoute: config.routes.api,
+          adminRoute: config.routes.api,
           path: '/my-plugin-endpoint',
         }),
       )
