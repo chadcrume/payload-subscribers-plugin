@@ -18,7 +18,7 @@ console.log('\nbaseURL:', baseURL, '\nport:', port, '\n')
  */
 export default defineConfig({
   testDir: './dev',
-  testMatch: '**/*.e2e.{test,spec}.{ts,js}',
+  testMatch: '**/*.pw.{test,spec}.{ts,js}',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
