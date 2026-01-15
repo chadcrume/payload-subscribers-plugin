@@ -8,17 +8,17 @@ import { defineConfig, devices } from '@playwright/test'
 // import path from 'path';
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const baseUrl = process.env.PW_BASE_URL || 'http://localhost:3007'
-const port = new URL(baseUrl).port
+const baseURL = process.env.PW_BASE_URL || 'http://localhost:3007'
+const port = new URL(baseURL).port
 
-console.log('\nbaseUrl:', baseUrl, '\nport:', port, '\n')
+console.log('\nbaseURL:', baseURL, '\nport:', port, '\n')
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: './dev',
-  testMatch: '**/*.e2e.{ts,js}',
+  testMatch: '**/*.e2e.{test,spec}.{ts,js}',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -38,7 +38,7 @@ export default defineConfig({
   ],
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: baseUrl,
+    baseURL: baseURL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -46,6 +46,6 @@ export default defineConfig({
   webServer: {
     command: `pnpm dev -p ${port}`,
     reuseExistingServer: true,
-    url: baseUrl + '/admin',
+    url: baseURL + '/admin',
   },
 })
