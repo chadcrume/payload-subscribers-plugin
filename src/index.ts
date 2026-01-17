@@ -3,7 +3,7 @@ import type { CollectionSlug, Config } from 'payload'
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
 import Subscribers from './collections/Subscribers.js'
-// import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
+import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
 
 export type PayloadSubscribersConfig = {
   /**
@@ -27,8 +27,7 @@ export const payloadSubscribersPlugin =
       config.collections = []
     }
 
-    config.collections.push(OptInChannels)
-    config.collections.push(Subscribers)
+    config.collections.push(OptInChannels, Subscribers)
 
     if (pluginOptions.collections) {
       for (const collectionSlug in pluginOptions.collections) {
@@ -50,10 +49,6 @@ export const payloadSubscribersPlugin =
       return config
     }
 
-    // if (!config.endpoints) {
-    //   config.endpoints = []
-    // }
-
     if (!config.admin) {
       config.admin = {}
     }
@@ -73,11 +68,11 @@ export const payloadSubscribersPlugin =
       `payload-subscribers-plugin/rsc#BeforeDashboardServer`,
     )
 
-    // config.endpoints.push({
-    //   handler: customEndpointHandler,
-    //   method: 'get',
-    //   path: '/my-plugin-endpoint',
-    // })
+    if (!config.endpoints) {
+      config.endpoints = []
+    }
+
+    config.endpoints.push(requestMagicLinkEndpoint)
 
     const incomingOnInit = config.onInit
 

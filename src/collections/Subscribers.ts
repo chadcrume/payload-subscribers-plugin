@@ -59,6 +59,15 @@ const Subscribers: CollectionConfig = {
       },
       label: 'Verification Token',
     },
+    {
+      name: 'verificationTokenExpires',
+      type: 'date',
+      admin: {
+        hidden: true, // Hide this field in the admin panel for security/cleanliness
+      },
+      label: 'Verification Token Expiration',
+    },
+
     OptedInChannels,
   ],
 }

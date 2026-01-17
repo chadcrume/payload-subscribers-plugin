@@ -4,7 +4,7 @@ import config from '@payload-config'
 import { createPayloadRequest, getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
-import { customEndpointHandler } from '../src/endpoints/customEndpointHandler.js'
+import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
 
 let payload: Payload
 
@@ -22,24 +22,9 @@ beforeAll(async () => {
 })
 
 describe('Plugin integration tests', () => {
-  test('should query custom endpoint added by plugin', async () => {
-    const request = new Request('http://localhost:3000/api/my-plugin-endpoint', {
-      method: 'GET',
-    })
-
-    const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await customEndpointHandler(payloadRequest)
-    expect(response.status).toBe(200)
-
-    const data = await response.json()
-    expect(data).toMatchObject({
-      message: 'Hello from custom endpoint',
-    })
-  })
-
   let optInID: any
 
-  test('plugin creates and seeds opt-in-channels', async () => {
+  test('Plugin creates and seeds opt-in-channels', async () => {
     expect(payload.collections['opt-in-channels']).toBeDefined()
 
     const { docs } = await payload.find({ collection: 'opt-in-channels' })
@@ -49,7 +34,7 @@ describe('Plugin integration tests', () => {
     optInID = docs[0].id
   })
 
-  test('plugin creates and seeds subscribers', async () => {
+  test('Plugin creates and seeds subscribers', async () => {
     expect(payload.collections['subscribers']).toBeDefined()
 
     const { docs } = await payload.find({ collection: 'subscribers' })
@@ -62,22 +47,39 @@ describe('Plugin integration tests', () => {
     // expect(docs[0].optIns[0].email).toBe('seeded-by-plugin@crume.org')
   })
 
-  test('can create post with custom text field added by plugin', async () => {
+  test('Can create post with custom text field added by plugin', async () => {
     const post = await payload.create({
       collection: 'posts',
       data: {
         optIns: [optInID],
       },
     })
-    // console.log('\n', 'post.optIns', post.optIns, '\n')
-    expect(post.optIns).toStrictEqual([optInID])
 
-    // const posts = await payload.find({
-    //   collection: 'posts',
+    expect(post.optIns).toStrictEqual([optInID])
+  })
+
+  test('Can use requestMagicLinkEndpoint endpoint', async () => {
+    payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
+    // const result = await fetch(payload.config.serverURL + '/emailToken', {
+    //   body: JSON.stringify({ email: 'seeded-by-plugin@crume.org' }),
+    //   method: 'post',
     // })
-    // console.log('\n', 'posts.docs.length', posts.docs.length, '\n')
-    // posts.docs.forEach((post) => {
-    //   console.log('\n', 'post[id].addedByPlugin', post.id, ' = ', post.addedByPlugin, '\n')
-    // })
+    // expect(result.ok).toStrictEqual(true)
+    // const resJson = await result.json()
+    // expect(resJson.message).toStrictEqual('token link emailed')
+
+    const request = new Request('http://localhost:3000/api/my-plugin-endpoint', {
+      body: JSON.stringify({ email: 'seeded-by-plugin@crume.org' }),
+      method: 'POST',
+    })
+    const payloadRequest = await createPayloadRequest({ config, request })
+
+    const response = await requestMagicLinkEndpoint.handler(payloadRequest)
+
+    expect(response.status).toBe(200)
+
+    expect(await response.json()).toStrictEqual({
+      message: "Test email to: 'seeded-by-plugin@crume.org', Subject: 'Your Magic Login Link'",
+    })
   })
 })

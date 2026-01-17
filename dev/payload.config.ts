@@ -7,6 +7,7 @@ import { payloadSubscribersPlugin } from 'payload-subscribers-plugin'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
+import { serverURL } from '../src/helpers/serverConfig.js'
 import { testEmailAdapter } from './helpers/testEmailAdapter.js'
 import { seed } from './seed.js'
 
@@ -67,6 +68,7 @@ const buildConfigWithMemoryDB = async () => {
       }),
     ],
     secret: process.env.PAYLOAD_SECRET || 'test-secret_key',
+    serverURL,
     sharp,
     typescript: {
       outputFile: path.resolve(dirname, 'payload-types.ts'),
