@@ -26,6 +26,7 @@ const buildConfigWithMemoryDB = async () => {
       },
     })
 
+    console.log('buildConfigWithMemoryDB', memoryDB.getUri())
     process.env.DATABASE_URL = `${memoryDB.getUri()}&retryWrites=true`
   }
 
@@ -62,6 +63,7 @@ const buildConfigWithMemoryDB = async () => {
         collections: {
           posts: true,
         },
+        disabled: false,
       }),
     ],
     secret: process.env.PAYLOAD_SECRET || 'test-secret_key',

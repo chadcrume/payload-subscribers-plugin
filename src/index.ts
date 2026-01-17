@@ -1,12 +1,22 @@
 import type { CollectionSlug, Config } from 'payload'
 
-import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
+import { OptedInChannels } from './collections/fields/OptedInChannels.js'
+import OptInChannels from './collections/OptInChannels.js'
+import Subscribers from './collections/Subscribers.js'
+// import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
 
 export type PayloadSubscribersConfig = {
   /**
    * List of collections to add a custom field
    */
   collections?: Partial<Record<CollectionSlug, true>>
+  /**
+   * Defaults to false-y. When true:
+   *  - Database schema changes are still made and seeded
+   *  - APIs return null or undefined success
+   *  - Admin components are not added
+   *  - App components return nothing
+   */
   disabled?: boolean
 }
 
@@ -17,15 +27,8 @@ export const payloadSubscribersPlugin =
       config.collections = []
     }
 
-    config.collections.push({
-      slug: 'plugin-collection',
-      fields: [
-        {
-          name: 'id',
-          type: 'text',
-        },
-      ],
-    })
+    config.collections.push(OptInChannels)
+    config.collections.push(Subscribers)
 
     if (pluginOptions.collections) {
       for (const collectionSlug in pluginOptions.collections) {
@@ -34,13 +37,7 @@ export const payloadSubscribersPlugin =
         )
 
         if (collection) {
-          collection.fields.push({
-            name: 'addedByPlugin',
-            type: 'text',
-            admin: {
-              position: 'sidebar',
-            },
-          })
+          collection.fields.push(OptedInChannels)
         }
       }
     }
@@ -53,9 +50,9 @@ export const payloadSubscribersPlugin =
       return config
     }
 
-    if (!config.endpoints) {
-      config.endpoints = []
-    }
+    // if (!config.endpoints) {
+    //   config.endpoints = []
+    // }
 
     if (!config.admin) {
       config.admin = {}
@@ -76,11 +73,11 @@ export const payloadSubscribersPlugin =
       `payload-subscribers-plugin/rsc#BeforeDashboardServer`,
     )
 
-    config.endpoints.push({
-      handler: customEndpointHandler,
-      method: 'get',
-      path: '/my-plugin-endpoint',
-    })
+    // config.endpoints.push({
+    //   handler: customEndpointHandler,
+    //   method: 'get',
+    //   path: '/my-plugin-endpoint',
+    // })
 
     const incomingOnInit = config.onInit
 
@@ -90,20 +87,48 @@ export const payloadSubscribersPlugin =
         await incomingOnInit(payload)
       }
 
-      const { totalDocs } = await payload.count({
-        collection: 'plugin-collection',
+      // console.log('Object.keys(payload.collections)', Object.keys(payload.collections))
+      const { totalDocs: totalOptIns } = await payload.count({
+        collection: 'opt-in-channels',
         where: {
-          id: {
+          title: {
             equals: 'seeded-by-plugin',
           },
         },
       })
 
-      if (totalDocs === 0) {
+      if (totalOptIns === 0) {
         await payload.create({
-          collection: 'plugin-collection',
+          collection: 'opt-in-channels',
           data: {
-            id: 'seeded-by-plugin',
+            title: 'seeded-by-plugin',
+          },
+        })
+      }
+
+      // const { seededChannel } = await payload.find({
+      //   collection: 'opt-in-channels',
+      //   where: {
+      //     title: {
+      //       equals: 'seeded-by-plugin',
+      //     },
+      //   },
+      // })
+
+      const { totalDocs: totalSubscribers } = await payload.count({
+        collection: 'subscribers',
+        where: {
+          email: {
+            equals: 'seeded-by-plugin@crume.org',
+          },
+        },
+      })
+
+      if (totalSubscribers === 0) {
+        await payload.create({
+          collection: 'subscribers',
+          data: {
+            email: 'seeded-by-plugin@crume.org',
           },
         })
       }

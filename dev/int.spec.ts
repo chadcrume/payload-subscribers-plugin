@@ -10,6 +10,11 @@ let payload: Payload
 
 afterAll(async () => {
   // await payload.destroy()
+  // console.log('\n', 'afterAll payload.db', payload.db.url, '\n')
+  if (payload.db.connection) {
+    // console.log('\n', 'afterAll payload.db.connection.close', true, '\n')
+    await payload.db.connection.close()
+  }
 })
 
 beforeAll(async () => {
@@ -32,21 +37,47 @@ describe('Plugin integration tests', () => {
     })
   })
 
+  let optInID: any
+
+  test('plugin creates and seeds opt-in-channels', async () => {
+    expect(payload.collections['opt-in-channels']).toBeDefined()
+
+    const { docs } = await payload.find({ collection: 'opt-in-channels' })
+
+    expect(docs).toHaveLength(1)
+    expect(docs[0].title).toBe('seeded-by-plugin')
+    optInID = docs[0].id
+  })
+
+  test('plugin creates and seeds subscribers', async () => {
+    expect(payload.collections['subscribers']).toBeDefined()
+
+    const { docs } = await payload.find({ collection: 'subscribers' })
+
+    expect(docs).toHaveLength(1)
+    expect(docs[0]).toBeDefined()
+    // expect(docs[0].optIns).toBeDefined()
+    // expect(docs[0].optIns).toHaveLength(1)
+
+    // expect(docs[0].optIns[0].email).toBe('seeded-by-plugin@crume.org')
+  })
+
   test('can create post with custom text field added by plugin', async () => {
     const post = await payload.create({
       collection: 'posts',
       data: {
-        addedByPlugin: 'added by plugin',
+        optIns: [optInID],
       },
     })
-    expect(post.addedByPlugin).toBe('added by plugin')
-  })
+    // console.log('\n', 'post.optIns', post.optIns, '\n')
+    expect(post.optIns).toStrictEqual([optInID])
 
-  test('plugin creates and seeds plugin-collection', async () => {
-    expect(payload.collections['plugin-collection']).toBeDefined()
-
-    const { docs } = await payload.find({ collection: 'plugin-collection' })
-
-    expect(docs).toHaveLength(1)
+    // const posts = await payload.find({
+    //   collection: 'posts',
+    // })
+    // console.log('\n', 'posts.docs.length', posts.docs.length, '\n')
+    // posts.docs.forEach((post) => {
+    //   console.log('\n', 'post[id].addedByPlugin', post.id, ' = ', post.addedByPlugin, '\n')
+    // })
   })
 })
