@@ -2,12 +2,22 @@ import type { Endpoint, PayloadHandler } from 'payload'
 
 import crypto from 'crypto'
 
+export type requestMagicLinkResponse =
+  | {
+      emailResult: any
+      now: string
+    }
+  | {
+      error: string
+      now: string
+    }
+
 /**
  * requestMagicLink Endpoint Handler
  * @param req
  * @data { email }
- * @returns { status: 200, json: {message: string} }
- * @returns { status: 400, json: {error: string} }
+ * @returns { status: 200, json: {message: string, now: date} }
+ * @returns { status: 400, json: {error: string, now: date} }
  */
 export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
@@ -15,7 +25,10 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   // const { email } = req.routeParams // if by path
 
   if (!email) {
-    return Response.json({ error: 'Bad data' }, { status: 400 })
+    return Response.json(
+      { error: 'Bad data', now: new Date().toISOString() } as requestMagicLinkResponse,
+      { status: 400 },
+    )
   }
 
   const userResults = await req.payload.find({
@@ -27,7 +40,10 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const user = userResults.docs[0]
 
   if (!user) {
-    return Response.json({ error: 'Bad data' }, { status: 400 })
+    return Response.json(
+      { error: 'Bad data', now: new Date().toISOString() } as requestMagicLinkResponse,
+      { status: 400 },
+    )
   }
   const token = crypto.randomBytes(32).toString('hex')
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
@@ -38,7 +54,7 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
     collection: 'subscribers',
     data: {
       verificationToken: tokenHash,
-      verificationTokenExpires: expiresAt,
+      verificationTokenExpires: expiresAt.toISOString(),
     },
     where: {
       email: { equals: user.email },
@@ -57,9 +73,12 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   //   req.payload.logger.info(`email result: ${JSON.stringify(emailResult)}`)
   // return data; // Return data to allow normal submission if needed
   if (!emailResult) {
-    return Response.json({ error: 'Unknown email result' }, { status: 400 })
+    return Response.json(
+      { error: 'Unknown email result', now: new Date().toISOString() } as requestMagicLinkResponse,
+      { status: 400 },
+    )
   }
-  return Response.json(emailResult)
+  return Response.json({ emailResult, now: new Date().toISOString() } as requestMagicLinkResponse)
 }
 
 /**

@@ -12,6 +12,7 @@ const Subscribers: CollectionConfig = {
     read: ({ req }) => (req.user ? true : false),
     update: ({ req }) => (req.user ? true : false),
   },
+  admin: { useAsTitle: 'email' },
   fields: [
     {
       name: 'email',

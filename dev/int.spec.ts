@@ -76,7 +76,8 @@ describe('Plugin integration tests', () => {
 
     expect(response.status).toBe(200)
 
-    expect(await response.json()).toStrictEqual({
+    const resJson = await response.json()
+    expect(resJson.emailResult).toStrictEqual({
       message: `Test email to: '${testEmail}', Subject: 'Your Magic Login Link'`,
     })
   })
@@ -92,7 +93,7 @@ describe('Plugin integration tests', () => {
       collection: 'subscribers',
       data: {
         verificationToken: testTokenHash,
-        verificationTokenExpires: testTokenExpiresAt,
+        verificationTokenExpires: testTokenExpiresAt.toISOString(),
       },
       where: { email: { equals: testEmail } },
     })
@@ -115,9 +116,7 @@ describe('Plugin integration tests', () => {
     // payload.logger.info(`response data ${JSON.stringify(verifyResponseData)}`)
 
     expect(verifyResponse.status).toBe(200)
-    expect(verifyResponseData).toStrictEqual({
-      message: 'Token verified',
-    })
+    expect(verifyResponseData.message).toStrictEqual('Token verified')
 
     const { docs: userDocsAfterVerify } = await payload.find({
       collection: 'subscribers',
@@ -130,6 +129,6 @@ describe('Plugin integration tests', () => {
     const userAfterVerify = userDocsAfterVerify[0]
 
     expect(userAfterVerify.verificationToken).toBeOneOf(['', undefined])
-    expect(userAfterVerify.userAfterVerifyExpires).toBeOneOf([null, undefined])
+    expect(userAfterVerify.verificationTokenExpires).toBeOneOf([null, undefined])
   })
 })

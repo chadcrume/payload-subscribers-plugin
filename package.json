@@ -19,6 +19,11 @@
       "import": "./src/exports/rsc.ts",
       "types": "./src/exports/rsc.ts",
       "default": "./src/exports/rsc.ts"
+    },
+    "./ui": {
+      "import": "./src/exports/ui.ts",
+      "types": "./src/exports/ui.ts",
+      "default": "./src/exports/ui.ts"
     }
   },
   "main": "./src/index.ts",
@@ -32,12 +37,14 @@
     "build:types": "tsc --outDir dist --rootDir ./src",
     "clean": "rimraf {dist,*.tsbuildinfo}",
     "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
-    "dev": "next dev dev --turbo",
+    "dev": "pnpm dev:copyfiles && pnpm dev:next",
+    "dev:copyfiles": "copyfiles -u 1 \"dev/{payload-types}.ts\" src/copied/",
+    "dev:next": "next dev dev --turbo",
     "dev:generate-importmap": "pnpm dev:payload generate:importmap",
     "dev:generate-types": "pnpm dev:payload generate:types",
     "dev:payload": "cross-env PAYLOAD_CONFIG_PATH=./dev/payload.config.ts payload",
     "generate:importmap": "pnpm dev:generate-importmap",
-    "generate:types": "pnpm dev:generate-types",
+    "generate:types": "pnpm dev:generate-types && pnpm dev:copyfiles",
     "lint": "eslint",
     "lint:fix": "eslint ./src --fix",
     "test": "pnpm test:int && pnpm test:e2e",
@@ -115,5 +122,7 @@
     ]
   },
   "registry": "https://registry.npmjs.org/",
-  "dependencies": {}
+  "dependencies": {
+    "@payloadcms/sdk": "3.68.5"
+  }
 }

@@ -98,6 +98,7 @@ export const payloadSubscribersPlugin =
         await payload.create({
           collection: 'opt-in-channels',
           data: {
+            active: true,
             title: 'seeded-by-plugin',
           },
         })
@@ -127,6 +128,7 @@ export const payloadSubscribersPlugin =
           collection: 'subscribers',
           data: {
             email: testData.testEmail,
+            status: 'pending',
           },
         })
       }
