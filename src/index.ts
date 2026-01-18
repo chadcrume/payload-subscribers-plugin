@@ -1,9 +1,11 @@
-import type { CollectionSlug, Config } from 'payload'
+import type { BasePayload, CollectionSlug, Config } from 'payload'
 
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
 import Subscribers from './collections/Subscribers.js'
 import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
+import verifyMagicLinkEndpoint from './endpoints/verifyMagicLink.js'
+import { getTestEmail } from './helpers/testData.js'
 
 export type PayloadSubscribersConfig = {
   /**
@@ -72,11 +74,11 @@ export const payloadSubscribersPlugin =
       config.endpoints = []
     }
 
-    config.endpoints.push(requestMagicLinkEndpoint)
+    config.endpoints.push(requestMagicLinkEndpoint, verifyMagicLinkEndpoint)
 
     const incomingOnInit = config.onInit
 
-    config.onInit = async (payload) => {
+    const genInit = (testData: { testEmail: string }) => async (payload: BasePayload) => {
       // Ensure we are executing any existing onInit functions before running our own.
       if (incomingOnInit) {
         await incomingOnInit(payload)
@@ -114,20 +116,24 @@ export const payloadSubscribersPlugin =
         collection: 'subscribers',
         where: {
           email: {
-            equals: 'seeded-by-plugin@crume.org',
+            equals: testData.testEmail,
           },
         },
       })
 
+      // payload.logger.info(`testData.testEmail == '${testData.testEmail}'`)
       if (totalSubscribers === 0) {
         await payload.create({
           collection: 'subscribers',
           data: {
-            email: 'seeded-by-plugin@crume.org',
+            email: testData.testEmail,
           },
         })
       }
     }
+
+    // console.log(`getTestEmail == '${getTestEmail()}'`)
+    config.onInit = genInit({ testEmail: getTestEmail() })
 
     return config
   }

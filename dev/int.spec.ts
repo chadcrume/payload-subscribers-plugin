@@ -1,10 +1,13 @@
 import type { Payload } from 'payload'
 
 import config from '@payload-config'
+import crypto from 'crypto'
 import { createPayloadRequest, getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
+import verifyMagicLinkEndpoint from '../src/endpoints/verifyMagicLink.js'
+import { getTestEmail } from '../src/helpers/testData.js'
 
 let payload: Payload
 
@@ -44,7 +47,7 @@ describe('Plugin integration tests', () => {
     // expect(docs[0].optIns).toBeDefined()
     // expect(docs[0].optIns).toHaveLength(1)
 
-    // expect(docs[0].optIns[0].email).toBe('seeded-by-plugin@crume.org')
+    // expect(docs[0].optIns[0].email).toBe(testEmail)
   })
 
   test('Can create post with custom text field added by plugin', async () => {
@@ -59,17 +62,12 @@ describe('Plugin integration tests', () => {
   })
 
   test('Can use requestMagicLinkEndpoint endpoint', async () => {
-    payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
-    // const result = await fetch(payload.config.serverURL + '/emailToken', {
-    //   body: JSON.stringify({ email: 'seeded-by-plugin@crume.org' }),
-    //   method: 'post',
-    // })
-    // expect(result.ok).toStrictEqual(true)
-    // const resJson = await result.json()
-    // expect(resJson.message).toStrictEqual('token link emailed')
+    // payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
 
-    const request = new Request('http://localhost:3000/api/my-plugin-endpoint', {
-      body: JSON.stringify({ email: 'seeded-by-plugin@crume.org' }),
+    const testEmail = getTestEmail()
+
+    const request = new Request('http://localhost:3000/api/emailToken', {
+      body: JSON.stringify({ email: testEmail }),
       method: 'POST',
     })
     const payloadRequest = await createPayloadRequest({ config, request })
@@ -79,7 +77,59 @@ describe('Plugin integration tests', () => {
     expect(response.status).toBe(200)
 
     expect(await response.json()).toStrictEqual({
-      message: "Test email to: 'seeded-by-plugin@crume.org', Subject: 'Your Magic Login Link'",
+      message: `Test email to: '${testEmail}', Subject: 'Your Magic Login Link'`,
     })
+  })
+
+  test('Can use verifyMagicLink endpoint', async () => {
+    const testEmail = getTestEmail()
+
+    const testToken = 'seed-test'
+    const testTokenHash = crypto.createHash('sha256').update(testToken).digest('hex')
+    const testTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+
+    const { docs: userResult } = await payload.update({
+      collection: 'subscribers',
+      data: {
+        verificationToken: testTokenHash,
+        verificationTokenExpires: testTokenExpiresAt,
+      },
+      where: { email: { equals: testEmail } },
+    })
+
+    expect(userResult).toHaveLength(1)
+    expect(userResult[0]).toBeDefined()
+
+    const user = userResult[0]
+
+    const verifyRequest = new Request('http://localhost:3000/api/verifyToken', {
+      body: JSON.stringify({ email: user.email, token: testToken }),
+      method: 'POST',
+    })
+    const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })
+
+    const verifyResponse = await verifyMagicLinkEndpoint.handler(verifyPayloadRequest)
+    const verifyResponseData = await verifyResponse.json()
+
+    // payload.logger.info(`response status ${verifyResponse.status}`)
+    // payload.logger.info(`response data ${JSON.stringify(verifyResponseData)}`)
+
+    expect(verifyResponse.status).toBe(200)
+    expect(verifyResponseData).toStrictEqual({
+      message: 'Token verified',
+    })
+
+    const { docs: userDocsAfterVerify } = await payload.find({
+      collection: 'subscribers',
+      where: { email: { equals: testEmail } },
+    })
+
+    expect(userDocsAfterVerify).toHaveLength(1)
+    expect(userDocsAfterVerify[0]).toBeDefined()
+
+    const userAfterVerify = userDocsAfterVerify[0]
+
+    expect(userAfterVerify.verificationToken).toBeOneOf(['', undefined])
+    expect(userAfterVerify.userAfterVerifyExpires).toBeOneOf([null, undefined])
   })
 })

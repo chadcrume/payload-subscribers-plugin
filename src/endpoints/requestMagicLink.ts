@@ -1,12 +1,22 @@
-// endpoints/requestMagicLink.ts (Conceptual)
 import type { Endpoint, PayloadHandler } from 'payload'
 
 import crypto from 'crypto'
 
+/**
+ * requestMagicLink Endpoint Handler
+ * @param req
+ * @data { email }
+ * @returns { status: 200, json: {message: string} }
+ * @returns { status: 400, json: {error: string} }
+ */
 export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
   const { email } = data // if by POST data
   // const { email } = req.routeParams // if by path
+
+  if (!email) {
+    return Response.json({ error: 'Bad data' }, { status: 400 })
+  }
 
   const userResults = await req.payload.find({
     collection: 'subscribers',
@@ -44,7 +54,7 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
     text: message,
     to: user.email,
   })
-  req.payload.logger.info(`email result: ${JSON.stringify(emailResult)}`)
+  //   req.payload.logger.info(`email result: ${JSON.stringify(emailResult)}`)
   // return data; // Return data to allow normal submission if needed
   if (!emailResult) {
     return Response.json({ error: 'Unknown email result' }, { status: 400 })
@@ -52,6 +62,9 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   return Response.json(emailResult)
 }
 
+/**
+ * requestMagicLink Endpoint Config
+ */
 const requestMagicLinkEndpoint: Endpoint = {
   handler: requestMagicLinkHandler,
   method: 'post',
