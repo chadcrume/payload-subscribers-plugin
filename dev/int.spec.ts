@@ -6,6 +6,7 @@ import { createPayloadRequest, getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
+import subscribeEndpoint from '../src/endpoints/subscribe.js'
 import verifyMagicLinkEndpoint from '../src/endpoints/verifyMagicLink.js'
 import { getTestEmail } from '../src/helpers/testData.js'
 
@@ -130,5 +131,55 @@ describe('Plugin integration tests', () => {
 
     expect(userAfterVerify.verificationToken).toBeOneOf(['', undefined])
     expect(userAfterVerify.verificationTokenExpires).toBeOneOf([null, undefined])
+  })
+
+  test('Can use subscribe endpoint', async () => {
+    const testEmail = getTestEmail()
+
+    const testToken = 'seed-test'
+    const testTokenHash = crypto.createHash('sha256').update(testToken).digest('hex')
+    const testTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+
+    const { docs: userResult } = await payload.update({
+      collection: 'subscribers',
+      data: {
+        verificationToken: testTokenHash,
+        verificationTokenExpires: testTokenExpiresAt.toISOString(),
+      },
+      where: { email: { equals: testEmail } },
+    })
+
+    expect(userResult).toHaveLength(1)
+    expect(userResult[0]).toBeDefined()
+
+    const user = userResult[0]
+
+    const verifyRequest = new Request('http://localhost:3000/api/verifyToken', {
+      body: JSON.stringify({ email: user.email, token: testToken }),
+      method: 'POST',
+    })
+    const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })
+
+    const verifyResponse = await subscribeEndpoint.handler(verifyPayloadRequest)
+    const verifyResponseData = await verifyResponse.json()
+
+    // payload.logger.info(`response status ${verifyResponse.status}`)
+    // payload.logger.info(`response data ${JSON.stringify(verifyResponseData)}`)
+
+    expect(verifyResponse.status).toBe(400)
+    expect(verifyResponseData.error).toStrictEqual('Already subscribed')
+
+    const { docs: userDocsAfterVerify } = await payload.find({
+      collection: 'subscribers',
+      where: { email: { equals: testEmail } },
+    })
+
+    expect(userDocsAfterVerify).toHaveLength(1)
+    expect(userDocsAfterVerify[0]).toBeDefined()
+
+    const userAfterVerify = userDocsAfterVerify[0]
+
+    expect(userAfterVerify.verificationToken).not.toBeOneOf(['', undefined])
+    expect(userAfterVerify.verificationTokenExpires).not.toBeOneOf([null, undefined])
   })
 })

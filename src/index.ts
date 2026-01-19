@@ -4,6 +4,7 @@ import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
 import Subscribers from './collections/Subscribers.js'
 import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
+import subscribeEndpoint from './endpoints/subscribe.js'
 import verifyMagicLinkEndpoint from './endpoints/verifyMagicLink.js'
 import { getTestEmail } from './helpers/testData.js'
 
@@ -74,7 +75,7 @@ export const payloadSubscribersPlugin =
       config.endpoints = []
     }
 
-    config.endpoints.push(requestMagicLinkEndpoint, verifyMagicLinkEndpoint)
+    config.endpoints.push(requestMagicLinkEndpoint, subscribeEndpoint, verifyMagicLinkEndpoint)
 
     const incomingOnInit = config.onInit
 
