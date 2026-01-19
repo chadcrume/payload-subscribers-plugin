@@ -17,7 +17,7 @@ export type RequestMagicLinkResponse =
  * @param req
  * @data { email }
  * @returns { status: 200, json: {message: string, now: date} }
- * @returns { status: 400, json: {error: string, now: date} }
+ * @returns { status: 400, json: {error: ('Bad data' | 'Unknown email result'), now: date} }
  */
 export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
@@ -49,7 +49,7 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
 
-  // Update user (or create if not found)
+  // Update user
   await req.payload.update({
     collection: 'subscribers',
     data: {
@@ -91,55 +91,5 @@ const requestMagicLinkEndpoint: Endpoint = {
   //   path: '/:id/emailToken',
   path: '/emailToken',
 }
-//     {
-//       path: '/:id/tracking',
-//       method: 'get',
-//       handler: async (req) => {
-//         const tracking = await getTrackingInfo(req.routeParams.id)
-
-//         if (!tracking) {
-//           return Response.json({ error: 'not found' }, { status: 404 })
-//         }
-
-//         return Response.json({
-//           message: `Hello ${req.routeParams.name as string} @ ${req.routeParams.group as string}`,
-//         })
-//       },
-//     },
-//     {
-//       path: '/:id/tracking',
-//       method: 'post',
-//       handler: async (req) => {
-//         // `data` is not automatically appended to the request
-//         // if you would like to read the body of the request
-//         // you can use `data = await req.json()`
-//         const data = await req.json()
-//         await req.payload.update({
-//           collection: 'tracking',
-//           data: {
-//             // data to update the document with
-//           },
-//         })
-//         return Response.json({
-//           message: 'successfully updated tracking info',
-//         })
-//       },
-//     },
-//     {
-//       path: '/:id/forbidden',
-//       method: 'post',
-//       handler: async (req) => {
-//         // this is an example of an authenticated endpoint
-//         if (!req.user) {
-//           return Response.json({ error: 'forbidden' }, { status: 403 })
-//         }
-
-//         // do something
-
-//         return Response.json({
-//           message: 'successfully updated tracking info',
-//         })
-//       },
-//     },
 
 export default requestMagicLinkEndpoint

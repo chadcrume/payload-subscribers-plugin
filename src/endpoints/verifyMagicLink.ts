@@ -15,9 +15,9 @@ export type VerifyMagicLinkResponse =
 /**
  * verifyMagicLink Endpoint Handler
  * @param req
- * @data { email }
+ * @data { email, token }
  * @returns { status: 200, json: {message: string, now: date} }
- * @returns { status: 400, json: {error: string, now: date} }
+ * @returns { status: 400, json: {error: ('Bad data' | 'Token not verified' | 'Token expired'), now: date} }
  */
 export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
