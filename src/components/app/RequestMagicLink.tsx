@@ -6,9 +6,9 @@ import { type ChangeEvent, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
 // import { getPayload } from 'payload'
-// import type {requestMagicLinkResponse} from
+// import type {RequestMagicLinkResponse} from
 
-import type { requestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
+import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 
 import styles from './RequestMagicLink.module.css'
 
@@ -20,7 +20,7 @@ import styles from './RequestMagicLink.module.css'
 
 interface IRequestMagicLink {
   baseURL?: string
-  handleMagicLinkRequested?: (result: requestMagicLinkResponse) => void
+  handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
   showResult: boolean
 }

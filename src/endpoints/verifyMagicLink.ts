@@ -2,6 +2,16 @@ import type { Endpoint, PayloadHandler } from 'payload'
 
 import crypto from 'crypto'
 
+export type VerifyMagicLinkResponse =
+  | {
+      error: string
+      now: string
+    }
+  | {
+      message: string
+      now: string
+    }
+
 /**
  * verifyMagicLink Endpoint Handler
  * @param req
@@ -15,7 +25,10 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   // const { email, token } = req.routeParams // if by path
 
   if (!email || !token) {
-    return Response.json({ error: 'Bad data', now: new Date().toISOString() }, { status: 400 })
+    return Response.json(
+      { error: 'Bad data', now: new Date().toISOString() } as VerifyMagicLinkResponse,
+      { status: 400 },
+    )
   }
 
   const userResults = await req.payload.find({
@@ -27,21 +40,30 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   const user = userResults.docs[0]
 
   if (!user) {
-    return Response.json({ error: 'Bad data', now: new Date().toISOString() }, { status: 400 })
+    return Response.json(
+      { error: 'Bad data', now: new Date().toISOString() } as VerifyMagicLinkResponse,
+      { status: 400 },
+    )
   }
 
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
 
+  // req.payload.logger.info(
+  //   `verifyMagicLinkHandler ${email} \n ${tokenHash} \n ${user.verificationTokenExpires} \n ${user.verificationToken}`,
+  // )
   if (!user.verificationTokenExpires || tokenHash != user.verificationToken) {
     // req.payload.logger.info(`Token not verified: ${tokenHash} != ${user.verificationToken}`)
     return Response.json(
-      { error: 'Token not verified', now: new Date().toISOString() },
+      { error: 'Token not verified', now: new Date().toISOString() } as VerifyMagicLinkResponse,
       { status: 400 },
     )
   }
 
   if (new Date(Date.now()) > new Date(user.verificationTokenExpires)) {
-    return Response.json({ error: 'Token expired', now: new Date().toISOString() }, { status: 400 })
+    return Response.json(
+      { error: 'Token expired', now: new Date().toISOString() } as VerifyMagicLinkResponse,
+      { status: 400 },
+    )
   }
 
   // Update user
@@ -56,7 +78,10 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
     },
   })
 
-  return Response.json({ message: 'Token verified', now: new Date().toISOString() })
+  return Response.json({
+    message: 'Token verified',
+    now: new Date().toISOString(),
+  } as VerifyMagicLinkResponse)
 }
 
 /**

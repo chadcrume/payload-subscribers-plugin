@@ -2,7 +2,7 @@ import type { Endpoint, PayloadHandler } from 'payload'
 
 import crypto from 'crypto'
 
-export type requestMagicLinkResponse =
+export type RequestMagicLinkResponse =
   | {
       emailResult: any
       now: string
@@ -26,7 +26,7 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
 
   if (!email) {
     return Response.json(
-      { error: 'Bad data', now: new Date().toISOString() } as requestMagicLinkResponse,
+      { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
       { status: 400 },
     )
   }
@@ -41,7 +41,7 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
 
   if (!user) {
     return Response.json(
-      { error: 'Bad data', now: new Date().toISOString() } as requestMagicLinkResponse,
+      { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
       { status: 400 },
     )
   }
@@ -62,7 +62,7 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   })
 
   // Send email
-  const magicLink = `${req.payload.config.serverURL}/verify?token=${token}`
+  const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}`
   const subject = data.subject || 'Your Magic Login Link'
   const message = data.message || `<h1>Click here to login:</h1><a href="${magicLink}">Login</a>`
   const emailResult = await req.payload.sendEmail({
@@ -74,11 +74,12 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   // return data; // Return data to allow normal submission if needed
   if (!emailResult) {
     return Response.json(
-      { error: 'Unknown email result', now: new Date().toISOString() } as requestMagicLinkResponse,
+      { error: 'Unknown email result', now: new Date().toISOString() } as RequestMagicLinkResponse,
       { status: 400 },
     )
   }
-  return Response.json({ emailResult, now: new Date().toISOString() } as requestMagicLinkResponse)
+  req.payload.logger.info(`requestMagicLinkHandler email sent \n ${magicLink}`)
+  return Response.json({ emailResult, now: new Date().toISOString() } as RequestMagicLinkResponse)
 }
 
 /**

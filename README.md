@@ -25,6 +25,8 @@ A plugin to manage subscribers
 * ✔ Provides an API to send MagicLink to Subscriber
 * ✔ Provides an API to verify a MagicLink
 * ✔ Provides an App Component (Server + Client) to Request MagicLink
+* Provides an App Component (Server + Client) to Verify MagicLink
+* Provides an App Component (Server + Client) to Sign Up
 
 * Creates emails collection
   * Fields
@@ -40,7 +42,6 @@ A plugin to manage subscribers
 
 * Accepts custom blocks to add to the emails body
 
-* Provides an App Component (Server + Client) to Sign Up
 * Provides an App Component (Server + Client) to Manage Subscriber Opt-In Channels
 * Provides an App Component (Server + Client) to Unsubscribe
 * Provides an App Route to Unsubscribe
