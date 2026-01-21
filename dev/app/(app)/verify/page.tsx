@@ -2,28 +2,28 @@ import React from 'react'
 // import { Homepage } from '@/components/Homepage'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { RequestMagicLink } from 'payload-subscribers-plugin/ui'
+import { VerifyMagicLink } from 'payload-subscribers-plugin/ui'
 
-import type { RequestMagicLinkResponse } from '../../src/endpoints/requestMagicLink.js'
+import type { VerifyMagicLinkResponse } from '../../../../src/endpoints/verifyMagicLink.js'
 
 const payload = await getPayload({
   config: configPromise,
 })
 
 // eslint-disable-next-line @typescript-eslint/require-await
-export async function handleMagicLinkRequested(result: RequestMagicLinkResponse) {
+async function handleMagicLinkVerified(result: VerifyMagicLinkResponse) {
   'use server'
   console.log('hi:', result)
 }
-const Page = () => {
-  // const x = payload.config.endpoints
+
+const Page = async () => {
   return (
     <>
       <main id="main-content">
-        <RequestMagicLink
+        <VerifyMagicLink
           baseURL={payload.config.serverURL}
-          handleMagicLinkRequested={handleMagicLinkRequested}
-          showResult={true}
+          handleMagicLinkVerified={handleMagicLinkVerified}
+          showResultBeforeForwarding={true}
         />
       </main>
     </>

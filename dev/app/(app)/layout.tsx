@@ -19,6 +19,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <head></head>
       <body>{children}</body>
     </html>
+    // <>{children}</>
   )
 }
 
