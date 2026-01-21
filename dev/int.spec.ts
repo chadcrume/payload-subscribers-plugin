@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import { createPayloadRequest, getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
+import getOptInChannelsEndpoint from '../src/endpoints/getOptInChannels.js'
 import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
 import subscribeEndpoint from '../src/endpoints/subscribe.js'
 import verifyMagicLinkEndpoint from '../src/endpoints/verifyMagicLink.js'
@@ -13,6 +14,9 @@ import { getTestEmail } from '../src/helpers/testData.js'
 
 let payload: Payload
 
+/**
+ *
+ */
 afterAll(async () => {
   // await payload.destroy()
   // console.log('\n', 'afterAll payload.db', payload.db.url, '\n')
@@ -22,13 +26,22 @@ afterAll(async () => {
   }
 })
 
+/**
+ *
+ */
 beforeAll(async () => {
   payload = await getPayload({ config })
 })
 
+/**
+ *
+ */
 describe('Plugin integration tests', () => {
   let optInID: any
 
+  /**
+   *
+   */
   test('Plugin creates and seeds opt-in-channels', async () => {
     expect(payload.collections['opt-in-channels']).toBeDefined()
 
@@ -39,6 +52,9 @@ describe('Plugin integration tests', () => {
     optInID = docs[0].id
   })
 
+  /**
+   *
+   */
   test('Plugin creates and seeds subscribers', async () => {
     expect(payload.collections['subscribers']).toBeDefined()
 
@@ -52,6 +68,9 @@ describe('Plugin integration tests', () => {
     // expect(docs[0].optIns[0].email).toBe(testEmail)
   })
 
+  /**
+   *
+   */
   test('Can create post with custom text field added by plugin', async () => {
     const post = await payload.create({
       collection: 'posts',
@@ -63,6 +82,29 @@ describe('Plugin integration tests', () => {
     expect(post.optIns).toStrictEqual([optInID])
   })
 
+  /**
+   *
+   */
+  test('Can use getOptInChannelsEndpoint endpoint', async () => {
+    // payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
+
+    const request = new Request(`${serverURL}/api/optinchannels`, {
+      body: JSON.stringify({}),
+      method: 'GET',
+    })
+    const payloadRequest = await createPayloadRequest({ config, request })
+
+    const response = await getOptInChannelsEndpoint.handler(payloadRequest)
+
+    expect(response.status).toBe(200)
+
+    const resJson = await response.json()
+    expect(resJson.optInChannels).not.toBeUndefined()
+  })
+
+  /**
+   *
+   */
   test('Can use requestMagicLinkEndpoint endpoint', async () => {
     // payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
 
@@ -84,6 +126,9 @@ describe('Plugin integration tests', () => {
     })
   })
 
+  /**
+   *
+   */
   test('Can use verifyMagicLink endpoint', async () => {
     const testEmail = getTestEmail()
 
@@ -134,6 +179,9 @@ describe('Plugin integration tests', () => {
     expect(userAfterVerify.verificationTokenExpires).toBeOneOf([null, undefined])
   })
 
+  /**
+   *
+   */
   test('Can use subscribe endpoint', async () => {
     const testEmail = getTestEmail()
 

@@ -2,28 +2,28 @@ import React from 'react'
 // import { Homepage } from '@/components/Homepage'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { RequestMagicLink } from 'payload-subscribers-plugin/ui'
+import { Subscribe } from 'payload-subscribers-plugin/ui'
 
-import type { RequestMagicLinkResponse } from '../../../src/endpoints/requestMagicLink.js'
+import type { SubscribeResponse } from '../../../../src/endpoints/subscribe.js'
 
 const payload = await getPayload({
   config: configPromise,
 })
 
 // eslint-disable-next-line @typescript-eslint/require-await
-export async function handleMagicLinkRequested(result: RequestMagicLinkResponse) {
+async function handleSubscribe(result: SubscribeResponse) {
   'use server'
   console.log('hi:', result)
 }
+
 const Page = () => {
-  // const x = payload.config.endpoints
   return (
     <>
       <main id="main-content">
-        <h1>Home</h1>
-        <RequestMagicLink
+        <h1>Subscribe</h1>
+        <Subscribe
           baseURL={payload.config.serverURL}
-          handleMagicLinkRequested={handleMagicLinkRequested}
+          handleSubscribe={handleSubscribe}
           showResult={true}
         />
       </main>

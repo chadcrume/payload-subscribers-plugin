@@ -62,13 +62,13 @@ export const RequestMagicLink = ({
           // })
           if (result.ok) {
             const resultJson = await result.json()
-            setResult('GOOD: ' + JSON.stringify(resultJson))
+            setResult(JSON.stringify(resultJson))
             if (handleMagicLinkRequested) {
               handleMagicLinkRequested(resultJson)
             }
           } else {
             const resultText = await result.text()
-            setResult('BAD: ' + resultText)
+            setResult(resultText)
           }
         }}
       >

@@ -3,6 +3,7 @@ import type { BasePayload, CollectionSlug, Config } from 'payload'
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
 import Subscribers from './collections/Subscribers.js'
+import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
 import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
 import subscribeEndpoint from './endpoints/subscribe.js'
 import verifyMagicLinkEndpoint from './endpoints/verifyMagicLink.js'
@@ -75,7 +76,12 @@ export const payloadSubscribersPlugin =
       config.endpoints = []
     }
 
-    config.endpoints.push(requestMagicLinkEndpoint, subscribeEndpoint, verifyMagicLinkEndpoint)
+    config.endpoints.push(
+      getOptInChannelsEndpoint,
+      requestMagicLinkEndpoint,
+      subscribeEndpoint,
+      verifyMagicLinkEndpoint,
+    )
 
     const incomingOnInit = config.onInit
 

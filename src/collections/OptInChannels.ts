@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-const OptInChannels: CollectionConfig = {
+export const OptInChannels: CollectionConfig = {
   slug: 'opt-in-channels',
   access: {
     // Public access for creation (signup form)

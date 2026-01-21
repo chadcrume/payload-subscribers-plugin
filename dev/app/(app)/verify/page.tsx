@@ -20,6 +20,7 @@ const Page = async () => {
   return (
     <>
       <main id="main-content">
+        <h1>Verify</h1>
         <VerifyMagicLink
           baseURL={payload.config.serverURL}
           handleMagicLinkVerified={handleMagicLinkVerified}
