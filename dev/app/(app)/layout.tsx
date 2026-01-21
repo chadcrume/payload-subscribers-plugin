@@ -17,9 +17,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <html lang="en">
       <head></head>
-      <body>{children}</body>
+      <body style={{ backgroundColor: 'black', color: 'cream' }}>{children}</body>
     </html>
-    // <>{children}</>
   )
 }
 
