@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
 import subscribeEndpoint from '../src/endpoints/subscribe.js'
 import verifyMagicLinkEndpoint from '../src/endpoints/verifyMagicLink.js'
+import { serverURL } from '../src/helpers/serverConfig.js'
 import { getTestEmail } from '../src/helpers/testData.js'
 
 let payload: Payload
@@ -67,7 +68,7 @@ describe('Plugin integration tests', () => {
 
     const testEmail = getTestEmail()
 
-    const request = new Request('http://localhost:3000/api/emailToken', {
+    const request = new Request(`${serverURL}/api/emailToken`, {
       body: JSON.stringify({ email: testEmail }),
       method: 'POST',
     })
@@ -104,7 +105,7 @@ describe('Plugin integration tests', () => {
 
     const user = userResult[0]
 
-    const verifyRequest = new Request('http://localhost:3000/api/verifyToken', {
+    const verifyRequest = new Request(`${serverURL}/api/verifyToken`, {
       body: JSON.stringify({ email: user.email, token: testToken }),
       method: 'POST',
     })
@@ -154,7 +155,7 @@ describe('Plugin integration tests', () => {
 
     const user = userResult[0]
 
-    const verifyRequest = new Request('http://localhost:3000/api/verifyToken', {
+    const verifyRequest = new Request(`${serverURL}/api/verifyToken`, {
       body: JSON.stringify({ email: user.email, token: testToken }),
       method: 'POST',
     })
