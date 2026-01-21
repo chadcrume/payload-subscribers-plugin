@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 
 import React from 'react'
 
-// import RequestMagicLink from
-
 export const metadata: Metadata = {
   description: 'Payload Subscribers Plugin dev site',
   // metadataBase: new URL('https://chad.crume.org'),
@@ -13,11 +11,13 @@ export const metadata: Metadata = {
   },
 }
 
+import './global.css'
+
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <html lang="en">
       <head></head>
-      <body style={{ backgroundColor: 'black', color: 'cream' }}>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }
