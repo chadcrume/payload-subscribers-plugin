@@ -89,7 +89,6 @@ describe('Plugin integration tests', () => {
     // payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
 
     const request = new Request(`${serverURL}/api/optinchannels`, {
-      body: JSON.stringify({}),
       method: 'GET',
     })
     const payloadRequest = await createPayloadRequest({ config, request })

@@ -13,7 +13,7 @@ const payload = await getPayload({
 // eslint-disable-next-line @typescript-eslint/require-await
 async function handleMagicLinkVerified(result: VerifyMagicLinkResponse) {
   'use server'
-  console.log('hi:', result)
+  console.log('handleMagicLinkVerified:', result)
 }
 
 const Page = async () => {

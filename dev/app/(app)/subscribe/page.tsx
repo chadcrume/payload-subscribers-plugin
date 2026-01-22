@@ -13,7 +13,7 @@ const payload = await getPayload({
 // eslint-disable-next-line @typescript-eslint/require-await
 async function handleSubscribe(result: SubscribeResponse) {
   'use server'
-  console.log('hi:', result)
+  console.log('handleSubscribe:', result)
 }
 
 const Page = () => {

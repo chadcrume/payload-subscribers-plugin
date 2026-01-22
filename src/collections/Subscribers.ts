@@ -13,6 +13,12 @@ const Subscribers: CollectionConfig = {
     update: ({ req }) => (req.user ? true : false),
   },
   admin: { useAsTitle: 'email' },
+  auth: {
+    tokenExpiration: 30 * 60, // 30 minutes
+    // verify: true, // Require email verification before being allowed to authenticate
+    // maxLoginAttempts: 5, // Automatically lock a user out after X amount of failed logins
+    // lockTime: 600 * 1000, // Time period to allow the max login attempts
+  },
   fields: [
     {
       name: 'email',

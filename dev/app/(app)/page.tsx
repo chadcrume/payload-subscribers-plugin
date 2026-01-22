@@ -6,6 +6,8 @@ import { RequestMagicLink } from 'payload-subscribers-plugin/ui'
 
 import type { RequestMagicLinkResponse } from '../../../src/endpoints/requestMagicLink.js'
 
+import { Auth } from '../../components/Auth.js'
+
 const payload = await getPayload({
   config: configPromise,
 })
@@ -13,7 +15,7 @@ const payload = await getPayload({
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function handleMagicLinkRequested(result: RequestMagicLinkResponse) {
   'use server'
-  console.log('hi:', result)
+  console.log('handleMagicLinkRequested:', result)
 }
 const Page = () => {
   // const x = payload.config.endpoints
@@ -21,6 +23,7 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Home</h1>
+        <Auth />
         <RequestMagicLink
           baseURL={payload.config.serverURL}
           handleMagicLinkRequested={handleMagicLinkRequested}

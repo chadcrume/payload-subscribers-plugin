@@ -135,6 +135,7 @@ export const payloadSubscribersPlugin =
           collection: 'subscribers',
           data: {
             email: testData.testEmail,
+            password: 'something super secret',
             status: 'pending',
           },
         })

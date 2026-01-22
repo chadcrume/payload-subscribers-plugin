@@ -27,7 +27,6 @@ const buildConfigWithMemoryDB = async () => {
       },
     })
 
-    console.log('buildConfigWithMemoryDB', memoryDB.getUri())
     process.env.DATABASE_URL = `${memoryDB.getUri()}&retryWrites=true`
   }
 
@@ -48,6 +47,11 @@ const buildConfigWithMemoryDB = async () => {
         upload: {
           staticDir: path.resolve(dirname, 'media'),
         },
+      },
+      {
+        slug: 'users',
+        auth: true,
+        fields: [],
       },
     ],
     db: mongooseAdapter({

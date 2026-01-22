@@ -1,6 +1,7 @@
 import type { Endpoint, PayloadHandler } from 'payload'
 
 import crypto from 'crypto'
+import { serverURL } from 'src/helpers/serverConfig.js'
 
 export type VerifyMagicLinkResponse =
   | {
@@ -70,6 +71,43 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   await req.payload.update({
     collection: 'subscribers',
     data: {
+      // @ts-expect-error - yeah, set the password
+      password: tokenHash,
+    },
+    where: {
+      email: { equals: user.email },
+    },
+  })
+
+  // Log the user in via Payload headers
+  let headers
+  try {
+    const loginReq = await fetch(`${req.payload.config.serverURL}/api/${'subscribers'}/login`, {
+      body: JSON.stringify({
+        email,
+        password: tokenHash,
+      }),
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    })
+    if (loginReq && loginReq.ok) {
+      headers = loginReq.headers
+    }
+  } catch (error) {
+    // console.log(error)
+    return Response.json({ error } as VerifyMagicLinkResponse, { status: 400 })
+  }
+  // console.log('login', headers)
+
+  // Update user
+  await req.payload.update({
+    collection: 'subscribers',
+    data: {
+      // @ts-expect-error - yeah, set the password
+      password: 'something super secret',
       verificationToken: '',
       verificationTokenExpires: null,
     },
@@ -78,10 +116,13 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
     },
   })
 
-  return Response.json({
-    message: 'Token verified',
-    now: new Date().toISOString(),
-  } as VerifyMagicLinkResponse)
+  return Response.json(
+    {
+      message: 'Token verified',
+      now: new Date().toISOString(),
+    } as VerifyMagicLinkResponse,
+    { headers },
+  )
 }
 
 /**

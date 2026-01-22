@@ -54,6 +54,8 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     collection: 'subscribers',
     data: {
       email,
+      // @ts-expect-error - yeah, set the password
+      password: tokenHash,
       status: 'pending',
       verificationToken: tokenHash,
       verificationTokenExpires: expiresAt.toISOString(),
