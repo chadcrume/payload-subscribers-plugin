@@ -11,6 +11,9 @@ export const OptInChannels: CollectionConfig = {
     read: () => true,
     update: ({ req }) => (req.user ? true : false),
   },
+  admin: {
+    useAsTitle: 'title', // Specify the field to use as the title
+  },
   fields: [
     {
       name: 'title',
