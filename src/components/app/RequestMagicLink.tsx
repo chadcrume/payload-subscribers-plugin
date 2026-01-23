@@ -1,14 +1,16 @@
 'use client'
 
-import type { Config } from '@payload-types'
+import type { Config, Subscriber } from '@payload-types'
 
-import { type ChangeEvent, useState } from 'react'
+import { useSubscriber } from '@contexts/SubscriberProvider.js'
+import { type ChangeEvent, useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
+export { RequestMagicLinkResponse }
 
 import styles from './RequestMagicLink.module.css'
 
@@ -30,12 +32,19 @@ export const RequestMagicLink = ({
   handleMagicLinkRequested,
   showResult = false,
 }: IRequestMagicLink) => {
+  const { subscriber } = useSubscriber()
+
   const sdk = new PayloadSDK<Config>({
     baseURL: baseURL || '',
   })
 
   const [result, setResult] = useState<unknown>()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(subscriber?.email || '')
+
+  useEffect(() => {
+    setEmail(subscriber?.email || '')
+  }, [subscriber])
+
   return !baseURL ? (
     <></>
   ) : result && showResult ? (

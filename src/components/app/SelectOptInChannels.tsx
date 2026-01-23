@@ -22,13 +22,13 @@ interface ISelectOptInChannels {
   baseURL?: string
   handleOptInChannelsSelected?: (result: OptInChannel[]) => void
   props?: any
-  selectedOptInChannels?: OptInChannel[]
+  selectedOptInChannelIDs?: string[]
 }
 
 export const SelectOptInChannels = ({
   baseURL,
   handleOptInChannelsSelected,
-  selectedOptInChannels,
+  selectedOptInChannelIDs,
 }: ISelectOptInChannels) => {
   type OptInChannelCheckbox = {
     isChecked: boolean
@@ -61,10 +61,10 @@ export const SelectOptInChannels = ({
   useEffect(() => {
     const channels = result?.optInChannels?.map((channel: OptInChannel) => ({
       ...channel,
-      isChecked: selectedOptInChannels?.map((c) => c.title).includes(channel.title),
+      isChecked: selectedOptInChannelIDs?.includes(channel.id),
     }))
     setAllOptInChannels(channels)
-  }, [result, selectedOptInChannels])
+  }, [result, selectedOptInChannelIDs])
 
   return (
     <>
@@ -76,7 +76,7 @@ export const SelectOptInChannels = ({
         </div>
       ) : (
         <div className={styles.wrapper}>
-          <h1>Task List</h1>
+          <h2>Opt-in Channels</h2>
           {/* Map over the tasks array to render each checkbox */}
           {allOptInChannels?.map((channel) => (
             <div key={channel.id}>
@@ -99,7 +99,8 @@ export const SelectOptInChannels = ({
                             isChecked:
                               channel.title == event.target.value ? checked : channel.isChecked,
                           }))
-                          .filter((c) => c.isChecked),
+                          .filter((c) => c.isChecked)
+                          .map((channel) => ({ ...channel, isChecked: undefined })),
                       )
                     }
                   }}

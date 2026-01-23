@@ -63,12 +63,14 @@ export type SupportedTimezones =
 
 export interface Config {
   auth: {
+    users: UserAuthOperations;
     subscribers: SubscriberAuthOperations;
   };
   blocks: {};
   collections: {
     posts: Post;
     media: Media;
+    users: User;
     'opt-in-channels': OptInChannel;
     subscribers: Subscriber;
     'payload-kv': PayloadKv;
@@ -80,6 +82,7 @@ export interface Config {
   collectionsSelect: {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'opt-in-channels': OptInChannelsSelect<false> | OptInChannelsSelect<true>;
     subscribers: SubscribersSelect<false> | SubscribersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -94,12 +97,34 @@ export interface Config {
   globals: {};
   globalsSelect: {};
   locale: null;
-  user: Subscriber & {
-    collection: 'subscribers';
-  };
+  user:
+    | (User & {
+        collection: 'users';
+      })
+    | (Subscriber & {
+        collection: 'subscribers';
+      });
   jobs: {
     tasks: unknown;
     workflows: unknown;
+  };
+}
+export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
   };
 }
 export interface SubscriberAuthOperations {
@@ -126,7 +151,20 @@ export interface SubscriberAuthOperations {
  */
 export interface Post {
   id: string;
-  optIns?: (string | Post)[] | null;
+  optIns?: (string | OptInChannel)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "opt-in-channels".
+ */
+export interface OptInChannel {
+  id: string;
+  title: string;
+  description?: string | null;
+  active: boolean;
+  slug?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -150,16 +188,27 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "opt-in-channels".
+ * via the `definition` "users".
  */
-export interface OptInChannel {
+export interface User {
   id: string;
-  title: string;
-  description?: string | null;
-  active: boolean;
-  slug?: string | null;
   updatedAt: string;
   createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -172,7 +221,7 @@ export interface Subscriber {
   source?: string | null;
   verificationToken?: string | null;
   verificationTokenExpires?: string | null;
-  optIns?: (string | Post)[] | null;
+  optIns?: (string | OptInChannel)[] | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -224,6 +273,10 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
+        relationTo: 'users';
+        value: string | User;
+      } | null)
+    | ({
         relationTo: 'opt-in-channels';
         value: string | OptInChannel;
       } | null)
@@ -232,10 +285,15 @@ export interface PayloadLockedDocument {
         value: string | Subscriber;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'subscribers';
-    value: string | Subscriber;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'subscribers';
+        value: string | Subscriber;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -245,10 +303,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: string;
-  user: {
-    relationTo: 'subscribers';
-    value: string | Subscriber;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'subscribers';
+        value: string | Subscriber;
+      };
   key?: string | null;
   value?:
     | {
@@ -298,6 +361,28 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

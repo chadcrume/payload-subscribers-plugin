@@ -8,5 +8,5 @@ export const OptedInChannels: Field = {
   },
   hasMany: true,
   label: 'Opted-in channels',
-  relationTo: 'posts',
+  relationTo: 'opt-in-channels',
 }

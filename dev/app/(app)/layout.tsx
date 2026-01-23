@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 
+import { Auth } from 'payload-subscribers-plugin/ui'
 import React from 'react'
+
+import './global.css'
+import { SubscriberProvider } from '../../../src/contexts/SubscriberProvider.js'
+import { HomeChecker } from '../../components/HomeChecker.js'
 
 export const metadata: Metadata = {
   description: 'Payload Subscribers Plugin dev site',
@@ -11,13 +16,18 @@ export const metadata: Metadata = {
   },
 }
 
-import './global.css'
-
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <html lang="en">
       <head></head>
-      <body>{children}</body>
+      <body>
+        <SubscriberProvider>
+          <HomeChecker>
+            <Auth />
+          </HomeChecker>
+          {children}
+        </SubscriberProvider>
+      </body>
     </html>
   )
 }

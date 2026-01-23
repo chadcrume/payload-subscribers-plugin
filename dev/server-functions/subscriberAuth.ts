@@ -15,7 +15,7 @@ import { getPayload, type Payload } from 'payload'
 
 const payload: Payload = await getPayload({ config })
 
-export const auth = async () => {
+export const subscriberAuth = async () => {
   // you'll also have to await headers inside your function, or component, like so:
   const headers = await nextHeaders()
 

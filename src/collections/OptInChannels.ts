@@ -28,7 +28,7 @@ export const OptInChannels: CollectionConfig = {
       name: 'active',
       type: 'checkbox',
       defaultValue: true, // Default to pending until verified
-      label: 'Subscription Status',
+      label: 'Active',
       required: true,
     },
     {

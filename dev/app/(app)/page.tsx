@@ -6,8 +6,6 @@ import { RequestMagicLink } from 'payload-subscribers-plugin/ui'
 
 import type { RequestMagicLinkResponse } from '../../../src/endpoints/requestMagicLink.js'
 
-import { Auth } from '../../components/Auth.js'
-
 const payload = await getPayload({
   config: configPromise,
 })
@@ -23,7 +21,6 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Home</h1>
-        <Auth />
         <RequestMagicLink
           baseURL={payload.config.serverURL}
           handleMagicLinkRequested={handleMagicLinkRequested}

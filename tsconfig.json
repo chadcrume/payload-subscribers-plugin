@@ -30,7 +30,10 @@
       // "@/*": ["./src/**/*"],
       // "@dev/*": ["./dev/**/*"],
       "@collections/*": ["./src/collections/*"],
-      "@components/*": ["./src/components/*"]
+      "@contexts/*": ["./src/contexts/*"],
+      "@components/*": ["./src/components/*"],
+      "@endpoints/*": ["./src/endpoints/*"],
+      "@server-functions/*": ["./src/server-functions/*"]
     }
   },
   // "exclude": ["./dev/**/*"],

@@ -11,6 +11,7 @@ import { PayloadSDK } from '@payloadcms/sdk'
 
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
+export { VerifyMagicLinkResponse }
 
 import styles from './VerifyMagicLink.module.css'
 
