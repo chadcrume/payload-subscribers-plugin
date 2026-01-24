@@ -13,6 +13,8 @@ import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js
 import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
 export { VerifyMagicLinkResponse }
 
+import Link from 'next/link.js'
+
 import styles from './VerifyMagicLink.module.css'
 
 // const payload = await getPayload({
@@ -33,11 +35,11 @@ export const VerifyMagicLink = ({
   baseURL,
   handleMagicLinkRequested,
   handleMagicLinkVerified,
-  showResultBeforeForwarding = false,
+  showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
-  const optIns = searchParams.get('optIns')
+  const forwardUrl = searchParams.get('forwardUrl')
   const token = searchParams.get('token')
 
   const [result, setResult] = useState<unknown>()
@@ -49,74 +51,82 @@ export const VerifyMagicLink = ({
         baseURL: baseURL || '',
       })
 
-      const result = await sdk.request({
+      const verifyResult = await sdk.request({
         json: {
           email,
-          optIns,
           token,
         },
         method: 'POST',
         path: '/api/verifyToken',
       })
-      if (result.ok) {
-        const resultJson = await result.json()
+      if (verifyResult.ok) {
+        const resultJson = await verifyResult.json()
         setResult('GOOD: ' + JSON.stringify(resultJson))
         if (handleMagicLinkVerified) {
           handleMagicLinkVerified(resultJson)
         }
       } else {
-        const resultText = await result.text()
+        const resultText = await verifyResult.text()
         setResult('BAD: ' + resultText)
       }
     }
     void verify()
-  }, [baseURL, email, handleMagicLinkVerified, optIns, token])
+  }, [baseURL, email, handleMagicLinkVerified, token])
 
   const handleSubmit = async () => {
     const sdk = new PayloadSDK<Config>({
       baseURL: baseURL || '',
     })
 
-    const result = await sdk.request({
+    const emailResult = await sdk.request({
       json: {
         email,
       },
       method: 'POST',
       path: '/api/emailToken',
     })
-    if (result.ok) {
-      const resultJson = await result.json()
+    if (emailResult.ok) {
+      const resultJson = await emailResult.json()
       setResult('GOOD: ' + JSON.stringify(resultJson))
       if (handleMagicLinkRequested) {
         handleMagicLinkRequested(resultJson)
       }
     } else {
-      const resultText = await result.text()
+      const resultText = await emailResult.text()
       setResult('BAD: ' + resultText)
     }
   }
   return (
-    <>
+    <div className={styles.wrapper}>
       {!baseURL ? (
         <></>
-      ) : result && showResultBeforeForwarding ? (
-        <div className={styles.wrapper}>
-          <div>{JSON.stringify(result)}</div>
-        </div>
       ) : (
-        <div className={styles.wrapper}>
-          <div>verifying...</div>
-        </div>
+        <>
+          {result && showResultBeforeForwarding ? (
+            <div>
+              <div>{JSON.stringify(result)}</div>
+              {forwardUrl && (
+                <div>
+                  <a href={forwardUrl}>Continue</a>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <div>verifying...</div>
+            </div>
+          )}
+          <form
+            method="POST"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              await handleSubmit()
+            }}
+          >
+            <button type="submit">Request another magic link</button>
+          </form>
+        </>
       )}
-      <form
-        method="POST"
-        onSubmit={async (e) => {
-          e.preventDefault()
-          await handleSubmit()
-        }}
-      >
-        <button type="submit">Request another magic link</button>
-      </form>
-    </>
+    </div>
   )
 }

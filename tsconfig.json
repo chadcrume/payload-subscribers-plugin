@@ -34,6 +34,7 @@
       "@components/*": ["./src/components/*"],
       "@endpoints/*": ["./src/endpoints/*"],
       "@helpers/*": ["./src/helpers/*"],
+      "@react-hooks/*": ["./src/react-hooks/*"],
       "@server-functions/*": ["./src/server-functions/*"]
     }
   },

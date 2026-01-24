@@ -27,7 +27,11 @@ export type SubscribeResponse =
  */
 export const subscribeHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
-  const { email, optIns }: { email: string; optIns: string[] } = data // if by POST data
+  const {
+    email,
+    optIns,
+    verifyForwardUrl,
+  }: { email: string; optIns: string[]; verifyForwardUrl: string } = data // if by POST data
   // const { email } = req.routeParams // if by path
 
   //
@@ -94,21 +98,21 @@ export const subscribeHandler: PayloadHandler = async (req) => {
   }
   const sendVerifyEmail = async ({
     email,
+    forwardUrl,
     linkTet,
     message,
-    optIns,
     subject,
     token,
   }: {
     email: string
+    forwardUrl?: string
     linkTet: string
     message: string
-    optIns?: string[]
     subject: string
     token: string
   }) => {
-    const optInsParam = optIns ? `&optIns=${optIns.join(',')}` : ''
-    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${optInsParam}`
+    const forwardUrlParam = forwardUrl ? `&forwardUrl=${encodeURI(forwardUrl)}` : ''
+    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${forwardUrlParam}`
     const text = message + `<a href="${magicLink}">${linkTet}</a>`
     const emailResult = await req.payload.sendEmail({
       subject,
@@ -198,9 +202,9 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     // Send email
     const emailResult = await sendVerifyEmail({
       email,
+      forwardUrl: verifyForwardUrl,
       linkTet: 'Verify',
       message: data.message || `<h1>Click here to verify your subscription:</h1>`,
-      optIns: verifiedOptInIDs,
       subject: data.subject || 'Please verify your subscription',
       token,
     })
@@ -239,9 +243,9 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     // Send email
     const emailResult = await sendVerifyEmail({
       email,
+      forwardUrl: verifyForwardUrl,
       linkTet: 'Verify',
       message: data.message || `<h1>Click here to verify your subscription:</h1>`,
-      optIns: verifiedOptInIDs,
       subject: data.subject || 'Please verify your subscription',
       token,
     })
@@ -277,9 +281,9 @@ export const subscribeHandler: PayloadHandler = async (req) => {
 
     const emailResult = await sendVerifyEmail({
       email,
+      forwardUrl: verifyForwardUrl,
       linkTet: 'Verify',
       message: data.message || `<h1>Click here to verify your email:</h1>`,
-      optIns: verifiedOptInIDs,
       subject: data.subject || 'Please verify your subscription',
       token,
     })

@@ -11,6 +11,7 @@ import type { SubscribeResponse } from '@endpoints/subscribe.js'
 export { SubscribeResponse }
 
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
+import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './Subscribe.module.css'
@@ -39,6 +40,8 @@ export const Subscribe = ({ baseURL, handleSubscribe, showResult = false }: ISub
   // @ts-expect-error This is correct, just not sure how to deal with Payload internal generic Post typing
   const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(subscriber?.optIns || [])
 
+  const { serverURL } = useServerUrl()
+
   useEffect(() => {
     setEmail(subscriber?.email || '')
     // @ts-expect-error This is correct, just not sure how to deal with Payload internal generic Post typing
@@ -54,6 +57,7 @@ export const Subscribe = ({ baseURL, handleSubscribe, showResult = false }: ISub
       json: {
         email,
         optIns: selectedChannelIDs,
+        verifyForwardUrl: serverURL + window.location.pathname + '?now=' + new Date().toISOString(),
       },
       method: 'POST',
       path: '/api/subscribe',

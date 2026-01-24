@@ -1,7 +1,6 @@
 import type { Endpoint, PayloadHandler } from 'payload'
 
 import { getHash } from '@helpers/token.js'
-import { verifyOptIns } from '@helpers/verifyOptIns.js'
 
 export type VerifyMagicLinkResponse =
   | {
@@ -16,13 +15,13 @@ export type VerifyMagicLinkResponse =
 /**
  * verifyMagicLink Endpoint Handler
  * @param req
- * @data { email, token }
+ * @data { email, forwardUrl, token }
  * @returns { status: 200, json: {message: string, now: date} }
  * @returns { status: 400, json: {error: ('Bad data' | 'Token not verified' | 'Token expired'), now: date} }
  */
 export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   const reqData = req?.json ? await req.json() : {}
-  const { email, optIns, token }: { email: string; optIns: string[]; token: string } = reqData // if by POST reqData
+  const { email, token }: { email: string; token: string } = reqData // if by POST reqData
   // const { email, token } = req.routeParams // if by path
 
   if (!email || !token) {
@@ -102,21 +101,7 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   }
   // console.log('login', headers)
 
-  //
-  // Handle OptInChannels
-  const { invalidOptInsInput, verifiedOptInIDs } = await verifyOptIns(req.payload, optIns)
-  if (invalidOptInsInput) {
-    return Response.json(
-      {
-        error: 'Invalid input: ' + JSON.stringify(optIns),
-        now: new Date().toISOString(),
-      } as VerifyMagicLinkResponse,
-      { status: 400 },
-    )
-  }
-
   const data = {
-    optIns: optIns ? verifiedOptInIDs : undefined,
     password: 'something super secret',
     status: 'subscribed' as 'pending' | 'subscribed' | 'unsubscribed' | undefined,
     verificationToken: '',

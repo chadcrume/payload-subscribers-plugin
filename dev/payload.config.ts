@@ -7,9 +7,11 @@ import { payloadSubscribersPlugin } from 'payload-subscribers-plugin'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
-import { serverURL } from '../src/helpers/serverConfig.js'
+import { getServerUrl } from '../src/server-functions/serverUrl.js'
 import { testEmailAdapter } from './helpers/testEmailAdapter.js'
 import { seed } from './seed.js'
+
+const { serverURL } = await getServerUrl()
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)

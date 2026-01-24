@@ -9,9 +9,10 @@ import getOptInChannelsEndpoint from '../src/endpoints/getOptInChannels.js'
 import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
 import subscribeEndpoint from '../src/endpoints/subscribe.js'
 import verifyMagicLinkEndpoint from '../src/endpoints/verifyMagicLink.js'
-import { serverURL } from '../src/helpers/serverConfig.js'
 import { getTestEmail } from '../src/helpers/testData.js'
+import { getServerUrl } from '../src/server-functions/serverUrl.js'
 
+const { serverURL } = await getServerUrl()
 let payload: Payload
 
 /**
