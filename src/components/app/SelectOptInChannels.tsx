@@ -5,6 +5,7 @@ import type { Config, OptInChannel } from '@payload-types'
 import { useEffect, useMemo, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
+import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
@@ -19,17 +20,17 @@ import styles from './SelectOptInChannels.module.css'
 // Pass your config from generated types as generic
 
 interface ISelectOptInChannels {
-  baseURL?: string
   handleOptInChannelsSelected?: (result: OptInChannel[]) => void
   props?: any
   selectedOptInChannelIDs?: string[]
 }
 
 export const SelectOptInChannels = ({
-  baseURL,
   handleOptInChannelsSelected,
   selectedOptInChannelIDs,
 }: ISelectOptInChannels) => {
+  const { config } = useConfig()
+
   type OptInChannelCheckbox = {
     isChecked: boolean
   } & OptInChannel
@@ -39,7 +40,7 @@ export const SelectOptInChannels = ({
   useEffect(() => {
     async function verify() {
       const sdk = new PayloadSDK<Config>({
-        baseURL: baseURL || '',
+        baseURL: config.serverURL || '',
       })
 
       console.log('calling optinchannels endpoint')
@@ -56,7 +57,7 @@ export const SelectOptInChannels = ({
       }
     }
     void verify()
-  }, [baseURL])
+  }, [config])
 
   useEffect(() => {
     const channels = result?.optInChannels?.map((channel: OptInChannel) => ({
@@ -68,9 +69,7 @@ export const SelectOptInChannels = ({
 
   return (
     <>
-      {!baseURL ? (
-        <></>
-      ) : !result ? (
+      {!result ? (
         <div className={styles.wrapper}>
           <div>loading...</div>
         </div>
@@ -123,37 +122,6 @@ export const SelectOptInChannels = ({
           )}
         </div>
       )}
-
-      {/* <form
-        method="POST"
-        onSubmit={async (e) => {
-          e.preventDefault()
-
-          const sdk = new PayloadSDK<Config>({
-            baseURL: baseURL || '',
-          })
-
-          const result = await sdk.request({
-            json: {
-              email,
-            },
-            method: 'POST',
-            path: '/api/emailToken',
-          })
-          if (result.ok) {
-            const resultJson = await result.json()
-            setResult(JSON.stringify(resultJson))
-            if (handleMagicLinkRequested) {
-              handleMagicLinkRequested(resultJson)
-            }
-          } else {
-            const resultText = await result.text()
-            setResult(resultText)
-          }
-        }}
-      >
-        <button type="submit">Request another magic link</button>
-      </form> */}
     </>
   )
 }

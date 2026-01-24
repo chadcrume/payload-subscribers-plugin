@@ -6,6 +6,7 @@ import { useSubscriber } from '@contexts/SubscriberProvider.js'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
+import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
@@ -21,7 +22,6 @@ import styles from './RequestMagicLink.module.css'
 // Pass your config from generated types as generic
 
 interface IRequestMagicLink {
-  baseURL?: string
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
   showResult: boolean
@@ -30,16 +30,16 @@ interface IRequestMagicLink {
 type status = 'default' | 'error' | 'sent'
 
 export const RequestMagicLink = ({
-  baseURL,
   handleMagicLinkRequested,
   showResult = false,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
+  const { config } = useConfig()
 
   const [status, setStatus] = useState<status>('default')
 
   const sdk = new PayloadSDK<Config>({
-    baseURL: baseURL || '',
+    baseURL: config.serverURL || '',
   })
 
   const [result, setResult] = useState<string>()
@@ -87,9 +87,7 @@ export const RequestMagicLink = ({
     }
   }
 
-  return !baseURL ? (
-    <></>
-  ) : (
+  return (
     <div className={styles.wrapper}>
       {status == 'error' ? (
         <div className={styles.error}>{result}</div>

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation.js'
 import { useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
+import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
@@ -24,7 +25,6 @@ import styles from './VerifyMagicLink.module.css'
 // Pass your config from generated types as generic
 
 interface IVerifyMagicLink {
-  baseURL?: string
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
   props?: any
@@ -32,11 +32,11 @@ interface IVerifyMagicLink {
 }
 
 export const VerifyMagicLink = ({
-  baseURL,
   handleMagicLinkRequested,
   handleMagicLinkVerified,
   showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
+  const { config } = useConfig()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const forwardUrl = searchParams.get('forwardUrl')
@@ -48,7 +48,7 @@ export const VerifyMagicLink = ({
   useEffect(() => {
     async function verify() {
       const sdk = new PayloadSDK<Config>({
-        baseURL: baseURL || '',
+        baseURL: config.serverURL || '',
       })
 
       const verifyResult = await sdk.request({
@@ -71,11 +71,11 @@ export const VerifyMagicLink = ({
       }
     }
     void verify()
-  }, [baseURL, email, handleMagicLinkVerified, token])
+  }, [config, email, handleMagicLinkVerified, token])
 
   const handleSubmit = async () => {
     const sdk = new PayloadSDK<Config>({
-      baseURL: baseURL || '',
+      baseURL: config.serverURL || '',
     })
 
     const emailResult = await sdk.request({
@@ -98,9 +98,7 @@ export const VerifyMagicLink = ({
   }
   return (
     <div className={styles.wrapper}>
-      {!baseURL ? (
-        <></>
-      ) : (
+      {
         <>
           {result && showResultBeforeForwarding ? (
             <div>
@@ -126,7 +124,7 @@ export const VerifyMagicLink = ({
             <button type="submit">Request another magic link</button>
           </form>
         </>
-      )}
+      }
     </div>
   )
 }

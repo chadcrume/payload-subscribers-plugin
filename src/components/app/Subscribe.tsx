@@ -5,6 +5,7 @@ import type { Config, OptInChannel } from '@payload-types'
 import { type ChangeEvent, useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
+import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 
 import type { SubscribeResponse } from '@endpoints/subscribe.js'
@@ -23,17 +24,18 @@ import styles from './Subscribe.module.css'
 // Pass your config from generated types as generic
 
 interface ISubscribe {
-  baseURL?: string
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
   showResult: boolean
 }
 
-export const Subscribe = ({ baseURL, handleSubscribe, showResult = false }: ISubscribe) => {
-  const sdk = new PayloadSDK<Config>({
-    baseURL: baseURL || '',
-  })
+export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) => {
   const { refreshSubscriber, subscriber } = useSubscriber()
+  const { config } = useConfig()
+
+  const sdk = new PayloadSDK<Config>({
+    baseURL: config.serverURL || '',
+  })
 
   const [result, setResult] = useState<unknown>()
   const [email, setEmail] = useState(subscriber ? subscriber.email : '')
@@ -75,14 +77,11 @@ export const Subscribe = ({ baseURL, handleSubscribe, showResult = false }: ISub
     }
   }
 
-  return !baseURL ? (
-    <></>
-  ) : (
+  return (
     <div className={styles.wrapper}>
       <h2>Subscribe</h2>
       <div className={styles.section}>
         <SelectOptInChannels
-          baseURL={baseURL}
           handleOptInChannelsSelected={handleOptInChannelsSelected}
           selectedOptInChannelIDs={selectedChannelIDs}
         />

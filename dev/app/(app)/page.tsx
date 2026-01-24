@@ -31,9 +31,8 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Home</h1>
-        <Subscribe baseURL={payload.config.serverURL} handleSubscribe={handleSubscribe} />
+        <Subscribe handleSubscribe={handleSubscribe} />
         {/* <RequestMagicLink
-          baseURL={payload.config.serverURL}
           handleMagicLinkRequested={handleMagicLinkRequested}
           showResult={true}
         /> */}
