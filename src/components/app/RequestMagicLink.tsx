@@ -3,7 +3,7 @@
 import type { Config, Subscriber } from '@payload-types'
 
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
 // import { getPayload } from 'payload'
@@ -27,6 +27,8 @@ interface IRequestMagicLink {
   showResult: boolean
 }
 
+type status = 'default' | 'error' | 'sent'
+
 export const RequestMagicLink = ({
   baseURL,
   handleMagicLinkRequested,
@@ -34,62 +36,80 @@ export const RequestMagicLink = ({
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
 
+  const [status, setStatus] = useState<status>('default')
+
   const sdk = new PayloadSDK<Config>({
     baseURL: baseURL || '',
   })
 
-  const [result, setResult] = useState<unknown>()
+  const [result, setResult] = useState<string>()
   const [email, setEmail] = useState(subscriber?.email || '')
 
   useEffect(() => {
     setEmail(subscriber?.email || '')
   }, [subscriber])
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const emailTokenResponse = await sdk.request({
+      json: {
+        email,
+      },
+      method: 'POST',
+      path: '/api/emailToken',
+    })
+    // const emailTokenResponse = await fetch('/api/emailToken', {
+    //   body: JSON.stringify({ email }),
+    //   method: 'POST',
+    //   // path: '/api/emailToken',
+    // })
+    if (emailTokenResponse.ok) {
+      const emailTokenResponseJson: RequestMagicLinkResponse = await emailTokenResponse.json()
+      if (handleMagicLinkRequested) {
+        handleMagicLinkRequested(emailTokenResponseJson)
+      }
+      // @ts-expect-error One or the other exists
+      const { emailResult, error } = emailTokenResponseJson
+      if (error) {
+        setStatus('error')
+        setResult(`An error occured. Please try again. \n ${error}`)
+      } else if (emailResult) {
+        setStatus('sent')
+        setResult(`An email has been sent. ${emailResult.message}`)
+      } else {
+        setStatus('error')
+        setResult(`An error occured. Please try again. \nResult unknown`)
+      }
+    } else {
+      const emailTokenResponseText = await emailTokenResponse.text()
+      setStatus('error')
+      setResult(`An error occured. Please try again. \n${emailTokenResponseText}`)
+    }
+  }
+
   return !baseURL ? (
     <></>
-  ) : result && showResult ? (
-    <div className={styles.wrapper}>
-      <div>{JSON.stringify(result)}</div>
-    </div>
   ) : (
     <div className={styles.wrapper}>
-      <form
-        method="POST"
-        onSubmit={async (e) => {
-          e.preventDefault()
-          const result = await sdk.request({
-            json: {
-              email,
-            },
-            method: 'POST',
-            path: '/api/emailToken',
-          })
-          // const result = await fetch('/api/emailToken', {
-          //   body: JSON.stringify({ email }),
-          //   method: 'POST',
-          //   // path: '/api/emailToken',
-          // })
-          if (result.ok) {
-            const resultJson = await result.json()
-            setResult(JSON.stringify(resultJson))
-            if (handleMagicLinkRequested) {
-              handleMagicLinkRequested(resultJson)
-            }
-          } else {
-            const resultText = await result.text()
-            setResult(resultText)
-          }
-        }}
-      >
-        <input
-          aria-label="enter your email"
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-          placeholder="enter your email"
-          type="email"
-          value={email}
-        />
-        <button type="submit">Request magic link</button>
-      </form>
+      {status == 'error' ? (
+        <div className={styles.error}>{result}</div>
+      ) : result && showResult ? (
+        <div>{result}</div>
+      ) : (
+        <></>
+      )}
+      <div>
+        <form method="POST" onSubmit={handleSubmit}>
+          <input
+            aria-label="enter your email"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            placeholder="enter your email"
+            type="email"
+            value={email}
+          />
+          <button type="submit">Request magic link</button>
+        </form>
+      </div>
     </div>
   )
 }
