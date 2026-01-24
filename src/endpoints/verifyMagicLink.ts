@@ -1,7 +1,7 @@
 import type { Endpoint, PayloadHandler } from 'payload'
 
-import crypto from 'crypto'
-import { serverURL } from 'src/helpers/serverConfig.js'
+import { getHash } from '@helpers/token.js'
+import { verifyOptIns } from '@helpers/verifyOptIns.js'
 
 export type VerifyMagicLinkResponse =
   | {
@@ -21,8 +21,8 @@ export type VerifyMagicLinkResponse =
  * @returns { status: 400, json: {error: ('Bad data' | 'Token not verified' | 'Token expired'), now: date} }
  */
 export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
-  const data = req?.json ? await req.json() : {}
-  const { email, token } = data // if by POST data
+  const reqData = req?.json ? await req.json() : {}
+  const { email, optIns, token }: { email: string; optIns: string[]; token: string } = reqData // if by POST reqData
   // const { email, token } = req.routeParams // if by path
 
   if (!email || !token) {
@@ -47,7 +47,7 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
     )
   }
 
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+  const { tokenHash } = getHash(token)
 
   // req.payload.logger.info(
   //   `verifyMagicLinkHandler ${email} \n ${tokenHash} \n ${user.verificationTokenExpires} \n ${user.verificationToken}`,
@@ -102,15 +102,30 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   }
   // console.log('login', headers)
 
+  //
+  // Handle OptInChannels
+  const { invalidOptInsInput, verifiedOptInIDs } = await verifyOptIns(req.payload, optIns)
+  if (invalidOptInsInput) {
+    return Response.json(
+      {
+        error: 'Invalid input: ' + JSON.stringify(optIns),
+        now: new Date().toISOString(),
+      } as VerifyMagicLinkResponse,
+      { status: 400 },
+    )
+  }
+
+  const data = {
+    optIns: optIns ? verifiedOptInIDs : undefined,
+    password: 'something super secret',
+    status: 'subscribed' as 'pending' | 'subscribed' | 'unsubscribed' | undefined,
+    verificationToken: '',
+    verificationTokenExpires: null,
+  }
   // Update user
   await req.payload.update({
     collection: 'subscribers',
-    data: {
-      // @ts-expect-error - yeah, set the password
-      password: 'something super secret',
-      verificationToken: '',
-      verificationTokenExpires: null,
-    },
+    data,
     where: {
       email: { equals: user.email },
     },

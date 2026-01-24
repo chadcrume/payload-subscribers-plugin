@@ -3,7 +3,7 @@
 import type { Config } from '@payload-types'
 
 import { useSearchParams } from 'next/navigation.js'
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
 // import { getPayload } from 'payload'
@@ -36,8 +36,9 @@ export const VerifyMagicLink = ({
   showResultBeforeForwarding = false,
 }: IVerifyMagicLink) => {
   const searchParams = useSearchParams()
-  const token = searchParams.get('token')
   const email = searchParams.get('email')
+  const optIns = searchParams.get('optIns')
+  const token = searchParams.get('token')
 
   const [result, setResult] = useState<unknown>()
   // const [email, setEmail] = useState('')
@@ -51,6 +52,7 @@ export const VerifyMagicLink = ({
       const result = await sdk.request({
         json: {
           email,
+          optIns,
           token,
         },
         method: 'POST',
@@ -68,8 +70,31 @@ export const VerifyMagicLink = ({
       }
     }
     void verify()
-  }, [baseURL, email, handleMagicLinkVerified, token])
+  }, [baseURL, email, handleMagicLinkVerified, optIns, token])
 
+  const handleSubmit = async () => {
+    const sdk = new PayloadSDK<Config>({
+      baseURL: baseURL || '',
+    })
+
+    const result = await sdk.request({
+      json: {
+        email,
+      },
+      method: 'POST',
+      path: '/api/emailToken',
+    })
+    if (result.ok) {
+      const resultJson = await result.json()
+      setResult('GOOD: ' + JSON.stringify(resultJson))
+      if (handleMagicLinkRequested) {
+        handleMagicLinkRequested(resultJson)
+      }
+    } else {
+      const resultText = await result.text()
+      setResult('BAD: ' + resultText)
+    }
+  }
   return (
     <>
       {!baseURL ? (
@@ -87,28 +112,7 @@ export const VerifyMagicLink = ({
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
-
-          const sdk = new PayloadSDK<Config>({
-            baseURL: baseURL || '',
-          })
-
-          const result = await sdk.request({
-            json: {
-              email,
-            },
-            method: 'POST',
-            path: '/api/emailToken',
-          })
-          if (result.ok) {
-            const resultJson = await result.json()
-            setResult('GOOD: ' + JSON.stringify(resultJson))
-            if (handleMagicLinkRequested) {
-              handleMagicLinkRequested(resultJson)
-            }
-          } else {
-            const resultText = await result.text()
-            setResult('BAD: ' + resultText)
-          }
+          await handleSubmit()
         }}
       >
         <button type="submit">Request another magic link</button>
