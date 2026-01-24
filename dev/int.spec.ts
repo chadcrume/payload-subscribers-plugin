@@ -77,6 +77,7 @@ describe('Plugin integration tests', () => {
       data: {
         optIns: [optInID],
       },
+      depth: 0,
     })
 
     expect(post.optIns).toStrictEqual([optInID])
@@ -206,16 +207,18 @@ describe('Plugin integration tests', () => {
       body: JSON.stringify({ email: user.email, token: testToken }),
       method: 'POST',
     })
-    const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })
+    const subscribeRequest = await createPayloadRequest({ config, request: verifyRequest })
 
-    const verifyResponse = await subscribeEndpoint.handler(verifyPayloadRequest)
-    const verifyResponseData = await verifyResponse.json()
+    const subscribeResponse = await subscribeEndpoint.handler(subscribeRequest)
+    const subscribeResponseData = await subscribeResponse.json()
 
-    // payload.logger.info(`response status ${verifyResponse.status}`)
-    // payload.logger.info(`response data ${JSON.stringify(verifyResponseData)}`)
+    // payload.logger.info(`response status ${subscribeResponse.status}`)
+    // payload.logger.info(`response data ${JSON.stringify(subscribeResponseData)}`)
 
-    expect(verifyResponse.status).toBe(400)
-    expect(verifyResponseData.error).toStrictEqual('Already subscribed')
+    expect(subscribeResponse.status).toBe(200)
+    expect(subscribeResponseData.emailResult.message).toStrictEqual(
+      "Test email to: 'seeded-by-plugin@crume.org', Subject: 'Please verify your subscription'",
+    )
 
     const { docs: userDocsAfterVerify } = await payload.find({
       collection: 'subscribers',
