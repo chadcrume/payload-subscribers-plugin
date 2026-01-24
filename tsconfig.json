@@ -33,6 +33,7 @@
       "@contexts/*": ["./src/contexts/*"],
       "@components/*": ["./src/components/*"],
       "@endpoints/*": ["./src/endpoints/*"],
+      "@helpers/*": ["./src/helpers/*"],
       "@server-functions/*": ["./src/server-functions/*"]
     }
   },

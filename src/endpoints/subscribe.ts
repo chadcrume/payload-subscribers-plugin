@@ -1,7 +1,7 @@
-import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
+import type { Endpoint, PayloadHandler } from 'payload'
 
-import OptInChannels from '@collections/OptInChannels.js'
-import crypto from 'crypto'
+import { getTokenAndHash } from '@helpers/token.js'
+import { verifyOptIns } from '@helpers/verifyOptIns.js'
 
 export type SubscribeResponse =
   | {
@@ -32,48 +32,9 @@ export const subscribeHandler: PayloadHandler = async (req) => {
 
   //
   // HELPERS
+  // Some of these functions make use of the scope within handler,
+  // and would have to be refactored if moved out.
   //
-  const verifyOptIns = async (
-    optIns?: string[],
-  ): Promise<{
-    invalidOptInsInput: string[] | undefined
-    verifiedOptInIDs: string[] | undefined
-  }> => {
-    if (optIns) {
-      //
-      // Get all matching OptInChannels
-      const optInChannelResults = await req.payload.find({
-        collection: OptInChannels.slug as CollectionSlug,
-        where: {
-          id: { in: optIns },
-        },
-      })
-      const verifiedOptInIDs: string[] | undefined = optInChannelResults.docs.map(
-        (channel) => channel.id,
-      )
-
-      //
-      // Separate all non-matching OptInChannels
-      const checkInvalidOptInsInput: string[] | undefined = optIns?.filter(
-        (channelID) => !verifiedOptInIDs.includes(channelID),
-      )
-      const invalidOptInsInput: string[] | undefined =
-        checkInvalidOptInsInput.length > 0 ? checkInvalidOptInsInput : undefined
-
-      // req.payload.logger.info(`optIns = ${JSON.stringify(optIns)}`)
-      // req.payload.logger.info(`invalidOptInsInput = ${JSON.stringify(invalidOptInsInput)}`)
-      // req.payload.logger.info(`verifiedOptInIDs = ${JSON.stringify(verifiedOptInIDs)}`)
-      return { invalidOptInsInput, verifiedOptInIDs }
-    }
-    return { invalidOptInsInput: undefined, verifiedOptInIDs: undefined }
-  }
-  const getTokenAndHash = (milliseconds?: number) => {
-    const token = crypto.randomBytes(32).toString('hex')
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
-    const expiresAt = milliseconds ? new Date(Date.now() + milliseconds) : undefined
-
-    return { expiresAt, token, tokenHash }
-  }
   const createSubscriber = async ({
     optIns,
     password,
@@ -146,7 +107,8 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     subject: string
     token: string
   }) => {
-    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}&optIns=${optIns.join(',')}`
+    const optInsParam = optIns ? `&optIns=${optIns.join(',')}` : ''
+    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${optInsParam}`
     const text = message + `<a href="${magicLink}">${linkTet}</a>`
     const emailResult = await req.payload.sendEmail({
       subject,
@@ -170,7 +132,7 @@ export const subscribeHandler: PayloadHandler = async (req) => {
 
   //
   // Validate OptInChannels
-  const { invalidOptInsInput, verifiedOptInIDs } = await verifyOptIns(optIns)
+  const { invalidOptInsInput, verifiedOptInIDs } = await verifyOptIns(req.payload, optIns)
 
   if (invalidOptInsInput) {
     return Response.json(
