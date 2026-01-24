@@ -36,7 +36,7 @@ export const SelectOptInChannels = ({
   const [result, setResult] = useState<any>()
   const [allOptInChannels, setAllOptInChannels] = useState<OptInChannelCheckbox[]>([])
 
-  useMemo(() => {
+  useEffect(() => {
     async function verify() {
       const sdk = new PayloadSDK<Config>({
         baseURL: baseURL || '',
@@ -76,7 +76,7 @@ export const SelectOptInChannels = ({
         </div>
       ) : (
         <div className={styles.wrapper}>
-          <h2>Opt-in Channels</h2>
+          <h3>Opt-in Channels</h3>
           {/* Map over the tasks array to render each checkbox */}
           {allOptInChannels?.map((channel) => (
             <div key={channel.id}>
@@ -114,7 +114,7 @@ export const SelectOptInChannels = ({
           {/* Optional: Display the current state for verification */}
           {false && (
             <>
-              <h2>Current State</h2>
+              <h3>Current State</h3>
               <h3>allOptInChannels</h3>
               <pre>{JSON.stringify(allOptInChannels, null, 2)}</pre>
               <h3>result</h3>
