@@ -75,6 +75,7 @@ export const Subscribe = ({ baseURL, handleSubscribe, showResult = false }: ISub
     <></>
   ) : (
     <div className={styles.wrapper}>
+      <h2>Subscribe</h2>
       <div className={styles.section}>
         <SelectOptInChannels
           baseURL={baseURL}

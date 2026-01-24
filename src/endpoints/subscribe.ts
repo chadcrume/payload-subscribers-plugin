@@ -30,27 +30,15 @@ export const subscribeHandler: PayloadHandler = async (req) => {
   const { email, optIns }: { email: string; optIns: string[] } = data // if by POST data
   // const { email } = req.routeParams // if by path
 
-  if (!email) {
-    return Response.json(
-      { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse,
-      { status: 400 },
-    )
-  }
-
-  const userResults = await req.payload.find({
-    collection: 'subscribers',
-    where: {
-      email: { equals: email },
-    },
-  })
-  const user = userResults.docs[0]
-
-  if (user) {
-    // IF USER PENDING...
-    console.log('subscribeHandler optIns', optIns)
-
-    //
-    // Handle OptInChannels
+  //
+  // HELPERS
+  //
+  const verifyOptIns = async (
+    optIns?: string[],
+  ): Promise<{
+    invalidOptInsInput: string[] | undefined
+    verifiedOptInIDs: string[] | undefined
+  }> => {
     if (optIns) {
       //
       // Get all matching OptInChannels
@@ -60,84 +48,240 @@ export const subscribeHandler: PayloadHandler = async (req) => {
           id: { in: optIns },
         },
       })
-      const verifiedOptInIDs = optInChannelResults.docs.map((channel) => channel.id)
-      //
-      // Error if any invalid optIns
-      const invalidOptInsInput: boolean =
-        optIns.filter((channelID) => !verifiedOptInIDs.includes(channelID)).length > 0
-
-      if (invalidOptInsInput) {
-        return Response.json(
-          {
-            error: 'Invalid input: ' + JSON.stringify(optIns),
-            now: new Date().toISOString(),
-          } as SubscribeResponse,
-          { status: 400 },
-        )
-      }
-
-      //
-      // Now we have user and validated useOptIns
-      // Subscribe the user to any useOptIns
-      //
-      // Update user with EXACTLY verifiedOptInIDs
-      const token = crypto.randomBytes(32).toString('hex')
-      const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
-      // Create user with token for pending email
-      const updateResults = await req.payload.update({
-        id: user.id,
-        collection: 'subscribers',
-        data: {
-          optIns: verifiedOptInIDs,
-          // @ts-expect-error - yeah, set the password
-          password: tokenHash,
-          status: 'subscribed',
-          verificationToken: '',
-          verificationTokenExpires: null,
-        },
-      })
-      console.log('updateResults', updateResults)
-
-      // updateResults
-      return Response.json({
-        email: user.email,
-        now: new Date().toISOString(),
-        optIns: verifiedOptInIDs,
-      } as SubscribeResponse)
-    } else {
-      return Response.json(
-        { error: 'Already subscribed', now: new Date().toISOString() } as SubscribeResponse,
-        { status: 400 },
+      const verifiedOptInIDs: string[] | undefined = optInChannelResults.docs.map(
+        (channel) => channel.id,
       )
+
+      //
+      // Separate all non-matching OptInChannels
+      const checkInvalidOptInsInput: string[] | undefined = optIns?.filter(
+        (channelID) => !verifiedOptInIDs.includes(channelID),
+      )
+      const invalidOptInsInput: string[] | undefined =
+        checkInvalidOptInsInput.length > 0 ? checkInvalidOptInsInput : undefined
+
+      // req.payload.logger.info(`optIns = ${JSON.stringify(optIns)}`)
+      // req.payload.logger.info(`invalidOptInsInput = ${JSON.stringify(invalidOptInsInput)}`)
+      // req.payload.logger.info(`verifiedOptInIDs = ${JSON.stringify(verifiedOptInIDs)}`)
+      return { invalidOptInsInput, verifiedOptInIDs }
     }
-  } else {
+    return { invalidOptInsInput: undefined, verifiedOptInIDs: undefined }
+  }
+  const getTokenAndHash = (milliseconds?: number) => {
     const token = crypto.randomBytes(32).toString('hex')
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
-    // Create user with token for pending email
+    const expiresAt = milliseconds ? new Date(Date.now() + milliseconds) : undefined
+
+    return { expiresAt, token, tokenHash }
+  }
+  const createSubscriber = async ({
+    optIns,
+    password,
+    status,
+    verificationToken,
+    verificationTokenExpires,
+  }: {
+    email: string
+    optIns?: string[]
+    password?: string
+    status?: 'pending' | 'subscribed' | 'unsubscribed'
+    verificationToken?: string
+    verificationTokenExpires?: Date
+  }) => {
     await req.payload.create({
       collection: 'subscribers',
       data: {
         email,
         optIns,
         // @ts-expect-error - yeah, set the password
-        password: tokenHash,
-        status: 'pending',
-        verificationToken: tokenHash,
-        verificationTokenExpires: expiresAt.toISOString(),
+        password,
+        status,
+        verificationToken,
+        verificationTokenExpires: verificationTokenExpires?.toISOString(),
       },
     })
-
-    // Send email
-    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}`
-    const subject = data.subject || 'Please verify your subscription'
-    const message =
-      data.message ||
-      `<h1>Click here to verify you're subscription:</h1><a href="${magicLink}">Login</a>`
+  }
+  const updateSubscriber = async ({
+    id,
+    optIns,
+    password,
+    status,
+    verificationToken,
+    verificationTokenExpires,
+  }: {
+    id: string
+    optIns?: string[]
+    password?: string
+    status?: 'pending' | 'subscribed' | 'unsubscribed'
+    verificationToken?: string
+    verificationTokenExpires?: Date | null
+  }) => {
+    const updateResults = await req.payload.update({
+      id,
+      collection: 'subscribers',
+      data: {
+        optIns,
+        // @ts-expect-error - yeah, set the password
+        password,
+        status,
+        verificationToken,
+        verificationTokenExpires: verificationTokenExpires?.toISOString() || null,
+      },
+      depth: 0,
+    })
+    return updateResults
+  }
+  const sendVerifyEmail = async ({
+    email,
+    linkTet,
+    message,
+    optIns,
+    subject,
+    token,
+  }: {
+    email: string
+    linkTet: string
+    message: string
+    optIns?: string[]
+    subject: string
+    token: string
+  }) => {
+    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}&optIns=${optIns.join(',')}`
+    const text = message + `<a href="${magicLink}">${linkTet}</a>`
     const emailResult = await req.payload.sendEmail({
       subject,
-      text: message,
+      text,
       to: email,
+    })
+    req.payload.logger.info(`subscribe email sent \n ${magicLink}`)
+    return emailResult
+  }
+
+  //
+  // VALIDATE INPUT
+  //
+  // Require email
+  if (!email) {
+    return Response.json(
+      { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse,
+      { status: 400 },
+    )
+  }
+
+  //
+  // Validate OptInChannels
+  const { invalidOptInsInput, verifiedOptInIDs } = await verifyOptIns(optIns)
+
+  if (invalidOptInsInput) {
+    return Response.json(
+      {
+        error: 'Invalid input: ' + JSON.stringify(optIns),
+        now: new Date().toISOString(),
+      } as SubscribeResponse,
+      { status: 400 },
+    )
+  }
+
+  //
+  // Verify subscriber exists
+  const userResults = await req.payload.find({
+    collection: 'subscribers',
+    where: {
+      email: { equals: email },
+    },
+  })
+  const subscriber = userResults.docs[0]
+
+  //
+  // Now we have a subscriber and validatedOptIns
+  // Handle scenarios
+  //
+  // ********************************************************
+  //
+  if (req.user && req.user.email != email) {
+    //
+    // Error: Auth-ed user doesn't match subscriber email
+    //
+    return Response.json(
+      {
+        error: 'Unauthorized: ' + email,
+        now: new Date().toISOString(),
+      } as SubscribeResponse,
+      { status: 400 },
+    )
+  }
+
+  //
+  // ********************************************************
+  //
+  if (!subscriber) {
+    //
+    // Create subscriber with status 'pending',
+    // and an invisible unknowable password,
+    // and send a verify email
+    // Pass all optIns through verify link
+    //
+    const { expiresAt, token, tokenHash } = getTokenAndHash(15 * 60 * 1000) // Use for magic link
+    const { tokenHash: tokenHash2 } = getTokenAndHash() // Unknowable
+    await createSubscriber({
+      email,
+      optIns,
+      password: tokenHash2,
+      status: 'pending',
+      verificationToken: tokenHash,
+      verificationTokenExpires: expiresAt,
+    })
+
+    //
+    // Send email
+    const emailResult = await sendVerifyEmail({
+      email,
+      linkTet: 'Verify',
+      message: data.message || `<h1>Click here to verify your subscription:</h1>`,
+      optIns: verifiedOptInIDs,
+      subject: data.subject || 'Please verify your subscription',
+      token,
+    })
+    if (!emailResult) {
+      return Response.json(
+        { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
+        { status: 400 },
+      )
+    }
+    return Response.json({ emailResult, now: new Date().toISOString() } as SubscribeResponse)
+    //
+  }
+  //
+  // ********************************************************
+  //
+  if (!req.user && subscriber) {
+    //
+    // Send magic link to log the user in
+    // Pass all optIns through verify link
+    //
+    const { expiresAt, token, tokenHash } = getTokenAndHash(15 * 60 * 1000) // Use for magic link
+    // Update subscriber with token for pending email
+    const updateResults = await updateSubscriber({
+      id: subscriber.id,
+      verificationToken: tokenHash,
+      verificationTokenExpires: expiresAt,
+    })
+    if (!updateResults) {
+      return Response.json(
+        { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
+        { status: 400 },
+      )
+    }
+
+    //
+    // Send email
+    const emailResult = await sendVerifyEmail({
+      email,
+      linkTet: 'Verify',
+      message: data.message || `<h1>Click here to verify your subscription:</h1>`,
+      optIns: verifiedOptInIDs,
+      subject: data.subject || 'Please verify your subscription',
+      token,
     })
     if (!emailResult) {
       return Response.json(
@@ -147,6 +291,82 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     }
     return Response.json({ emailResult, now: new Date().toISOString() } as SubscribeResponse)
   }
+  //
+  // ********************************************************
+  //
+  if (req.user && subscriber && subscriber.status == 'pending') {
+    //
+    // Send magic link to verify the email and log the user in
+    // Pass all optIns through verify link
+    //
+    const { expiresAt, token, tokenHash } = getTokenAndHash(15 * 60 * 1000) // Use for magic link
+    // Create subscriber with token for pending email
+    const updateResults = await updateSubscriber({
+      id: subscriber.id,
+      verificationToken: tokenHash,
+      verificationTokenExpires: expiresAt,
+    })
+    if (!updateResults) {
+      return Response.json(
+        { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
+        { status: 400 },
+      )
+    }
+
+    const emailResult = await sendVerifyEmail({
+      email,
+      linkTet: 'Verify',
+      message: data.message || `<h1>Click here to verify your email:</h1>`,
+      optIns: verifiedOptInIDs,
+      subject: data.subject || 'Please verify your subscription',
+      token,
+    })
+    if (!emailResult) {
+      return Response.json(
+        { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
+        { status: 400 },
+      )
+    }
+    return Response.json({ emailResult, now: new Date().toISOString() } as SubscribeResponse)
+  }
+
+  //
+  // ********************************************************
+  //
+  if (req.user && subscriber && subscriber.status != 'pending') {
+    //
+    // Update subscriber with status 'subscribed',
+    // an invisible unknowable password,
+    // and if any optIns input exists, set subscriber optIns
+    // to EXACTLY verifiedOptInIDs (potentially unsubscribing from any not in verifiedOptInIDs)
+    //
+    const { tokenHash } = getTokenAndHash() // Use for magic link
+    // Update subscriber with optIns
+    const updateResults = await updateSubscriber({
+      id: subscriber.id,
+      optIns: verifiedOptInIDs,
+      password: tokenHash,
+      status: 'subscribed',
+      verificationToken: '',
+      verificationTokenExpires: null,
+    })
+
+    // Return results, including the verified optIns
+    return Response.json({
+      // @ts-expect-error False error with Payload result type
+      email: updateResults.email,
+      now: new Date().toISOString(),
+      // @ts-expect-error False error with Payload result type
+      optIns: updateResults.optIns,
+    } as SubscribeResponse)
+  }
+  //
+  // Uncaught case
+  //
+  return Response.json(
+    { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
+    { status: 400 },
+  )
 }
 
 /**
