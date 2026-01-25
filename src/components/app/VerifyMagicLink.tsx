@@ -41,7 +41,8 @@ export const VerifyMagicLink = ({
   const forwardUrl = searchParams.get('forwardUrl')
   const token = searchParams.get('token')
 
-  const [result, setResult] = useState<unknown>()
+  const [result, setResult] = useState<string>()
+  const [isError, setIsError] = useState<boolean>(false)
   // const [email, setEmail] = useState('')
 
   useEffect(() => {
@@ -60,19 +61,21 @@ export const VerifyMagicLink = ({
       })
       if (verifyResult.ok) {
         const resultJson = await verifyResult.json()
-        setResult('GOOD: ' + JSON.stringify(resultJson))
+        setResult(resultJson.message || resultJson.error)
+        setIsError(resultJson.error && !resultJson.message)
         if (handleMagicLinkVerified) {
           handleMagicLinkVerified(resultJson)
         }
       } else {
-        const resultText = await verifyResult.text()
-        setResult('BAD: ' + resultText)
+        // const resultText = await verifyResult.text()
+        setResult('An error occured. Please try again')
+        setIsError(true)
       }
     }
     void verify()
   }, [serverURL, email, handleMagicLinkVerified, token])
 
-  const handleSubmit = async () => {
+  const handleRequestMagicLink = async () => {
     const sdk = new PayloadSDK<Config>({
       baseURL: serverURL || '',
     })
@@ -80,50 +83,49 @@ export const VerifyMagicLink = ({
     const emailResult = await sdk.request({
       json: {
         email,
+        forwardUrl,
       },
       method: 'POST',
       path: '/api/emailToken',
     })
     if (emailResult.ok) {
       const resultJson = await emailResult.json()
-      setResult('GOOD: ' + JSON.stringify(resultJson))
+      setResult('An email has been sent containing your magic link.')
+      setIsError(false)
       if (handleMagicLinkRequested) {
         handleMagicLinkRequested(resultJson)
       }
     } else {
-      const resultText = await emailResult.text()
-      setResult('BAD: ' + resultText)
+      // const resultText = await emailResult.text()
+      setResult('An error occured. Please try again.')
+      setIsError(true)
     }
   }
   return (
     <div className={styles.wrapper}>
-      {
+      {result && showResultBeforeForwarding ? (
         <>
-          {result && showResultBeforeForwarding ? (
+          <div className={isError ? styles.error : undefined}>
+            <p>{result}</p>
+          </div>
+          {forwardUrl && (
             <div>
-              <div>{JSON.stringify(result)}</div>
-              {forwardUrl && (
-                <div>
-                  <a href={forwardUrl}>Continue</a>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <div>verifying...</div>
+              <a href={forwardUrl}>
+                <button type="button">Continue</button>
+              </a>
             </div>
           )}
-          <form
-            method="POST"
-            onSubmit={async (e) => {
-              e.preventDefault()
-              await handleSubmit()
-            }}
-          >
-            <button type="submit">Request another magic link</button>
-          </form>
         </>
-      }
+      ) : (
+        <div>
+          <p>verifying...</p>
+        </div>
+      )}
+      <div>
+        <button onClick={handleRequestMagicLink} type="submit">
+          Request another magic link
+        </button>
+      </div>
     </div>
   )
 }

@@ -58,11 +58,6 @@ export const RequestMagicLink = ({
       method: 'POST',
       path: '/api/emailToken',
     })
-    // const emailTokenResponse = await fetch('/api/emailToken', {
-    //   body: JSON.stringify({ email }),
-    //   method: 'POST',
-    //   // path: '/api/emailToken',
-    // })
     if (emailTokenResponse.ok) {
       const emailTokenResponseJson: RequestMagicLinkResponse = await emailTokenResponse.json()
       if (handleMagicLinkRequested) {

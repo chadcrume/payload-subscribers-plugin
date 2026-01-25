@@ -21,7 +21,7 @@ export type RequestMagicLinkResponse =
  */
 export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
-  const { email } = data // if by POST data
+  const { email, forwardUrl } = data // if by POST data
   // const { email } = req.routeParams // if by path
 
   if (!email) {
@@ -62,7 +62,8 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   })
 
   // Send email
-  const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}`
+  const forwardUrlParam = forwardUrl ? `&forwardUrl=${encodeURI(forwardUrl)}` : ''
+  const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${forwardUrlParam}`
   const subject = data.subject || 'Your Magic Login Link'
   const message = data.message || `<h1>Click here to login:</h1><a href="${magicLink}">Login</a>`
   const emailResult = await req.payload.sendEmail({
@@ -88,7 +89,6 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
 const requestMagicLinkEndpoint: Endpoint = {
   handler: requestMagicLinkHandler,
   method: 'post',
-  //   path: '/:id/emailToken',
   path: '/emailToken',
 }
 
