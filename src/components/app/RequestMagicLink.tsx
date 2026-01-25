@@ -1,42 +1,33 @@
 'use client'
 
 import type { Config } from '@payload-types'
+import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
-// import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
-// import { getPayload } from 'payload'
-// import type {RequestMagicLinkResponse} from
-
-import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
-export { RequestMagicLinkResponse }
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 
-import styles from './RequestMagicLink.module.css'
+import styles from './shared.module.css'
 
-// const payload = await getPayload({
-//   config: configPromise,
-// })
-
-// Pass your config from generated types as generic
+export { RequestMagicLinkResponse }
 
 interface IRequestMagicLink {
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
-  showResult: boolean
+  showResult?: boolean
 }
 
-type status = 'default' | 'error' | 'sent'
+type statusValues = 'default' | 'error' | 'sent'
 
 export const RequestMagicLink = ({
   handleMagicLinkRequested,
-  showResult = false,
+  showResult = true,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
   const { serverURL } = useServerUrl()
 
-  const [status, setStatus] = useState<status>('default')
+  const [status, setStatus] = useState<statusValues>('default')
 
   const sdk = new PayloadSDK<Config>({
     baseURL: serverURL || '',
@@ -51,9 +42,11 @@ export const RequestMagicLink = ({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const forwardUrl = window.location.pathname + '?now=' + new Date().toISOString()
     const emailTokenResponse = await sdk.request({
       json: {
         email,
+        forwardUrl,
       },
       method: 'POST',
       path: '/api/emailToken',
@@ -70,7 +63,7 @@ export const RequestMagicLink = ({
         setResult(`An error occured. Please try again. \n ${error}`)
       } else if (emailResult) {
         setStatus('sent')
-        setResult(`An email has been sent. ${emailResult.message}`)
+        setResult('An email has been sent containing your magic link.')
       } else {
         setStatus('error')
         setResult(`An error occured. Please try again. \nResult unknown`)

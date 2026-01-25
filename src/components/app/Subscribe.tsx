@@ -14,7 +14,7 @@ import { useSubscriber } from '@contexts/SubscriberProvider.js'
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
 import { SelectOptInChannels } from './SelectOptInChannels.js'
-import styles from './Subscribe.module.css'
+import styles from './shared.module.css'
 
 // const payload = await getPayload({
 //   config: configPromise,
@@ -25,10 +25,12 @@ import styles from './Subscribe.module.css'
 interface ISubscribe {
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
-  showResult: boolean
+  showResult?: boolean
 }
 
-export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) => {
+type statusValues = 'default' | 'error' | 'sent' | 'updated'
+
+export const Subscribe = ({ handleSubscribe, showResult = true }: ISubscribe) => {
   const { refreshSubscriber, subscriber } = useSubscriber()
 
   const { serverURL } = useServerUrl()
@@ -37,7 +39,8 @@ export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) =
     baseURL: serverURL || '',
   })
 
-  const [result, setResult] = useState<unknown>()
+  const [status, setStatus] = useState<statusValues>('default')
+  const [result, setResult] = useState<string>()
   const [email, setEmail] = useState(subscriber ? subscriber.email : '')
   // @ts-expect-error This is correct, just not sure how to deal with Payload internal generic Post typing
   const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(subscriber?.optIns || [])
@@ -53,7 +56,7 @@ export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) =
   }
 
   const handleSubmit = async () => {
-    const result = await sdk.request({
+    const subscribeResult = await sdk.request({
       json: {
         afterVerifyUrl: window.location.pathname + '?now=' + new Date().toISOString(),
         email,
@@ -62,16 +65,49 @@ export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) =
       method: 'POST',
       path: '/api/subscribe',
     })
-    if (result.ok) {
-      const resultJson: SubscribeResponse = await result.json()
-      setResult(JSON.stringify(resultJson))
+    if (subscribeResult.ok) {
+      const resultJson: SubscribeResponse = await subscribeResult.json()
+      // // When subscriber optIns are updated...
+      // | {
+      //     email: string
+      //     now: string
+      //     optIns: string[]
+      //   }
+      // // When a verify link is emailed...
+      // | {
+      //     emailResult: any
+      //     now: string
+      //   }
+      // // When any error occurs...
+      // | {
+      //     error: string
+      //     now: string
+      //   }
+      // @ts-expect-error Silly type confusion
+      const { emailResult, error } = resultJson
+      if (error) {
+        setStatus('error')
+        setResult(`An error occured. Please try again. \n ${error}`)
+      } else if (emailResult) {
+        setStatus('sent')
+        setResult('An email has been sent containing your magic link.')
+      } else if (email) {
+        setStatus('updated')
+        setResult(`You're subscriptions have been updated.`)
+      } else {
+        setStatus('error')
+        setResult(`An error occured. Please try again. \nResult unknown`)
+      }
+
       refreshSubscriber()
+
       if (handleSubscribe) {
         handleSubscribe(resultJson)
       }
     } else {
-      const resultText = await result.text()
-      setResult(resultText)
+      // const resultText = await subscribeResult.text()
+      setStatus('error')
+      setResult(`An error occured. Please try again. \nResult unknown`)
     }
   }
 
@@ -104,17 +140,17 @@ export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) =
           <button type="submit">Save choices</button>
         </div>
       </form>
-      {!!subscriber && (
+      {!!result && !!showResult && (
+        <div className={status == 'error' ? styles.error : undefined}>
+          <p>{result}</p>
+        </div>
+      )}
+      {/* {!!subscriber && (
         <div className={styles.section}>
           <div>subscriber:</div>
           <pre>{JSON.stringify(subscriber, null, 2)}</pre>
         </div>
-      )}
-      {!!result && !!showResult && (
-        <div className={styles.section}>
-          <div>{JSON.stringify(result)}</div>
-        </div>
-      )}
+      )} */}
     </div>
   )
 }

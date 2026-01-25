@@ -4,15 +4,18 @@ import { getTokenAndHash } from '@helpers/token.js'
 import { verifyOptIns } from '@helpers/verifyOptIns.js'
 
 export type SubscribeResponse =
+  // When subscriber optIns are updated...
   | {
       email: string
       now: string
       optIns: string[]
     }
+  // When a verify link is emailed...
   | {
       emailResult: any
       now: string
     }
+  // When any error occurs...
   | {
       error: string
       now: string
@@ -341,7 +344,6 @@ export const subscribeHandler: PayloadHandler = async (req) => {
 const subscribeEndpoint: Endpoint = {
   handler: subscribeHandler,
   method: 'post',
-  //   path: '/:id/emailToken',
   path: '/subscribe',
 }
 

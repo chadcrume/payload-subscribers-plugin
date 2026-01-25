@@ -21,7 +21,7 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Subscribe</h1>
-        <Subscribe handleSubscribe={handleSubscribe} showResult={true} />
+        <Subscribe handleSubscribe={handleSubscribe} />
       </main>
     </>
   )

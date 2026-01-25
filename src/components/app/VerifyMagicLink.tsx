@@ -14,7 +14,7 @@ import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
 export { VerifyMagicLinkResponse }
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
-import styles from './VerifyMagicLink.module.css'
+import styles from './shared.module.css'
 
 // const payload = await getPayload({
 //   config: configPromise,

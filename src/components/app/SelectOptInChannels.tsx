@@ -12,7 +12,7 @@ import type { GetOptInChannelsResponse } from 'src/endpoints/getOptInChannels.js
 
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
-import styles from './SelectOptInChannels.module.css'
+import styles from './shared.module.css'
 
 // const payload = await getPayload({
 //   config: configPromise,

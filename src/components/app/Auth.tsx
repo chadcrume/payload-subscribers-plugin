@@ -3,7 +3,7 @@
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
 import Link from 'next/link.js'
 
-import styles from './Auth.module.css'
+import styles from './shared.module.css'
 
 // interface IAuth {
 //   props?: any
