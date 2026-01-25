@@ -18,8 +18,6 @@
     "paths": {
       "@payload-config": ["./payload.config.ts"],
       "payload-subscribers-plugin": ["../src/index.ts"],
-      "payload-subscribers-plugin/client": ["../src/exports/client.ts"],
-      "payload-subscribers-plugin/rsc": ["../src/exports/rsc.ts"],
       "payload-subscribers-plugin/ui": ["../src/exports/ui.ts"]
     },
     "noEmit": true,

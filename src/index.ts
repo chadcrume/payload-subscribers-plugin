@@ -65,13 +65,6 @@ export const payloadSubscribersPlugin =
       config.admin.components.beforeDashboard = []
     }
 
-    config.admin.components.beforeDashboard.push(
-      `payload-subscribers-plugin/client#BeforeDashboardClient`,
-    )
-    config.admin.components.beforeDashboard.push(
-      `payload-subscribers-plugin/rsc#BeforeDashboardServer`,
-    )
-
     if (!config.endpoints) {
       config.endpoints = []
     }
