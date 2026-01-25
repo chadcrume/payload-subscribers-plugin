@@ -28,10 +28,10 @@ export type SubscribeResponse =
 export const subscribeHandler: PayloadHandler = async (req) => {
   const data = req?.json ? await req.json() : {}
   const {
+    afterVerifyUrl,
     email,
     optIns,
-    verifyForwardUrl,
-  }: { email: string; optIns: string[]; verifyForwardUrl: string } = data // if by POST data
+  }: { afterVerifyUrl: string; email: string; optIns: string[] } = data // if by POST data
   // const { email } = req.routeParams // if by path
 
   //
@@ -202,7 +202,7 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     // Send email
     const emailResult = await sendVerifyEmail({
       email,
-      forwardUrl: verifyForwardUrl,
+      forwardUrl: afterVerifyUrl,
       linkTet: 'Verify',
       message: data.message || `<h1>Click here to verify your subscription:</h1>`,
       subject: data.subject || 'Please verify your subscription',
@@ -243,7 +243,7 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     // Send email
     const emailResult = await sendVerifyEmail({
       email,
-      forwardUrl: verifyForwardUrl,
+      forwardUrl: afterVerifyUrl,
       linkTet: 'Verify',
       message: data.message || `<h1>Click here to verify your subscription:</h1>`,
       subject: data.subject || 'Please verify your subscription',
@@ -281,7 +281,7 @@ export const subscribeHandler: PayloadHandler = async (req) => {
 
     const emailResult = await sendVerifyEmail({
       email,
-      forwardUrl: verifyForwardUrl,
+      forwardUrl: afterVerifyUrl,
       linkTet: 'Verify',
       message: data.message || `<h1>Click here to verify your email:</h1>`,
       subject: data.subject || 'Please verify your subscription',

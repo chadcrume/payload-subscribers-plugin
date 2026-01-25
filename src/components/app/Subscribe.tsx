@@ -55,9 +55,9 @@ export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) =
   const handleSubmit = async () => {
     const result = await sdk.request({
       json: {
+        afterVerifyUrl: window.location.pathname + '?now=' + new Date().toISOString(),
         email,
         optIns: selectedChannelIDs,
-        verifyForwardUrl: serverURL + window.location.pathname + '?now=' + new Date().toISOString(),
       },
       method: 'POST',
       path: '/api/subscribe',
