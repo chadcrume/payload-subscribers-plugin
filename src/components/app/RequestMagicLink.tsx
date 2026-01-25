@@ -12,15 +12,33 @@ import styles from './shared.module.css'
 
 export { RequestMagicLinkResponse }
 
-interface IRequestMagicLink {
+export interface IRequestMagicLink {
+  classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
   showResult?: boolean
 }
 
+export type RequestMagicLinkClasses = {
+  button?: string
+  emailInput?: string
+  error?: string
+  form?: string
+  message?: string
+  wrapper?: string
+}
+
 type statusValues = 'default' | 'error' | 'sent'
 
 export const RequestMagicLink = ({
+  classNames = {
+    button: '',
+    emailInput: '',
+    error: '',
+    form: '',
+    message: '',
+    wrapper: '',
+  },
   handleMagicLinkRequested,
   showResult = true,
 }: IRequestMagicLink) => {
@@ -76,26 +94,33 @@ export const RequestMagicLink = ({
   }
 
   return (
-    <div className={styles.wrapper}>
-      {status == 'error' ? (
-        <div className={styles.error}>{result}</div>
-      ) : result && showResult ? (
-        <div>{result}</div>
+    <div className={`${styles.container} ${classNames.container}`}>
+      {result && (showResult || status == 'error') ? (
+        <p
+          className={
+            `${styles.message} ${classNames.message}` + status == 'error'
+              ? `${styles.error} ${classNames.error}`
+              : ''
+          }
+        >
+          {result}
+        </p>
       ) : (
         <></>
       )}
-      <div>
-        <form method="POST" onSubmit={handleSubmit}>
-          <input
-            aria-label="enter your email"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-            placeholder="enter your email"
-            type="email"
-            value={email}
-          />
-          <button type="submit">Request magic link</button>
-        </form>
-      </div>
+      <form className={`${styles.form} ${classNames.form}`} method="POST" onSubmit={handleSubmit}>
+        <input
+          aria-label="enter your email"
+          className={`${styles.emailInput} ${classNames.emailInput}`}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+          placeholder="enter your email"
+          type="email"
+          value={email}
+        />
+        <button className={`${styles.button} ${classNames.button}`} type="submit">
+          Request magic link
+        </button>
+      </form>
     </div>
   )
 }

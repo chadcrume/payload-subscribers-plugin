@@ -12,7 +12,7 @@ import styles from './shared.module.css'
 export const Auth = () => {
   const { logOut, subscriber } = useSubscriber()
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.container}>
       {/* <pre>{JSON.stringify(result, null, 2)}</pre> */}
       {subscriber && (
         <div>

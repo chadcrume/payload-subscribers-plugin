@@ -22,14 +22,32 @@ import styles from './shared.module.css'
 
 // Pass your config from generated types as generic
 
-interface IVerifyMagicLink {
+export interface IVerifyMagicLink {
+  classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
   props?: any
   showResultBeforeForwarding: boolean
 }
 
+export type VerifyMagicLinkClasses = {
+  button?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+  wrapper?: string
+}
+
 export const VerifyMagicLink = ({
+  classNames = {
+    button: '',
+    error: '',
+    form: '',
+    loading: '',
+    message: '',
+    wrapper: '',
+  },
   handleMagicLinkRequested,
   handleMagicLinkVerified,
   showResultBeforeForwarding = true,
@@ -102,29 +120,38 @@ export const VerifyMagicLink = ({
     }
   }
   return (
-    <div className={styles.wrapper}>
-      {result && showResultBeforeForwarding ? (
-        <>
-          <div className={isError ? styles.error : undefined}>
-            <p>{result}</p>
-          </div>
-          {forwardUrl && (
-            <div>
-              <a href={forwardUrl}>
-                <button type="button">Continue</button>
-              </a>
-            </div>
-          )}
-        </>
-      ) : (
-        <div>
-          <p>verifying...</p>
-        </div>
+    <div className={`${styles.container} ${classNames.container}`}>
+      {!result && <p className={`${styles.loading} ${classNames.loading}`}>verifying...</p>}
+      {result && showResultBeforeForwarding && (
+        <p
+          className={
+            `${styles.message} ${classNames.message}` +
+            (isError ? `${styles.error} ${classNames.error}` : '')
+          }
+        >
+          {result}
+        </p>
       )}
-      <div>
-        <button onClick={handleRequestMagicLink} type="submit">
+      <div className={`${styles.form} ${classNames.form}`}>
+        <button
+          className={`${styles.button} ${classNames.button}`}
+          name="request"
+          onClick={handleRequestMagicLink}
+          type="button"
+        >
           Request another magic link
         </button>
+        {result && forwardUrl && (
+          <a href={forwardUrl}>
+            <button
+              className={`${styles.button} ${classNames.button}`}
+              name="continue"
+              type="button"
+            >
+              Continue
+            </button>
+          </a>
+        )}
       </div>
     </div>
   )

@@ -22,15 +22,40 @@ import styles from './shared.module.css'
 
 // Pass your config from generated types as generic
 
-interface ISubscribe {
+export interface ISubscribe {
+  classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
   showResult?: boolean
 }
 
+export type SubscribeClasses = {
+  button?: string
+  emailInput?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+  section?: string
+  wrapper?: string
+}
+
 type statusValues = 'default' | 'error' | 'sent' | 'updated'
 
-export const Subscribe = ({ handleSubscribe, showResult = true }: ISubscribe) => {
+export const Subscribe = ({
+  classNames = {
+    button: '',
+    emailInput: '',
+    error: '',
+    form: '',
+    loading: '',
+    message: '',
+    section: '',
+    wrapper: '',
+  },
+  handleSubscribe,
+  showResult = true,
+}: ISubscribe) => {
   const { refreshSubscriber, subscriber } = useSubscriber()
 
   const { serverURL } = useServerUrl()
@@ -112,15 +137,16 @@ export const Subscribe = ({ handleSubscribe, showResult = true }: ISubscribe) =>
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className={`${styles.container} ${classNames.container}`}>
       <h2>Subscribe</h2>
-      <div className={styles.section}>
+      <div className={`${styles.section} ${classNames.section}`}>
         <SelectOptInChannels
           handleOptInChannelsSelected={handleOptInChannelsSelected}
           selectedOptInChannelIDs={selectedChannelIDs}
         />
       </div>
       <form
+        className={`${styles.form} ${classNames.form}`}
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
@@ -131,26 +157,28 @@ export const Subscribe = ({ handleSubscribe, showResult = true }: ISubscribe) =>
           {!subscriber && (
             <input
               aria-label="enter your email"
+              className={`${styles.emailInput} ${classNames.emailInput}`}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="enter your email"
               type="email"
               value={email}
             />
           )}
-          <button type="submit">Save choices</button>
+          <button className={`${styles.button} ${classNames.button}`} type="submit">
+            Save choices
+          </button>
         </div>
       </form>
       {!!result && !!showResult && (
-        <div className={status == 'error' ? styles.error : undefined}>
-          <p>{result}</p>
-        </div>
+        <p
+          className={
+            `${styles.message} ${classNames.message}` +
+            (status == 'error' ? `${styles.error} ${classNames.error}` : '')
+          }
+        >
+          {result}
+        </p>
       )}
-      {/* {!!subscriber && (
-        <div className={styles.section}>
-          <div>subscriber:</div>
-          <pre>{JSON.stringify(subscriber, null, 2)}</pre>
-        </div>
-      )} */}
     </div>
   )
 }

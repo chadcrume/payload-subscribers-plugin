@@ -20,13 +20,39 @@ import styles from './shared.module.css'
 
 // Pass your config from generated types as generic
 
-interface ISelectOptInChannels {
+export interface ISelectOptInChannels {
+  classNames?: SelectOptInChannelsClasses
   handleOptInChannelsSelected?: (result: OptInChannel[]) => void
   props?: any
   selectedOptInChannelIDs?: string[]
 }
 
+export type SelectOptInChannelsClasses = {
+  button?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+  optInCheckbox?: string
+  optInCheckboxItem?: string
+  optInCheckboxLabel?: string
+  optionsGroup?: string
+  wrapper?: string
+}
+
 export const SelectOptInChannels = ({
+  classNames = {
+    button: '',
+    error: '',
+    form: '',
+    loading: '',
+    message: '',
+    optInCheckbox: '',
+    optInCheckboxItem: '',
+    optInCheckboxLabel: '',
+    optionsGroup: '',
+    wrapper: '',
+  },
   handleOptInChannelsSelected,
   selectedOptInChannelIDs,
 }: ISelectOptInChannels) => {
@@ -69,22 +95,24 @@ export const SelectOptInChannels = ({
   }, [result, selectedOptInChannelIDs])
 
   return (
-    <>
+    <div className={`${styles.container} ${classNames.container}`}>
+      <h3>Opt-in Channels</h3>
       {!result ? (
-        <div className={styles.wrapper}>
-          <div>loading...</div>
-        </div>
+        <p className={`${styles.loading} ${classNames.loading}`}>verifying...</p>
       ) : (
-        <div className={styles.wrapper}>
-          <h3>Opt-in Channels</h3>
-          {/* Map over the tasks array to render each checkbox */}
-          {allOptInChannels?.map((channel) => (
-            <div key={channel.id}>
-              <label>
+        <div className={`${styles.optionsGroup} ${classNames.optionsGroup}`}>
+          {// Map over the tasks array to render each checkbox
+          allOptInChannels?.map((channel) => (
+            <div
+              className={`${styles.optInCheckboxItem} ${classNames.optInCheckboxItem}`}
+              key={channel.id}
+            >
+              <label className={`${styles.optInCheckboxLabel} ${classNames.optInCheckboxLabel}`}>
                 <input
                   aria-label={channel.title}
                   // The checked prop is controlled by the state
                   checked={channel.isChecked}
+                  className={`${styles.optInCheckbox} ${classNames.optInCheckbox}`}
                   // The onChange handler calls the update function with the item's ID
                   onChange={(event) => {
                     event.preventDefault()
@@ -111,18 +139,8 @@ export const SelectOptInChannels = ({
               </label>
             </div>
           ))}
-          {/* Optional: Display the current state for verification */}
-          {false && (
-            <>
-              <h3>Current State</h3>
-              <h3>allOptInChannels</h3>
-              <pre>{JSON.stringify(allOptInChannels, null, 2)}</pre>
-              <h3>result</h3>
-              <pre>{JSON.stringify(result, null, 2)}</pre>
-            </>
-          )}
         </div>
       )}
-    </>
+    </div>
   )
 }
