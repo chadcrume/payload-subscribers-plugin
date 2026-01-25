@@ -1,17 +1,17 @@
 'use client'
 
-import type { Config, Subscriber } from '@payload-types'
+import type { Config } from '@payload-types'
 
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
-import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 export { RequestMagicLinkResponse }
+import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
 import styles from './RequestMagicLink.module.css'
 
@@ -34,12 +34,12 @@ export const RequestMagicLink = ({
   showResult = false,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
-  const { config } = useConfig()
+  const { serverURL } = useServerUrl()
 
   const [status, setStatus] = useState<status>('default')
 
   const sdk = new PayloadSDK<Config>({
-    baseURL: config.serverURL || '',
+    baseURL: serverURL || '',
   })
 
   const [result, setResult] = useState<string>()

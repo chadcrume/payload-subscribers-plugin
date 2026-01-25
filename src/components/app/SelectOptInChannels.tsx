@@ -2,14 +2,15 @@
 
 import type { Config, OptInChannel } from '@payload-types'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
-import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
 import type { GetOptInChannelsResponse } from 'src/endpoints/getOptInChannels.js'
+
+import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
 import styles from './SelectOptInChannels.module.css'
 
@@ -29,8 +30,8 @@ export const SelectOptInChannels = ({
   handleOptInChannelsSelected,
   selectedOptInChannelIDs,
 }: ISelectOptInChannels) => {
-  const { config } = useConfig()
-
+  const { serverURL } = useServerUrl()
+  // const { serverURL } = { serverURL: 'http://localhost:3001' }
   type OptInChannelCheckbox = {
     isChecked: boolean
   } & OptInChannel
@@ -40,7 +41,7 @@ export const SelectOptInChannels = ({
   useEffect(() => {
     async function verify() {
       const sdk = new PayloadSDK<Config>({
-        baseURL: config.serverURL || '',
+        baseURL: serverURL || '',
       })
 
       console.log('calling optinchannels endpoint')
@@ -57,7 +58,7 @@ export const SelectOptInChannels = ({
       }
     }
     void verify()
-  }, [config])
+  }, [serverURL])
 
   useEffect(() => {
     const channels = result?.optInChannels?.map((channel: OptInChannel) => ({

@@ -6,15 +6,13 @@ import { useSearchParams } from 'next/navigation.js'
 import { useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
-import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 // import type {RequestMagicLinkResponse} from
 
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
 export { VerifyMagicLinkResponse }
-
-import Link from 'next/link.js'
+import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
 import styles from './VerifyMagicLink.module.css'
 
@@ -36,7 +34,8 @@ export const VerifyMagicLink = ({
   handleMagicLinkVerified,
   showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
-  const { config } = useConfig()
+  const { serverURL } = useServerUrl()
+
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const forwardUrl = searchParams.get('forwardUrl')
@@ -48,7 +47,7 @@ export const VerifyMagicLink = ({
   useEffect(() => {
     async function verify() {
       const sdk = new PayloadSDK<Config>({
-        baseURL: config.serverURL || '',
+        baseURL: serverURL || '',
       })
 
       const verifyResult = await sdk.request({
@@ -71,11 +70,11 @@ export const VerifyMagicLink = ({
       }
     }
     void verify()
-  }, [config, email, handleMagicLinkVerified, token])
+  }, [serverURL, email, handleMagicLinkVerified, token])
 
   const handleSubmit = async () => {
     const sdk = new PayloadSDK<Config>({
-      baseURL: config.serverURL || '',
+      baseURL: serverURL || '',
     })
 
     const emailResult = await sdk.request({

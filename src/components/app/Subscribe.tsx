@@ -5,7 +5,6 @@ import type { Config, OptInChannel } from '@payload-types'
 import { type ChangeEvent, useEffect, useState } from 'react'
 // import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
-import { useConfig } from '@payloadcms/ui'
 // import { getPayload } from 'payload'
 
 import type { SubscribeResponse } from '@endpoints/subscribe.js'
@@ -31,18 +30,17 @@ interface ISubscribe {
 
 export const Subscribe = ({ handleSubscribe, showResult = false }: ISubscribe) => {
   const { refreshSubscriber, subscriber } = useSubscriber()
-  const { config } = useConfig()
+
+  const { serverURL } = useServerUrl()
 
   const sdk = new PayloadSDK<Config>({
-    baseURL: config.serverURL || '',
+    baseURL: serverURL || '',
   })
 
   const [result, setResult] = useState<unknown>()
   const [email, setEmail] = useState(subscriber ? subscriber.email : '')
   // @ts-expect-error This is correct, just not sure how to deal with Payload internal generic Post typing
   const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(subscriber?.optIns || [])
-
-  const { serverURL } = useServerUrl()
 
   useEffect(() => {
     setEmail(subscriber?.email || '')

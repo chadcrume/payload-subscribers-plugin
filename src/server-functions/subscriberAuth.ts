@@ -30,7 +30,6 @@ export const subscriberAuth = async (): Promise<SubscriberAuthReturn> => {
     const { permissions, user } = await payload.auth({
       headers,
     })
-    console.log('{ permissions, user }', { permissions, user })
     // @ts-expect-error Payload user collection slugs get confused
     if (user && user.collection == 'subscribers') {
       // @ts-expect-error Payload user collection slugs get confused
