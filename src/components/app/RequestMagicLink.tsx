@@ -109,7 +109,11 @@ export const RequestMagicLink = ({
       ) : (
         <></>
       )}
-      <form className={mergeClassNames([styles.form, classNames.form])}>
+      <form
+        className={mergeClassNames([styles.form, classNames.form])}
+        method="POST"
+        onSubmit={handleSubmit}
+      >
         <input
           aria-label="enter your email"
           className={mergeClassNames([styles.emailInput, classNames.emailInput])}
