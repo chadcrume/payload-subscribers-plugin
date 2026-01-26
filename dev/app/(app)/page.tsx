@@ -23,7 +23,7 @@ const Page = () => {
       <main id="main-content">
         <h1>Home</h1>
         <RequestOrSubscribe
-          classNames={{ button: 'customCss', emailInput: 'customCss' }}
+          classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
           handleMagicLinkRequested={handleMagicLinkRequested}
           handleSubscribe={handleSubscribe}
         />

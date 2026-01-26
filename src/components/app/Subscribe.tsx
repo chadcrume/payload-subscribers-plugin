@@ -13,6 +13,7 @@ export { SubscribeResponse }
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
+import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
 
@@ -137,44 +138,45 @@ export const Subscribe = ({
   }
 
   return (
-    <div className={`${styles.container} ${classNames.container}`}>
+    <div className={mergeClassNames([styles.container, classNames.container])}>
       <h2>Subscribe</h2>
-      <div className={`${styles.section} ${classNames.section}`}>
+      <div className={mergeClassNames([styles.section, classNames.section])}>
         <SelectOptInChannels
           handleOptInChannelsSelected={handleOptInChannelsSelected}
           selectedOptInChannelIDs={selectedChannelIDs}
         />
       </div>
       <form
-        className={`${styles.form} ${classNames.form}`}
+        className={mergeClassNames([styles.form, classNames.form])}
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
           await handleSubmit()
         }}
       >
-        <div className={styles.section}>
+        <div className={mergeClassNames([styles.section, classNames.section])}>
           {!subscriber && (
             <input
               aria-label="enter your email"
-              className={`${styles.emailInput} ${classNames.emailInput}`}
+              className={mergeClassNames([styles.emailInput, classNames.emailInput])}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="enter your email"
               type="email"
               value={email}
             />
           )}
-          <button className={`${styles.button} ${classNames.button}`} type="submit">
+          <button className={mergeClassNames([styles.button, classNames.button])} type="submit">
             Save choices
           </button>
         </div>
       </form>
       {!!result && !!showResult && (
         <p
-          className={
-            `${styles.message} ${classNames.message}` +
-            (status == 'error' ? `${styles.error} ${classNames.error}` : '')
-          }
+          className={mergeClassNames([
+            styles.message,
+            classNames.message,
+            status == 'error' ? [styles.error, classNames.error] : [],
+          ])}
         >
           {result}
         </p>

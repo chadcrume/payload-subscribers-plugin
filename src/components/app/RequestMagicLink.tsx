@@ -8,6 +8,7 @@ import { PayloadSDK } from '@payloadcms/sdk'
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 
+import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
 export { RequestMagicLinkResponse }
@@ -94,30 +95,30 @@ export const RequestMagicLink = ({
   }
 
   return (
-    <div className={`${styles.container} ${classNames.container}`}>
+    <div className={mergeClassNames([styles.container, classNames.container])}>
       {result && (showResult || status == 'error') ? (
         <p
-          className={
-            `${styles.message} ${classNames.message}` + status == 'error'
-              ? `${styles.error} ${classNames.error}`
-              : ''
-          }
+          className={mergeClassNames([
+            styles.message,
+            classNames.message,
+            status == 'error' ? [styles.error, classNames.error] : [],
+          ])}
         >
           {result}
         </p>
       ) : (
         <></>
       )}
-      <form className={`${styles.form} ${classNames.form}`} method="POST" onSubmit={handleSubmit}>
+      <form className={mergeClassNames([styles.form, classNames.form])}>
         <input
           aria-label="enter your email"
-          className={`${styles.emailInput} ${classNames.emailInput}`}
+          className={mergeClassNames([styles.emailInput, classNames.emailInput])}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="enter your email"
           type="email"
           value={email}
         />
-        <button className={`${styles.button} ${classNames.button}`} type="submit">
+        <button className={mergeClassNames([styles.button, classNames.button])} type="submit">
           Request magic link
         </button>
       </form>

@@ -23,7 +23,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <body>
         <SubscriberProvider>
           <HomeChecker>
-            <Auth />
+            <Auth classNames={{ button: 'customCss', container: 'customCss' }} />
           </HomeChecker>
           {children}
         </SubscriberProvider>

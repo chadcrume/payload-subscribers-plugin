@@ -12,6 +12,7 @@ import type { GetOptInChannelsResponse } from 'src/endpoints/getOptInChannels.js
 
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 
+import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
 // const payload = await getPayload({
@@ -95,24 +96,29 @@ export const SelectOptInChannels = ({
   }, [result, selectedOptInChannelIDs])
 
   return (
-    <div className={`${styles.container} ${classNames.container}`}>
+    <div className={mergeClassNames([styles.container, classNames.container])}>
       <h3>Opt-in Channels</h3>
       {!result ? (
-        <p className={`${styles.loading} ${classNames.loading}`}>verifying...</p>
+        <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
       ) : (
-        <div className={`${styles.optionsGroup} ${classNames.optionsGroup}`}>
+        <div className={mergeClassNames([styles.optionsGroup, classNames.optionsGroup])}>
           {// Map over the tasks array to render each checkbox
           allOptInChannels?.map((channel) => (
             <div
-              className={`${styles.optInCheckboxItem} ${classNames.optInCheckboxItem}`}
+              className={mergeClassNames([styles.optInCheckboxItem, classNames.optInCheckboxItem])}
               key={channel.id}
             >
-              <label className={`${styles.optInCheckboxLabel} ${classNames.optInCheckboxLabel}`}>
+              <label
+                className={mergeClassNames([
+                  styles.optInCheckboxLabel,
+                  classNames.optInCheckboxLabel,
+                ])}
+              >
                 <input
                   aria-label={channel.title}
                   // The checked prop is controlled by the state
                   checked={channel.isChecked}
-                  className={`${styles.optInCheckbox} ${classNames.optInCheckbox}`}
+                  className={mergeClassNames([styles.optInCheckbox, classNames.optInCheckbox])}
                   // The onChange handler calls the update function with the item's ID
                   onChange={(event) => {
                     event.preventDefault()

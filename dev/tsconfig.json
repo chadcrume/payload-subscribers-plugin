@@ -18,7 +18,8 @@
     "paths": {
       "@payload-config": ["./payload.config.ts"],
       "payload-subscribers-plugin": ["../src/index.ts"],
-      "payload-subscribers-plugin/ui": ["../src/exports/ui.ts"]
+      "payload-subscribers-plugin/ui": ["../src/exports/ui.ts"],
+      "@/components/*": ["./components/*"]
     },
     "noEmit": true,
     "emitDeclarationOnly": false

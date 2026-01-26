@@ -21,7 +21,10 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Subscribe</h1>
-        <Subscribe handleSubscribe={handleSubscribe} />
+        <Subscribe
+          classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+          handleSubscribe={handleSubscribe}
+        />
       </main>
     </>
   )

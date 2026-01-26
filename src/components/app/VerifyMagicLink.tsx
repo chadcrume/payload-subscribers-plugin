@@ -13,7 +13,9 @@ import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js
 import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
 export { VerifyMagicLinkResponse }
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
+import { useSubscriber } from 'payload-subscribers-plugin/ui'
 
+import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
 // const payload = await getPayload({
@@ -26,7 +28,12 @@ export interface IVerifyMagicLink {
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
-  props?: any
+  renderButton?: (props: {
+    forwardUrl?: string
+    name?: string
+    onClick?: () => any
+    text?: string
+  }) => React.ReactNode
   showResultBeforeForwarding: boolean
 }
 
@@ -50,9 +57,31 @@ export const VerifyMagicLink = ({
   },
   handleMagicLinkRequested,
   handleMagicLinkVerified,
+  renderButton = ({ name, forwardUrl, onClick, text }) =>
+    forwardUrl ? (
+      <a href={forwardUrl}>
+        <button
+          className={mergeClassNames([styles.button, classNames.button])}
+          name={name}
+          type="button"
+        >
+          {text}
+        </button>
+      </a>
+    ) : (
+      <button
+        className={mergeClassNames([styles.button, classNames.button])}
+        name={name}
+        onClick={onClick}
+        type="button"
+      >
+        {text}
+      </button>
+    ),
   showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
   const { serverURL } = useServerUrl()
+  const { refreshSubscriber, subscriber } = useSubscriber()
 
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -81,6 +110,9 @@ export const VerifyMagicLink = ({
         const resultJson = await verifyResult.json()
         setResult(resultJson.message || resultJson.error)
         setIsError(resultJson.error && !resultJson.message)
+
+        refreshSubscriber()
+
         if (handleMagicLinkVerified) {
           handleMagicLinkVerified(resultJson)
         }
@@ -90,8 +122,10 @@ export const VerifyMagicLink = ({
         setIsError(true)
       }
     }
-    void verify()
-  }, [serverURL, email, handleMagicLinkVerified, token])
+    if (!subscriber) {
+      void verify()
+    }
+  }, [serverURL, email, handleMagicLinkVerified, refreshSubscriber, token])
 
   const handleRequestMagicLink = async () => {
     const sdk = new PayloadSDK<Config>({
@@ -120,38 +154,36 @@ export const VerifyMagicLink = ({
     }
   }
   return (
-    <div className={`${styles.container} ${classNames.container}`}>
-      {!result && <p className={`${styles.loading} ${classNames.loading}`}>verifying...</p>}
+    <div className={mergeClassNames([styles.container, classNames.container])}>
+      {!result && (
+        <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
+      )}
       {result && showResultBeforeForwarding && (
         <p
-          className={
-            `${styles.message} ${classNames.message}` +
-            (isError ? `${styles.error} ${classNames.error}` : '')
-          }
+          className={mergeClassNames([
+            styles.message,
+            classNames.message,
+            isError ? [styles.error, classNames.error] : [],
+          ])}
         >
           {result}
         </p>
       )}
-      <div className={`${styles.form} ${classNames.form}`}>
-        <button
-          className={`${styles.button} ${classNames.button}`}
-          name="request"
-          onClick={handleRequestMagicLink}
-          type="button"
-        >
-          Request another magic link
-        </button>
-        {result && forwardUrl && (
-          <a href={forwardUrl}>
-            <button
-              className={`${styles.button} ${classNames.button}`}
-              name="continue"
-              type="button"
-            >
-              Continue
-            </button>
-          </a>
-        )}
+      <div className={mergeClassNames([styles.form, classNames.form])}>
+        {result &&
+          isError &&
+          renderButton({
+            name: 'request',
+            onClick: handleRequestMagicLink,
+            text: 'Request another magic link',
+          })}
+        {result &&
+          forwardUrl &&
+          renderButton({
+            name: 'continue',
+            forwardUrl,
+            text: 'Continue',
+          })}
       </div>
     </div>
   )

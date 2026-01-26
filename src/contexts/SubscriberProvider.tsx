@@ -6,7 +6,7 @@ import { logoutAction, subscriberAuth } from '@server-functions/subscriberAuth.j
 import { type ReactNode, useCallback, useEffect } from 'react'
 import { createContext, useContext, useMemo, useState } from 'react'
 
-type SubscriberContextType = {
+export type SubscriberContextType = {
   isLoaded: boolean
   logOut: () => void
   permissions: any
