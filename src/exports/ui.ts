@@ -12,4 +12,4 @@ export type { VerifyMagicLinkResponse } from '@components/app/VerifyMagicLink.js
 export { VerifyMagicLink } from '@components/app/VerifyMagicLink.js'
 
 export type { SubscriberContextType } from '@contexts/SubscriberProvider.js'
-export { useSubscriber } from '@contexts/SubscriberProvider.js'
+export { SubscriberProvider, useSubscriber } from '@contexts/SubscriberProvider.js'
