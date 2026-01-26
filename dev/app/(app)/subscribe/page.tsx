@@ -1,14 +1,5 @@
+import { Subscribe, type SubscribeResponse } from 'payload-subscribers-plugin/ui'
 import React from 'react'
-// import { Homepage } from '@/components/Homepage'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
-import { Subscribe } from 'payload-subscribers-plugin/ui'
-
-import type { SubscribeResponse } from '../../../../src/endpoints/subscribe.js'
-
-const payload = await getPayload({
-  config: configPromise,
-})
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function handleSubscribe(result: SubscribeResponse) {
