@@ -2,7 +2,7 @@ import type { BasePayload, CollectionSlug, Config } from 'payload'
 
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
-import Subscribers from './collections/Subscribers.js'
+import { SubscribersCollectionFactory } from './collections/Subscribers.js'
 import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
 import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
 import subscribeEndpoint from './endpoints/subscribe.js'
@@ -22,6 +22,10 @@ export type PayloadSubscribersConfig = {
    *  - App components return nothing
    */
   disabled?: boolean
+  /**
+   * Defaults to 30 minutes
+   */
+  tokenExpiration?: number
 }
 
 export const payloadSubscribersPlugin =
@@ -31,7 +35,12 @@ export const payloadSubscribersPlugin =
       config.collections = []
     }
 
-    config.collections.push(OptInChannels, Subscribers)
+    config.collections.push(
+      OptInChannels,
+      SubscribersCollectionFactory({
+        tokenExpiration: pluginOptions.tokenExpiration || 60 * 60, // 1 hour
+      }),
+    )
 
     if (pluginOptions.collections) {
       for (const collectionSlug in pluginOptions.collections) {

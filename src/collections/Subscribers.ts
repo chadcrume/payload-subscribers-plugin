@@ -2,6 +2,14 @@ import type { CollectionConfig } from 'payload'
 
 import { OptedInChannels } from './fields/OptedInChannels.js'
 
+export const SubscribersCollectionFactory = ({
+  tokenExpiration = 30 * 60, // 30 minutes
+}: {
+  tokenExpiration: number
+}) => {
+  return { ...Subscribers, auth: { tokenExpiration } }
+}
+
 const Subscribers: CollectionConfig = {
   slug: 'subscribers',
   access: {
