@@ -11,10 +11,32 @@ import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 
 export type { RequestMagicLinkResponse, SubscribeResponse }
 
+export type RequestOrSubscribeClasses = {
+  button?: string
+  container?: string
+  emailInput?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+  section?: string
+}
+
 export function RequestOrSubscribe({
+  classNames = {
+    button: '',
+    container: '',
+    emailInput: '',
+    error: '',
+    form: '',
+    loading: '',
+    message: '',
+    section: '',
+  },
   handleMagicLinkRequested,
   handleSubscribe,
 }: {
+  classNames?: RequestOrSubscribeClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleSubscribe?: (result: SubscribeResponse) => void
 }) {
@@ -24,9 +46,12 @@ export function RequestOrSubscribe({
   return (
     <>
       {subscriber ? (
-        <Subscribe handleSubscribe={handleSubscribe} />
+        <Subscribe classNames={classNames} handleSubscribe={handleSubscribe} />
       ) : (
-        <RequestMagicLink handleMagicLinkRequested={handleMagicLinkRequested} />
+        <RequestMagicLink
+          classNames={classNames}
+          handleMagicLinkRequested={handleMagicLinkRequested}
+        />
       )}
       {/* <div>subscriber = {JSON.stringify(subscriber)}</div> */}
     </>

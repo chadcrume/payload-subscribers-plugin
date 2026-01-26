@@ -2,3 +2,10 @@ body {
     background-color: black;
     color: beige;
 }
+
+button.customCss {
+    color: blue;
+}
+input.customCss {
+    color: blueviolet;
+}
