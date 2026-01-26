@@ -21,6 +21,9 @@ export const getOptInChannelsHandler: PayloadHandler = async (req) => {
   const findResults = await req.payload.find({
     collection: OptInChannelCollection.slug as CollectionSlug,
     depth: 2,
+    where: {
+      active: { equals: true },
+    },
   })
   // .catch((error) => {
   //   return Response.json({ error, now: new Date().toISOString() } as GetOptInChannelsResponse, {
