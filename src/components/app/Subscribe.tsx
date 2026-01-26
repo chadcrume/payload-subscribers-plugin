@@ -31,13 +31,13 @@ export interface ISubscribe {
 
 export type SubscribeClasses = {
   button?: string
+  container?: string
   emailInput?: string
   error?: string
   form?: string
   loading?: string
   message?: string
   section?: string
-  wrapper?: string
 }
 
 type statusValues = 'default' | 'error' | 'sent' | 'updated'
@@ -45,13 +45,13 @@ type statusValues = 'default' | 'error' | 'sent' | 'updated'
 export const Subscribe = ({
   classNames = {
     button: '',
+    container: '',
     emailInput: '',
     error: '',
     form: '',
     loading: '',
     message: '',
     section: '',
-    wrapper: '',
   },
   handleSubscribe,
   showResult = true,

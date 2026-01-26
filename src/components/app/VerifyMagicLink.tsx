@@ -32,21 +32,21 @@ export interface IVerifyMagicLink {
 
 export type VerifyMagicLinkClasses = {
   button?: string
+  container?: string
   error?: string
   form?: string
   loading?: string
   message?: string
-  wrapper?: string
 }
 
 export const VerifyMagicLink = ({
   classNames = {
     button: '',
+    container: '',
     error: '',
     form: '',
     loading: '',
     message: '',
-    wrapper: '',
   },
   handleMagicLinkRequested,
   handleMagicLinkVerified,

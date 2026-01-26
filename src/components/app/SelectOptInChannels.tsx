@@ -29,6 +29,7 @@ export interface ISelectOptInChannels {
 
 export type SelectOptInChannelsClasses = {
   button?: string
+  container?: string
   error?: string
   form?: string
   loading?: string
@@ -37,12 +38,12 @@ export type SelectOptInChannelsClasses = {
   optInCheckboxItem?: string
   optInCheckboxLabel?: string
   optionsGroup?: string
-  wrapper?: string
 }
 
 export const SelectOptInChannels = ({
   classNames = {
     button: '',
+    container: '',
     error: '',
     form: '',
     loading: '',
@@ -51,7 +52,6 @@ export const SelectOptInChannels = ({
     optInCheckboxItem: '',
     optInCheckboxLabel: '',
     optionsGroup: '',
-    wrapper: '',
   },
   handleOptInChannelsSelected,
   selectedOptInChannelIDs,

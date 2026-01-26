@@ -21,11 +21,11 @@ export interface IRequestMagicLink {
 
 export type RequestMagicLinkClasses = {
   button?: string
+  container?: string
   emailInput?: string
   error?: string
   form?: string
   message?: string
-  wrapper?: string
 }
 
 type statusValues = 'default' | 'error' | 'sent'
@@ -33,11 +33,11 @@ type statusValues = 'default' | 'error' | 'sent'
 export const RequestMagicLink = ({
   classNames = {
     button: '',
+    container: '',
     emailInput: '',
     error: '',
     form: '',
     message: '',
-    wrapper: '',
   },
   handleMagicLinkRequested,
   showResult = true,
