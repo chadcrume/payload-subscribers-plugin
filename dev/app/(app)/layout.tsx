@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 
-import { Auth } from 'payload-subscribers-plugin/ui'
+import { Auth, SubscriberProvider } from 'payload-subscribers-plugin/ui'
 import React from 'react'
 
 import './global.css'
-import { SubscriberProvider } from '../../../src/contexts/SubscriberProvider.js'
 import { HomeChecker } from '../../components/HomeChecker.js'
 
 export const metadata: Metadata = {
