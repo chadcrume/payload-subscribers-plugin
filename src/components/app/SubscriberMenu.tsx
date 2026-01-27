@@ -10,7 +10,7 @@ import styles from './shared.module.css'
 //   props?: any
 // }
 
-export const Auth = ({
+export const SubscriberMenu = ({
   classNames = {
     button: '',
     container: '',

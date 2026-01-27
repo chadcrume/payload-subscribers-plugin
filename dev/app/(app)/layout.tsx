@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { Auth, SubscriberProvider } from 'payload-subscribers-plugin/ui'
+import { SubscriberMenu, SubscriberProvider } from 'payload-subscribers-plugin/ui'
 import React from 'react'
 
 import './global.css'
@@ -22,7 +22,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <body>
         <SubscriberProvider>
           <HomeChecker>
-            <Auth classNames={{ button: 'customCss', container: 'customCss' }} />
+            <SubscriberMenu classNames={{ button: 'customCss', container: 'customCss' }} />
           </HomeChecker>
           {children}
         </SubscriberProvider>

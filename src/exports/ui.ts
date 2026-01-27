@@ -1,4 +1,4 @@
-export { Auth } from '@components/app/Auth.js'
+export { SubscriberMenu } from '@components/app/SubscriberMenu.js'
 
 export type { RequestMagicLinkResponse } from '@components/app/RequestMagicLink.js'
 export { RequestMagicLink } from '@components/app/RequestMagicLink.js'
