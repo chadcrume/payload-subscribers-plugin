@@ -1,59 +1,258 @@
 # Payload Subscribers Plugin
 
-A plugin to manage subscribers 
+A plugin to manage subscribers and the "channels" they can subscribe to.
 
-## Features
+## Installation
 
-* ✔ Creates optInChannels collection
-  * Fields
-    * title: text
-    * description: text
-    * active: boolean
-    * slug: text
+```bash
+pnpm add payload-subscribers-plugin
+```
 
-* ✔ Creates subscribers collection
-  * Fields
-    * email: text
-    * first name: text
-    * status: Subscribed | Unsubscribed | Pending verification (default)
-    * opt-ins: referenceTo optInChannels hasMany 
-    * source: text
-    * verificationToken: text hidden
+## Usage
 
-* ✔ Modifies specified existing collections by adding a relationTo field referring to the optInChannels collection
+Add the plugin to your Payload config.
 
-* ✔ Provides an API to send MagicLink to Subscriber
-* ✔ Provides an API to verify a MagicLink
-* ✔ Provides an App Component (Server + Client) to Request MagicLink
-* ✔ Provides an App Component (Server + Client) to Verify MagicLink
-* Provides an App Component (Server + Client) to Sign Up
+```typescript
+// payload.config.ts
 
-* Creates emails collection
-  * Fields
-    * subject: text
-    * body: blocks
-    * opIns: referenceTo optInChannels hasMany
-    * status: draft | ready_to_send | sent
-    * send date: datetime
+export default buildConfig({
+  plugins: [
+    payloadSubscribersPlugin({
+      collections: {
+        // Add slugs of your collections which should have a relationship field to the optInChannels.
+        posts: true,
+      },
+      // Easily disable the collection logic.
+      disabled: false,
+      // Provide a custom expiration for magic link tokens. The default is 30 minutes.
+      tokenExpiration: 60 * 60,
+    }),
+  ],
+})
+```
 
-* Provides default content blocks for use with the email body, 
+Place the **SubscriberProvider** at the a good location in your app structure. For example, in your root layout:
 
-* Accepts option to omit any individual default content block
+```typescript
+// layout.tsx
 
-* Accepts custom blocks to add to the emails body
+import { SubscriberProvider } from 'payload-subscribers-plugin/ui'
 
-* Provides an App Component (Server + Client) to Manage Subscriber Opt-In Channels
-* Provides an App Component (Server + Client) to Unsubscribe
-* Provides an App Route to Unsubscribe
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <html lang="en">
+      <head></head>
+      <body>
+        <SubscriberProvider>
+          ...
+        </SubscriberProvider>
+      </body>
+    </html>
+  )
+}
+```
 
+Then you can use the components in your app:
 
+```typescript
+// page.tsx
 
-* Globals
-* onInit
-* API
-* Server Functions
-* Admin Server Components
-* Admin Client Components
-* App Server Components
-* App Client Components
+import { RequestOrSubscribe } from 'payload-subscribers-plugin/ui'
 
+const Page = () => {
+  return (
+    <main>
+      <RequestOrSubscribe
+        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+      />
+    </main>
+  )
+}
+```
+
+**_IMPORANT:_** Be sure to create a /verify route
+
+```typescript
+// verify/page.tsx
+
+import { VerifyClient } from '@/components/VerifyClient.js'
+
+const Page = () => {
+  return (
+    <main id="main-content">
+      <VerifyMagicLink
+        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+        showResultBeforeForwarding={true}
+      />
+    </main>
+  )
+}
+```
+
+## 🟢🔵🔴 Features
+
+### 🟢 Plugin options
+
+#### **collections**
+
+You can specify collections in the plugin options which will be amended to include a relationTo field referring to the optInChannels collection. Right now this does not override the plugin-added subscribers collection, which is still used for the primary record of subscribers and used for authentication. The collections amended with an optIns can be used, for example, to manage your subscription channels and any email campaigns related. 
+
+#### **disabled**
+
+#### **tokenExpiration**
+
+### 🟢 Collections
+
+#### **optInChannels**
+
+Seeded when plugin inits.
+
+- Fields
+  - title: text
+  - description: text
+  - active: boolean
+  - slug: text
+
+#### **subscribers**
+
+Seeded when plugin inits.
+
+- Fields
+  - email: text
+  - first name: text
+  - status: Subscribed | Unsubscribed | Pending verification (default)
+  - opt-ins: referenceTo optInChannels hasMany
+  - source: text
+  - verificationToken: text hidden
+
+---
+
+### 🔵 Fields
+
+#### **OptedInChannels**
+
+*THE FIELD SPEC IS CURRENTLY NOT EXPORTED* Documenting here in case that seems useful in the future.
+
+This is the same field used by the plugin **collections** to amended a relationTo field referring to the optInChannels collection.
+
+---
+
+### 🔴 Payload endpoints
+
+#### **requestMagicLink**
+
+Takes an email, verifies it, registers it if unknown, constructs a magic link, and uses your Payload emailAdapter to sendEmail.
+
+#### **verifyMagicLink**
+
+Takes an email and token, verifies the token, and authenticates the user, using Payload's HTTP-only cookies auth.
+
+#### **getOptInChannels**
+
+Returns all active optInChannels data.
+
+#### **subscribe** a user, or update a subscriber's opt-ins.
+
+Takes an email and list of optInChannel IDs, verifies them, and if the authenticated subscriber matches the email will update the channels that subscriber is opted into.
+
+#### TO DO: unsubscribe
+
+The **subscribe** endpoint will remove all optIns. But need a way to set the subscriber status to "unsubscribed"
+
+---
+
+### 🟢 SubscriberProvider provider with useSubscriber context
+
+---
+
+### 🔵 Provides several NextJS client components ready for use in a frontend app
+
+- All App Components are client components that consume hooks, server components, server functions. Including the useSubscriber context, and so the must be used within the children descendent tree of the SubscriberProvider provider.
+
+- All App Components accept a **classNames** prop to specify CSS class names to add to the different parts of the component
+
+#### **RequestOrSubscribe**
+
+Shows Subscribe to authenticated subscribers, otherwise shows RequestMagicLink.
+
+<!-- <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
+</div> -->
+
+```typescript
+// classNames prop
+
+export type RequestOrSubscribeClasses = {
+  button?: string
+  container?: string
+  emailInput?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+  section?: string
+}
+```
+
+#### **RequestMagicLink**
+
+Form to input email address and get a magic link email sent.
+
+```typescript
+// classNames prop
+
+export type RequestMagicLinkClasses = {
+  button?: string
+  container?: string
+  emailInput?: string
+  error?: string
+  form?: string
+  message?: string
+}
+```
+
+#### **VerifyMagicLink**
+
+Component that verifies a magic link using expected url parameters.
+
+```typescript
+// classNames prop
+
+export type VerifyMagicLinkClasses = {
+  button?: string
+  container?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+}
+```
+
+#### **Subscribe**
+
+Allows a subscriber to select from among all active optInChannels.
+
+```typescript
+// classNames prop
+
+export type SubscribeClasses = {
+  button?: string
+  container?: string
+  emailInput?: string
+  error?: string
+  form?: string
+  loading?: string
+  message?: string
+  section?: string
+}
+```
+
+#### **SubscriberMenu**
+
+```typescript
+// classNames prop
+
+export type SubscriberMenuClasses = {
+  button?: string
+  container?: string
+}
+```
