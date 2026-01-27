@@ -81,7 +81,10 @@ export const VerifyMagicLink = ({
   showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
   const { serverURL } = useServerUrl()
-  const { refreshSubscriber, subscriber } = useSubscriber()
+  const {
+    // refreshSubscriber,
+    subscriber,
+  } = useSubscriber()
 
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -111,7 +114,8 @@ export const VerifyMagicLink = ({
         setResult(resultJson.message || resultJson.error)
         setIsError(resultJson.error && !resultJson.message)
 
-        refreshSubscriber()
+        // This is causing out of control rendering. Not totally sure why, or of another way to do it.
+        // refreshSubscriber()
 
         if (handleMagicLinkVerified) {
           handleMagicLinkVerified(resultJson)
@@ -125,7 +129,14 @@ export const VerifyMagicLink = ({
     if (!subscriber) {
       void verify()
     }
-  }, [serverURL, email, handleMagicLinkVerified, refreshSubscriber, token])
+  }, [
+    serverURL,
+    email,
+    handleMagicLinkVerified,
+    // refreshSubscriber,
+    subscriber,
+    token,
+  ])
 
   const handleRequestMagicLink = async () => {
     const sdk = new PayloadSDK<Config>({
