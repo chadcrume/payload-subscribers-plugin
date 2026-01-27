@@ -10,24 +10,18 @@ import styles from './shared.module.css'
 //   props?: any
 // }
 
+export type SubscriberMenuClasses = {
+  button?: string
+  container?: string
+}
+
 export const SubscriberMenu = ({
   classNames = {
     button: '',
     container: '',
-    emailInput: '',
-    error: '',
-    form: '',
-    message: '',
   },
 }: {
-  classNames?: {
-    button: ''
-    container: ''
-    emailInput: ''
-    error: ''
-    form: ''
-    message: ''
-  }
+  classNames?: SubscriberMenuClasses
 }) => {
   const { logOut, subscriber } = useSubscriber()
   return (
