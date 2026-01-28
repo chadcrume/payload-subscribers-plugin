@@ -1,16 +1,13 @@
 'use client'
 
 import type { Config } from '@payload-types'
-
-import { useSearchParams } from 'next/navigation.js'
-import { useEffect, useState } from 'react'
-// import configPromise from '@payload-config'
-import { PayloadSDK } from '@payloadcms/sdk'
-// import { getPayload } from 'payload'
-// import type {RequestMagicLinkResponse} from
-
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
+
+import { PayloadSDK } from '@payloadcms/sdk'
+import { useSearchParams } from 'next/navigation.js'
+import { useCallback, useEffect, useState } from 'react'
+
 export { VerifyMagicLinkResponse }
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
 import { useSubscriber } from 'payload-subscribers-plugin/ui'
@@ -95,31 +92,40 @@ export const VerifyMagicLink = ({
   const [isError, setIsError] = useState<boolean>(false)
   // const [email, setEmail] = useState('')
 
+  const { refreshSubscriber } = useSubscriber()
+
+  const callVerify = useCallback(async () => {
+    const sdk = new PayloadSDK<Config>({
+      baseURL: serverURL || '',
+    })
+
+    const verifyResult = await sdk.request({
+      json: {
+        email,
+        token,
+      },
+      method: 'POST',
+      path: '/api/verifyToken',
+    })
+
+    return verifyResult
+  }, [email, serverURL, token])
+
   useEffect(() => {
     async function verify() {
-      const sdk = new PayloadSDK<Config>({
-        baseURL: serverURL || '',
-      })
-
-      const verifyResult = await sdk.request({
-        json: {
-          email,
-          token,
-        },
-        method: 'POST',
-        path: '/api/verifyToken',
-      })
+      const verifyResult = await callVerify()
       if (verifyResult.ok) {
         const resultJson = await verifyResult.json()
         setResult(resultJson.message || resultJson.error)
         setIsError(resultJson.error && !resultJson.message)
 
-        // This is causing out of control rendering. Not totally sure why, or of another way to do it.
+        // // This is causing out of control rendering. Not totally sure why, or of another way to do it.
         // refreshSubscriber()
 
-        if (handleMagicLinkVerified) {
-          handleMagicLinkVerified(resultJson)
-        }
+        // // This is also causing out of control rendering. Not totally sure why, or of another way to do it.
+        // if (handleMagicLinkVerified) {
+        //   handleMagicLinkVerified(resultJson)
+        // }
       } else {
         // const resultText = await verifyResult.text()
         setResult('An error occured. Please try again')
@@ -129,14 +135,7 @@ export const VerifyMagicLink = ({
     if (!subscriber) {
       void verify()
     }
-  }, [
-    serverURL,
-    email,
-    handleMagicLinkVerified,
-    // refreshSubscriber,
-    subscriber,
-    token,
-  ])
+  }, [callVerify, serverURL, email, handleMagicLinkVerified, refreshSubscriber, subscriber, token])
 
   const handleRequestMagicLink = async () => {
     const sdk = new PayloadSDK<Config>({

@@ -2,6 +2,8 @@
 
 ## Features Roadmap
 
+* Update request+verify to use Payload's forgot and reset flow?
+  
 * pluginOption to input custom field specs for **subscribers** collection
 
 * Creates emails collection
@@ -24,11 +26,10 @@
 
 
 
-* Globals
+* Globals - none as of now
 * onInit
-* API
-* Server Functions
-* Admin Server Components
+* Server Functions - none public
+* Admin Server Components - none
 * Admin Client Components
 * App Server Components
 * App Client Components

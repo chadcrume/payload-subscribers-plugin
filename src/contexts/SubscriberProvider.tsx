@@ -1,8 +1,9 @@
 'use client'
 
-import type { Subscriber } from '@payload-types'
+import type { Config, Subscriber } from '@payload-types'
 
-import { logoutAction, subscriberAuth } from '@server-functions/subscriberAuth.js'
+import { PayloadSDK } from '@payloadcms/sdk'
+import { useServerUrl } from '@react-hooks/useServerUrl.js'
 import { type ReactNode, useCallback, useEffect } from 'react'
 import { createContext, useContext, useMemo, useState } from 'react'
 
@@ -24,34 +25,66 @@ export function SubscriberProvider({ children }: ProviderProps) {
   // eslint-disable-next-line
   const [subscriber, setSubscriber] = useState<null | (Subscriber & { optIns: string[] })>(null)
 
+  const { serverURL } = useServerUrl()
+
   // Keep track of if the selection content is loaded yet
   const [isLoaded, setIsLoaded] = useState(false)
 
   const [permissions, setPermissions] = useState<any>()
 
-  const initSubscriber = async () => {
-    setIsLoaded(false)
-    // Call the server function to get the user data
-    // @ts-expect-error - error OR user (and permissions) will be undefined
-    const { permissions, subscriber } = await subscriberAuth()
-    setSubscriber(subscriber)
-    setPermissions(permissions)
-    setIsLoaded(true)
-  }
-
   const refreshSubscriber = useCallback(async () => {
+    const initSubscriber = async () => {
+      setIsLoaded(false)
+      const sdk = new PayloadSDK<Config>({
+        baseURL: serverURL || '',
+      })
+      const authResponse = await sdk.request({
+        json: {},
+        method: 'POST',
+        path: '/api/subscriberAuth',
+      })
+
+      console.log(`authResponse`, authResponse)
+
+      if (authResponse.ok) {
+        // Call the server function to get the user data
+        const { permissions, subscriber } = await authResponse.json()
+        // console.log(`subscriber = `, subscriber)
+        // console.log(`permissions = `, permissions)
+        setPermissions(permissions)
+        setSubscriber(subscriber)
+      } else {
+        setPermissions(null)
+        setSubscriber(null)
+      }
+      setIsLoaded(true)
+    }
     await initSubscriber()
-  }, [])
+  }, [serverURL])
 
   const logOut = useCallback(async () => {
-    await logoutAction()
-    setSubscriber(null)
-    setPermissions(undefined)
+    setIsLoaded(false)
+    const sdk = new PayloadSDK<Config>({
+      baseURL: serverURL || '',
+    })
+    const logoutResponse = await sdk.request({
+      json: {},
+      method: 'POST',
+      path: '/api/logout',
+    })
+
+    console.log(`logoutResponse`, logoutResponse)
+
+    if (logoutResponse.ok) {
+      setSubscriber(null)
+      setPermissions(null)
+    }
+    setIsLoaded(true)
   }, [])
 
   useEffect(() => {
-    void initSubscriber()
-  }, []) // Empty dependency array for mount/unmount
+    void refreshSubscriber()
+  }, [refreshSubscriber]) // Empty dependency array for mount/unmount
 
   // Memoize the value to prevent unnecessary re-renders in consumers
   const contextValue: SubscriberContextType = useMemo(
