@@ -1,7 +1,5 @@
 import type { Endpoint, PayloadHandler } from 'payload'
 
-import { getServerUrl } from '@server-functions/serverUrl.js'
-
 export type LogoutResponse =
   | {
       error: string

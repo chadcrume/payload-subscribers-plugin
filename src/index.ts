@@ -1,15 +1,15 @@
 import type { BasePayload, CollectionSlug, Config } from 'payload'
 
-import { OptedInChannels } from '@collections/fields/OptedInChannels.js'
-import OptInChannels from '@collections/OptInChannels.js'
-import { SubscribersCollectionFactory } from '@collections/Subscribers.js'
-import getOptInChannelsEndpoint from '@endpoints/getOptInChannels.js'
-import logoutEndpoint from '@endpoints/logout.js'
-import requestMagicLinkEndpoint from '@endpoints/requestMagicLink.js'
-import subscribeEndpoint from '@endpoints/subscribe.js'
-import subscriberAuthEndpoint from '@endpoints/subscriberAuth.js'
-import verifyMagicLinkEndpoint from '@endpoints/verifyMagicLink.js'
-import { getTestEmail } from '@helpers/testData.js'
+import { OptedInChannels } from './collections/fields/OptedInChannels.js'
+import OptInChannels from './collections/OptInChannels.js'
+import { SubscribersCollectionFactory } from './collections/Subscribers.js'
+import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
+import logoutEndpoint from './endpoints/logout.js'
+import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
+import subscribeEndpoint from './endpoints/subscribe.js'
+import subscriberAuthEndpoint from './endpoints/subscriberAuth.js'
+import verifyMagicLinkEndpoint from './endpoints/verifyMagicLink.js'
+import { getTestEmail } from './helpers/testData.js'
 
 export type PayloadSubscribersConfig = {
   /**

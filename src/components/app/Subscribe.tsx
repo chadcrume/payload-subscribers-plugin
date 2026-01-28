@@ -1,16 +1,15 @@
 'use client'
 
-import type { SubscribeResponse } from '@endpoints/subscribe.js'
-import type { Config, OptInChannel } from '@payload-types'
-
 import { PayloadSDK } from '@payloadcms/sdk'
 import { type ChangeEvent, useEffect, useState } from 'react'
 
+import type { Config, OptInChannel } from '../../copied/payload-types.js'
+import type { SubscribeResponse } from '../../endpoints/subscribe.js'
+
 export { SubscribeResponse }
 
-import { useSubscriber } from '@contexts/SubscriberProvider.js'
-import { useServerUrl } from '@react-hooks/useServerUrl.js'
-
+import { useSubscriber } from '../../contexts/SubscriberProvider.js'
+import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
@@ -63,16 +62,25 @@ export const Subscribe = ({
     baseURL: serverURL || '',
   })
 
+  const flattenChannels = (channels: (OptInChannel | string)[] | null | undefined) => {
+    if (!channels) {
+      return []
+    }
+    return channels.map((channel: OptInChannel | string) =>
+      typeof channel == 'string' ? channel : channel.id,
+    )
+  }
+
   const [status, setStatus] = useState<statusValues>('default')
   const [result, setResult] = useState<string>()
   const [email, setEmail] = useState(subscriber ? subscriber.email : '')
-  // @ts-expect-error This is correct, just not sure how to deal with Payload internal generic Post typing
-  const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(subscriber?.optIns || [])
+  const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(() =>
+    flattenChannels(subscriber?.optIns),
+  )
 
   useEffect(() => {
     setEmail(subscriber?.email || '')
-    // @ts-expect-error This is correct, just not sure how to deal with Payload internal generic Post typing
-    setSelectedChannelIDs(subscriber?.optIns || [])
+    setSelectedChannelIDs(flattenChannels(subscriber?.optIns))
   }, [subscriber])
 
   const handleOptInChannelsSelected = (result: OptInChannel[]) => {

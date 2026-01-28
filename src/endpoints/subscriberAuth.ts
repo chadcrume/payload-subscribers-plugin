@@ -1,4 +1,4 @@
-import type { Subscriber } from '@payload-types'
+import type { Subscriber } from '../copied/payload-types.js'
 
 import { headers as nextHeaders } from 'next/headers.js'
 

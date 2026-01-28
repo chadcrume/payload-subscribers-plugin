@@ -1,6 +1,6 @@
 import type { BasePayload, CollectionSlug } from 'payload'
 
-import OptInChannels from '@collections/OptInChannels.js'
+import OptInChannels from '../collections/OptInChannels.js'
 
 export const verifyOptIns = async (
   payload: BasePayload,

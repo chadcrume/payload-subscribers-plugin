@@ -1,7 +1,7 @@
 import type { Endpoint, PayloadHandler } from 'payload'
 
-import { getTokenAndHash } from '@helpers/token.js'
-import { verifyOptIns } from '@helpers/verifyOptIns.js'
+import { getTokenAndHash } from '../helpers/token.js'
+import { verifyOptIns } from '../helpers/verifyOptIns.js'
 
 export type SubscribeResponse =
   // When subscriber optIns are updated...

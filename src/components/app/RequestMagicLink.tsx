@@ -1,13 +1,14 @@
 'use client'
 
-import type { Config } from '@payload-types'
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 
-import { useSubscriber } from '@contexts/SubscriberProvider.js'
 import { PayloadSDK } from '@payloadcms/sdk'
-import { useServerUrl } from '@react-hooks/useServerUrl.js'
+import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 
+import type { Config } from '../../copied/payload-types.js'
+
+import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 

@@ -24,18 +24,7 @@
         "name": "next"
       }
     ],
-    "paths": {
-      "@payload-types": ["./src/copied/payload-types.ts"],
-      // "@/*": ["./src/**/*"],
-      // "@dev/*": ["./dev/**/*"],
-      "@collections/*": ["./src/collections/*"],
-      "@contexts/*": ["./src/contexts/*"],
-      "@components/*": ["./src/components/*"],
-      "@endpoints/*": ["./src/endpoints/*"],
-      "@helpers/*": ["./src/helpers/*"],
-      "@react-hooks/*": ["./src/react-hooks/*"],
-      "@server-functions/*": ["./src/server-functions/*"]
-    }
+    "paths": {}
   },
   // "exclude": ["./dev/**/*"],
   "include": ["./src/**/*.ts", "./src/**/*.tsx", "./dev/next-env.d.ts"]

@@ -1,7 +1,8 @@
 'use client'
 
-import { getServerUrl } from '@server-functions/serverUrl.js'
 import { useEffect, useState } from 'react'
+
+import { getServerUrl } from '../server-functions/serverUrl.js'
 
 // Custom hook to easily consume the context and add error handling
 export function useServerUrl() {

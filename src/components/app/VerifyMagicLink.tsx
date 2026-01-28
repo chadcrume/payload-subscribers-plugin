@@ -1,6 +1,6 @@
 'use client'
 
-import type { Config } from '@payload-types'
+import type { Config } from '../../copied/payload-types.js'
 import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
 
@@ -9,7 +9,7 @@ import { useSearchParams } from 'next/navigation.js'
 import { useCallback, useEffect, useState } from 'react'
 
 export { VerifyMagicLinkResponse }
-import { useServerUrl } from '@react-hooks/useServerUrl.js'
+import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { useSubscriber } from 'payload-subscribers-plugin/ui'
 
 import { mergeClassNames } from './helpers.js'

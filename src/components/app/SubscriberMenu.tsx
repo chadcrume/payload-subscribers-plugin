@@ -1,6 +1,6 @@
 'use client'
 
-import { useSubscriber } from '@contexts/SubscriberProvider.js'
+import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'

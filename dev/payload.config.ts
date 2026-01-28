@@ -1,5 +1,8 @@
+import { testEmailAdapter } from '@helpers/testEmailAdapter.js'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+
+import { getServerUrl } from '../src/server-functions/serverUrl.js'
+// import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -7,8 +10,6 @@ import { payloadSubscribersPlugin } from 'payload-subscribers-plugin'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
-import { getServerUrl } from '../src/server-functions/serverUrl.js'
-import { testEmailAdapter } from './helpers/testEmailAdapter.js'
 import { seed } from './seed.js'
 
 const { serverURL } = await getServerUrl()
@@ -60,7 +61,7 @@ const buildConfigWithMemoryDB = async () => {
       ensureIndexes: true,
       url: process.env.DATABASE_URL || '',
     }),
-    editor: lexicalEditor(),
+    // editor: lexicalEditor(),
     email: testEmailAdapter,
     onInit: async (payload) => {
       await seed(payload)

@@ -1,6 +1,6 @@
 import type { Endpoint, PayloadHandler } from 'payload'
 
-import { getHash } from '@helpers/token.js'
+import { getHash } from '../helpers/token.js'
 
 export type VerifyMagicLinkResponse =
   | {

@@ -19,7 +19,9 @@
       "@payload-config": ["./payload.config.ts"],
       "payload-subscribers-plugin": ["../src/index.ts"],
       "payload-subscribers-plugin/ui": ["../src/exports/ui.ts"],
-      "@/components/*": ["./components/*"]
+      "@/components/*": ["./components/*"],
+      "@helpers/*": ["./helpers/*"],
+      "@server-functions/*": ["../src/server-functions/*"]
     },
     "noEmit": true,
     "emitDeclarationOnly": false
