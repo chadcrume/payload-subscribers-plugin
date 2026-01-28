@@ -25,7 +25,6 @@
       }
     ],
     "paths": {
-      "@payload-config": ["./src/copied/payload.config.ts"],
       "@payload-types": ["./src/copied/payload-types.ts"],
       // "@/*": ["./src/**/*"],
       // "@dev/*": ["./dev/**/*"],
