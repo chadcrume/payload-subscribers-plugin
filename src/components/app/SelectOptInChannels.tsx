@@ -1,16 +1,11 @@
 'use client'
 
 import type { Config, OptInChannel } from '@payload-types'
-
-import { useEffect, useState } from 'react'
-// import configPromise from '@payload-config'
-import { PayloadSDK } from '@payloadcms/sdk'
-// import { getPayload } from 'payload'
-// import type {RequestMagicLinkResponse} from
-
 import type { GetOptInChannelsResponse } from 'src/endpoints/getOptInChannels.js'
 
+import { PayloadSDK } from '@payloadcms/sdk'
 import { useServerUrl } from '@react-hooks/useServerUrl.js'
+import { useEffect, useState } from 'react'
 
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
