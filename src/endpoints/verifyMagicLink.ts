@@ -70,7 +70,6 @@ export const verifyMagicLinkHandler: PayloadHandler = async (req) => {
   await req.payload.update({
     collection: 'subscribers',
     data: {
-      // @ts-expect-error - yeah, set the password
       password: tokenHash,
     },
     where: {

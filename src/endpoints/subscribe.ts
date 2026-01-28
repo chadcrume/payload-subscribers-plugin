@@ -61,12 +61,12 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       data: {
         email,
         optIns,
-        // @ts-expect-error - yeah, set the password
         password,
-        status,
+        status: status || 'pending',
         verificationToken,
         verificationTokenExpires: verificationTokenExpires?.toISOString(),
       },
+      draft: false,
     })
   }
   const updateSubscriber = async ({
@@ -89,7 +89,6 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       collection: 'subscribers',
       data: {
         optIns,
-        // @ts-expect-error - yeah, set the password
         password,
         status,
         verificationToken,
@@ -322,10 +321,8 @@ export const subscribeHandler: PayloadHandler = async (req) => {
 
     // Return results, including the verified optIns
     return Response.json({
-      // @ts-expect-error False error with Payload result type
       email: updateResults.email,
       now: new Date().toISOString(),
-      // @ts-expect-error False error with Payload result type
       optIns: updateResults.optIns,
     } as SubscribeResponse)
   }
