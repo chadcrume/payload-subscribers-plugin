@@ -1,13 +1,11 @@
 'use client'
 
+import type { SubscribeResponse } from '@endpoints/subscribe.js'
 import type { Config, OptInChannel } from '@payload-types'
 
-import { type ChangeEvent, useEffect, useState } from 'react'
-// import configPromise from '@payload-config'
 import { PayloadSDK } from '@payloadcms/sdk'
-// import { getPayload } from 'payload'
+import { type ChangeEvent, useEffect, useState } from 'react'
 
-import type { SubscribeResponse } from '@endpoints/subscribe.js'
 export { SubscribeResponse }
 
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
