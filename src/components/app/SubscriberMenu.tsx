@@ -1,7 +1,6 @@
 'use client'
 
 import { useSubscriber } from '@contexts/SubscriberProvider.js'
-import Link from 'next/link.js'
 
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
@@ -29,7 +28,7 @@ export const SubscriberMenu = ({
       {/* <pre>{JSON.stringify(result, null, 2)}</pre> */}
       {subscriber && (
         <div>
-          Welcome, {subscriber?.email} - <Link href={'/subscribe'}>Manage subscriptions</Link> -{' '}
+          Welcome, {subscriber?.email} - <a href={'/subscribe'}>Manage subscriptions</a> -{' '}
           <button
             className={mergeClassNames([styles.button, classNames.button])}
             onClick={(e) => {
