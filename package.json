@@ -4,7 +4,6 @@
   "description": "A Payload CMS (3.0) plugin to add subscriber features into a site or app",
   "author": {
     "name": "Chad Crume",
-    "email": "chad.crume@gmail.com",
     "url": "https://github.com/chadcrume"
   },
   "repository": "chadcrume/payload-subscribers-plugin",
