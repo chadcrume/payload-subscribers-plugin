@@ -36,27 +36,31 @@ export function SubscriberProvider({ children }: ProviderProps) {
   const refreshSubscriber = useCallback(async () => {
     const initSubscriber = async () => {
       setIsLoaded(false)
-      const sdk = new PayloadSDK<Config>({
-        baseURL: serverURL || '',
-      })
-      const authResponse = await sdk.request({
-        json: {},
-        method: 'POST',
-        path: '/api/subscriberAuth',
-      })
+      try {
+        const sdk = new PayloadSDK<Config>({
+          baseURL: serverURL || '',
+        })
+        const authResponse = await sdk.request({
+          json: {},
+          method: 'POST',
+          path: '/api/subscriberAuth',
+        })
 
-      console.log(`authResponse`, authResponse)
+        console.log(`authResponse`, authResponse)
 
-      if (authResponse.ok) {
-        // Call the server function to get the user data
-        const { permissions, subscriber } = await authResponse.json()
-        // console.log(`subscriber = `, subscriber)
-        // console.log(`permissions = `, permissions)
-        setPermissions(permissions)
-        setSubscriber(subscriber)
-      } else {
-        setPermissions(null)
-        setSubscriber(null)
+        if (authResponse.ok) {
+          // Call the server function to get the user data
+          const { permissions, subscriber } = await authResponse.json()
+          // console.log(`subscriber = `, subscriber)
+          // console.log(`permissions = `, permissions)
+          setPermissions(permissions)
+          setSubscriber(subscriber)
+        } else {
+          setPermissions(null)
+          setSubscriber(null)
+        }
+      } catch (error: unknown) {
+        console.log(`authResponse error`, error)
       }
       setIsLoaded(true)
     }
@@ -65,20 +69,24 @@ export function SubscriberProvider({ children }: ProviderProps) {
 
   const logOut = useCallback(async () => {
     setIsLoaded(false)
-    const sdk = new PayloadSDK<Config>({
-      baseURL: serverURL || '',
-    })
-    const logoutResponse = await sdk.request({
-      json: {},
-      method: 'POST',
-      path: '/api/logout',
-    })
+    try {
+      const sdk = new PayloadSDK<Config>({
+        baseURL: serverURL || '',
+      })
+      const logoutResponse = await sdk.request({
+        json: {},
+        method: 'POST',
+        path: '/api/logout',
+      })
 
-    console.log(`logoutResponse`, logoutResponse)
+      console.log(`logoutResponse`, logoutResponse)
 
-    if (logoutResponse.ok) {
-      setSubscriber(null)
-      setPermissions(null)
+      if (logoutResponse.ok) {
+        setSubscriber(null)
+        setPermissions(null)
+      }
+    } catch (error: unknown) {
+      console.log(`logoutResponse error`, error)
     }
     setIsLoaded(true)
   }, [])

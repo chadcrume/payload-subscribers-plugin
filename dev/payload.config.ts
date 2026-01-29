@@ -1,7 +1,7 @@
-import { testEmailAdapter } from '@helpers/testEmailAdapter.js'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 
 import { getServerUrl } from '../src/server-functions/serverUrl.js'
+import { testEmailAdapter } from './helpers/testEmailAdapter.js'
 // import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
