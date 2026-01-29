@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  gap: 5px;
+  flex-direction: column;
+}
+
+.section {
+  margin-bottom: 14px;
+  margin-top: 14px;
+}
+
+.error {
+  color: red;
+}

@@ -1,0 +1,24 @@
+body {
+    background-color: black;
+    color: beige;
+}
+
+button.customCss {
+    color: blue;
+    margin-right: 1em;
+}
+input.customCss {
+    color: blueviolet;
+    margin-right: 1em;
+}
+
+/* .customCss h1, h2, h3, h4, h5, h6 {
+} */
+
+.customCss {
+    border: 1px solid gray;
+    border-radius: 1em;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    margin-right: 1em;
+    padding: 1em;
+}

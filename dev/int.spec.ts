@@ -1,52 +1,266 @@
 import type { Payload } from 'payload'
 
 import config from '@payload-config'
+import crypto from 'crypto'
 import { createPayloadRequest, getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
-import { customEndpointHandler } from '../src/endpoints/customEndpointHandler.js'
+import getOptInChannelsEndpoint from '../src/endpoints/getOptInChannels.js'
+import logoutEndpoint from '../src/endpoints/logout.js'
+import requestMagicLinkEndpoint from '../src/endpoints/requestMagicLink.js'
+import subscribeEndpoint from '../src/endpoints/subscribe.js'
+import subscriberAuthEndpoint from '../src/endpoints/subscriberAuth.js'
+import verifyMagicLinkEndpoint from '../src/endpoints/verifyMagicLink.js'
+import { getTestEmail } from '../src/helpers/testData.js'
+import { getServerUrl } from '../src/server-functions/serverUrl.js'
 
+const { serverURL } = await getServerUrl()
 let payload: Payload
 
+/**
+ *
+ */
 afterAll(async () => {
   // await payload.destroy()
+  // console.log('\n', 'afterAll payload.db', payload.db.url, '\n')
+  if (payload.db.connection) {
+    // console.log('\n', 'afterAll payload.db.connection.close', true, '\n')
+    await payload.db.connection.close()
+  }
 })
 
+/**
+ *
+ */
 beforeAll(async () => {
   payload = await getPayload({ config })
 })
 
+/**
+ *
+ */
 describe('Plugin integration tests', () => {
-  test('should query custom endpoint added by plugin', async () => {
-    const request = new Request('http://localhost:3000/api/my-plugin-endpoint', {
-      method: 'GET',
-    })
+  let optInID: any
 
-    const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await customEndpointHandler(payloadRequest)
-    expect(response.status).toBe(200)
+  /**
+   *
+   */
+  test('Plugin creates and seeds opt-in-channels', async () => {
+    expect(payload.collections['opt-in-channels']).toBeDefined()
 
-    const data = await response.json()
-    expect(data).toMatchObject({
-      message: 'Hello from custom endpoint',
-    })
+    const { docs } = await payload.find({ collection: 'opt-in-channels' })
+
+    expect(docs).toHaveLength(1)
+    expect(docs[0].title).toBe('seeded-by-plugin')
+    optInID = docs[0].id
   })
 
-  test('can create post with custom text field added by plugin', async () => {
+  /**
+   *
+   */
+  test('Plugin creates and seeds subscribers', async () => {
+    expect(payload.collections['subscribers']).toBeDefined()
+
+    const { docs } = await payload.find({ collection: 'subscribers' })
+
+    expect(docs).toHaveLength(1)
+    expect(docs[0]).toBeDefined()
+    // expect(docs[0].optIns).toBeDefined()
+    // expect(docs[0].optIns).toHaveLength(1)
+
+    // expect(docs[0].optIns[0].email).toBe(testEmail)
+  })
+
+  /**
+   *
+   */
+  test('Can create post with custom text field added by plugin', async () => {
     const post = await payload.create({
       collection: 'posts',
       data: {
-        addedByPlugin: 'added by plugin',
+        optIns: [optInID],
       },
+      depth: 0,
     })
-    expect(post.addedByPlugin).toBe('added by plugin')
+
+    expect(post.optIns).toStrictEqual([optInID])
   })
 
-  test('plugin creates and seeds plugin-collection', async () => {
-    expect(payload.collections['plugin-collection']).toBeDefined()
+  /**
+   *
+   */
+  test('Can use getOptInChannelsEndpoint endpoint', async () => {
+    // payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
 
-    const { docs } = await payload.find({ collection: 'plugin-collection' })
+    const request = new Request(`${serverURL}/api/optinchannels`, {
+      method: 'GET',
+    })
+    const payloadRequest = await createPayloadRequest({ config, request })
 
-    expect(docs).toHaveLength(1)
+    const response = await getOptInChannelsEndpoint.handler(payloadRequest)
+
+    expect(response.status).toBe(200)
+
+    const resJson = await response.json()
+    expect(resJson.optInChannels).not.toBeUndefined()
   })
+
+  /**
+   *
+   */
+  test('Can use requestMagicLinkEndpoint endpoint', async () => {
+    // payload.logger.info(`payload.config.serverURL: ${payload.config.serverURL}`)
+
+    const testEmail = getTestEmail()
+
+    const request = new Request(`${serverURL}/api/emailToken`, {
+      body: JSON.stringify({ email: testEmail }),
+      method: 'POST',
+    })
+    const payloadRequest = await createPayloadRequest({ config, request })
+
+    const response = await requestMagicLinkEndpoint.handler(payloadRequest)
+
+    payload.logger.info(`called ${serverURL}/api/emailToken`)
+
+    expect(response.status).toBe(200)
+
+    const resJson = await response.json()
+    expect(resJson.emailResult).toStrictEqual({
+      message: `Test email to: '${testEmail}', Subject: 'Your Magic Login Link'`,
+    })
+  })
+
+  /**
+   *
+   */
+  test('Can use logoutEndpoint endpoint', async () => {
+    const logoutRequest = new Request(`${serverURL}/api/logout`, {
+      body: JSON.stringify({}),
+      method: 'POST',
+    })
+    const logoutPayloadRequest = await createPayloadRequest({ config, request: logoutRequest })
+
+    const logoutResponse = await logoutEndpoint.handler(logoutPayloadRequest)
+    const logoutResponseData = await logoutResponse.json()
+
+    payload.logger.info(`called ${serverURL}/api/logout`)
+    payload.logger.info(`response status ${logoutResponse.status}`)
+    payload.logger.info(`response data ${JSON.stringify(logoutResponseData)}`)
+
+    expect(logoutResponse.status).toBe(400)
+    expect(logoutResponseData.error).toStrictEqual("Logout failed: 'No User'")
+
+    // expect(logoutResponse.status).toBe(200)
+    // expect(logoutResponseData.message).toStrictEqual('User logged out successfully')
+  })
+
+  /**
+   *
+   */
+  test('Can use verifyMagicLink endpoint', async () => {
+    const testEmail = getTestEmail()
+
+    const testToken = 'seed-test'
+    const testTokenHash = crypto.createHash('sha256').update(testToken).digest('hex')
+    const testTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+
+    const { docs: userResult } = await payload.update({
+      collection: 'subscribers',
+      data: {
+        verificationToken: testTokenHash,
+        verificationTokenExpires: testTokenExpiresAt.toISOString(),
+      },
+      where: { email: { equals: testEmail } },
+    })
+
+    expect(userResult).toHaveLength(1)
+    expect(userResult[0]).toBeDefined()
+
+    const user = userResult[0]
+
+    const verifyRequest = new Request(`${serverURL}/api/verifyToken2`, {
+      body: JSON.stringify({ email: user.email, token: testToken }),
+      method: 'POST',
+    })
+    const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })
+
+    const verifyResponse = await verifyMagicLinkEndpoint.handler(verifyPayloadRequest)
+    const verifyResponseData = await verifyResponse.json()
+
+    payload.logger.info(`called ${serverURL}/api/verifyToken`)
+    payload.logger.info(`response status ${verifyResponse.status}`)
+    payload.logger.info(`response data ${JSON.stringify(verifyResponseData)}`)
+
+    expect(verifyResponse.status).toBe(200)
+    expect(verifyResponseData.message).toStrictEqual('Token verified')
+
+    const { docs: userDocsAfterVerify } = await payload.find({
+      collection: 'subscribers',
+      where: { email: { equals: testEmail } },
+    })
+
+    expect(userDocsAfterVerify).toHaveLength(1)
+    expect(userDocsAfterVerify[0]).toBeDefined()
+
+    const userAfterVerify = userDocsAfterVerify[0]
+
+    expect(userAfterVerify.verificationToken).toBeOneOf(['', undefined])
+    expect(userAfterVerify.verificationTokenExpires).toBeOneOf([null, undefined])
+  })
+
+  // /**
+  //  *
+  //  */
+  // test('Can use subscribe endpoint', async () => {
+  //   const testEmail = getTestEmail()
+
+  //   const testToken = 'seed-test'
+  //   const testTokenHash = crypto.createHash('sha256').update(testToken).digest('hex')
+  //   const testTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+
+  //   const { docs: userResult } = await payload.update({
+  //     collection: 'subscribers',
+  //     data: {
+  //       verificationToken: testTokenHash,
+  //       verificationTokenExpires: testTokenExpiresAt.toISOString(),
+  //     },
+  //     where: { email: { equals: testEmail } },
+  //   })
+
+  //   expect(userResult).toHaveLength(1)
+  //   expect(userResult[0]).toBeDefined()
+
+  //   const user = userResult[0]
+
+  //   const verifyRequest = new Request(`${serverURL}/api/subscribe`, {
+  //     body: JSON.stringify({ email: user.email }),
+  //     method: 'POST',
+  //   })
+  //   const subscribeRequest = await createPayloadRequest({ config, request: verifyRequest })
+
+  //   const subscribeResponse = await subscribeEndpoint.handler(subscribeRequest)
+  //   const subscribeResponseData = await subscribeResponse.json()
+
+  //   // payload.logger.info(`response status ${subscribeResponse.status}`)
+  //   // payload.logger.info(`response data ${JSON.stringify(subscribeResponseData)}`)
+
+  //   expect(subscribeResponse.status).toBe(200)
+  //   expect(subscribeResponseData.emailResult.message).toStrictEqual(
+  //     "Test email to: 'seeded-by-plugin@crume.org', Subject: 'Please verify your subscription'",
+  //   )
+
+  //   const { docs: userDocsAfterVerify } = await payload.find({
+  //     collection: 'subscribers',
+  //     where: { email: { equals: testEmail } },
+  //   })
+
+  //   expect(userDocsAfterVerify).toHaveLength(1)
+  //   expect(userDocsAfterVerify[0]).toBeDefined()
+
+  //   const userAfterVerify = userDocsAfterVerify[0]
+
+  //   expect(userAfterVerify.verificationToken).not.toBeOneOf(['', undefined])
+  //   expect(userAfterVerify.verificationTokenExpires).not.toBeOneOf([null, undefined])
+  // })
 })

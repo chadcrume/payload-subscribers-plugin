@@ -1,13 +1,33 @@
-import type { CollectionSlug, Config } from 'payload'
+import type { BasePayload, CollectionSlug, Config } from 'payload'
 
-import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
+import { OptedInChannels } from './collections/fields/OptedInChannels.js'
+import OptInChannels from './collections/OptInChannels.js'
+import { SubscribersCollectionFactory } from './collections/Subscribers.js'
+import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
+import logoutEndpoint from './endpoints/logout.js'
+import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
+import subscribeEndpoint from './endpoints/subscribe.js'
+import subscriberAuthEndpoint from './endpoints/subscriberAuth.js'
+import verifyMagicLinkEndpoint from './endpoints/verifyMagicLink.js'
+import { getTestEmail } from './helpers/testData.js'
 
 export type PayloadSubscribersConfig = {
   /**
    * List of collections to add a custom field
    */
   collections?: Partial<Record<CollectionSlug, true>>
+  /**
+   * Defaults to false-y. When true:
+   *  - Database schema changes are still made and seeded
+   *  - APIs return null or undefined success
+   *  - Admin components are not added
+   *  - App components return nothing
+   */
   disabled?: boolean
+  /**
+   * Defaults to 30 minutes
+   */
+  tokenExpiration?: number
 }
 
 export const payloadSubscribersPlugin =
@@ -17,15 +37,12 @@ export const payloadSubscribersPlugin =
       config.collections = []
     }
 
-    config.collections.push({
-      slug: 'plugin-collection',
-      fields: [
-        {
-          name: 'id',
-          type: 'text',
-        },
-      ],
-    })
+    config.collections.push(
+      OptInChannels,
+      SubscribersCollectionFactory({
+        tokenExpiration: pluginOptions.tokenExpiration || 60 * 60, // 1 hour
+      }),
+    )
 
     if (pluginOptions.collections) {
       for (const collectionSlug in pluginOptions.collections) {
@@ -34,13 +51,7 @@ export const payloadSubscribersPlugin =
         )
 
         if (collection) {
-          collection.fields.push({
-            name: 'addedByPlugin',
-            type: 'text',
-            admin: {
-              position: 'sidebar',
-            },
-          })
+          collection.fields.push(OptedInChannels)
         }
       }
     }
@@ -51,10 +62,6 @@ export const payloadSubscribersPlugin =
      */
     if (pluginOptions.disabled) {
       return config
-    }
-
-    if (!config.endpoints) {
-      config.endpoints = []
     }
 
     if (!config.admin) {
@@ -69,45 +76,80 @@ export const payloadSubscribersPlugin =
       config.admin.components.beforeDashboard = []
     }
 
-    config.admin.components.beforeDashboard.push(
-      `payload-subscribers-plugin/client#BeforeDashboardClient`,
-    )
-    config.admin.components.beforeDashboard.push(
-      `payload-subscribers-plugin/rsc#BeforeDashboardServer`,
-    )
+    if (!config.endpoints) {
+      config.endpoints = []
+    }
 
-    config.endpoints.push({
-      handler: customEndpointHandler,
-      method: 'get',
-      path: '/my-plugin-endpoint',
-    })
+    config.endpoints.push(
+      getOptInChannelsEndpoint,
+      logoutEndpoint,
+      requestMagicLinkEndpoint,
+      subscribeEndpoint,
+      subscriberAuthEndpoint,
+      verifyMagicLinkEndpoint,
+    )
 
     const incomingOnInit = config.onInit
 
-    config.onInit = async (payload) => {
+    const genInit = (testData: { testEmail: string }) => async (payload: BasePayload) => {
       // Ensure we are executing any existing onInit functions before running our own.
       if (incomingOnInit) {
         await incomingOnInit(payload)
       }
 
-      const { totalDocs } = await payload.count({
-        collection: 'plugin-collection',
+      // console.log('Object.keys(payload.collections)', Object.keys(payload.collections))
+      const { totalDocs: totalOptIns } = await payload.count({
+        collection: 'opt-in-channels',
         where: {
-          id: {
+          title: {
             equals: 'seeded-by-plugin',
           },
         },
       })
 
-      if (totalDocs === 0) {
+      if (totalOptIns === 0) {
         await payload.create({
-          collection: 'plugin-collection',
+          collection: 'opt-in-channels',
           data: {
-            id: 'seeded-by-plugin',
+            active: true,
+            title: 'seeded-by-plugin',
+          },
+        })
+      }
+
+      // const { seededChannel } = await payload.find({
+      //   collection: 'opt-in-channels',
+      //   where: {
+      //     title: {
+      //       equals: 'seeded-by-plugin',
+      //     },
+      //   },
+      // })
+
+      const { totalDocs: totalSubscribers } = await payload.count({
+        collection: 'subscribers',
+        where: {
+          email: {
+            equals: testData.testEmail,
+          },
+        },
+      })
+
+      // payload.logger.info(`testData.testEmail == '${testData.testEmail}'`)
+      if (totalSubscribers === 0) {
+        await payload.create({
+          collection: 'subscribers',
+          data: {
+            email: testData.testEmail,
+            password: 'something super secret',
+            status: 'pending',
           },
         })
       }
     }
+
+    // console.log(`getTestEmail == '${getTestEmail()}'`)
+    config.onInit = genInit({ testEmail: getTestEmail() })
 
     return config
   }

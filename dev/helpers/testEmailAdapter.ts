@@ -3,7 +3,7 @@ import type { EmailAdapter, SendEmailOptions } from 'payload'
 /**
  * Logs all emails to stdout
  */
-export const testEmailAdapter: EmailAdapter<void> = ({ payload }) => ({
+export const testEmailAdapter: EmailAdapter<{ message: string }> = ({ payload }) => ({
   name: 'test-email-adapter',
   defaultFromAddress: 'dev@payloadcms.com',
   defaultFromName: 'Payload Test',
@@ -11,7 +11,7 @@ export const testEmailAdapter: EmailAdapter<void> = ({ payload }) => ({
     const stringifiedTo = getStringifiedToAddress(message)
     const res = `Test email to: '${stringifiedTo}', Subject: '${message.subject}'`
     payload.logger.info({ content: message, msg: res })
-    return Promise.resolve()
+    return Promise.resolve({ message: res })
   },
 })
 
