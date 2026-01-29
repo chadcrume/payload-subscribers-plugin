@@ -1,6 +1,5 @@
 {
   "name": "payload-subscribers-plugin",
-  "version": "1.0.0",
   "description": "A Payload CMS (3.0) plugin to add subscriber features into a site or app",
   "author": {
     "name": "Chad Crume",
