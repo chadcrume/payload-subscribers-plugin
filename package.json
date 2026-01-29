@@ -50,6 +50,7 @@
     "@payloadcms/db-mongodb": "3.73.0",
     "@payloadcms/eslint-config": "3.9.0",
     "@payloadcms/next": "3.73.0",
+    "@payloadcms/sdk": "3.73.0",
     "@payloadcms/ui": "3.73.0",
     "@playwright/test": "1.56.1",
     "@swc-node/register": "1.10.9",
@@ -78,6 +79,7 @@
   "peerDependencies": {
     "next": "^15.0.0",
     "payload": "^3.0.0",
+    "@payloadcms/sdk": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -111,8 +113,6 @@
     ]
   },
   "registry": "https://registry.npmjs.org/",
-  "dependencies": {
-    "@payloadcms/sdk": "3.73.0"
-  },
+  "dependencies": {},
   "version": "0.0.1-1"
 }
