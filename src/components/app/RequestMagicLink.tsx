@@ -1,14 +1,13 @@
 'use client'
 
-import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
-
 import { PayloadSDK } from '@payloadcms/sdk'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, type SubmitEvent, useEffect, useState } from 'react'
 
 import type { Config } from '../../copied/payload-types.js'
+import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
+import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -60,7 +59,7 @@ export const RequestMagicLink = ({
     setEmail(subscriber?.email || '')
   }, [subscriber])
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     const forwardUrl = window.location.pathname + '?now=' + new Date().toISOString()
     const emailTokenResponse = await sdk.request({
