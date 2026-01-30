@@ -101,24 +101,24 @@ export const subscribeHandler: PayloadHandler = async (req) => {
   const sendVerifyEmail = async ({
     email,
     forwardUrl,
-    linkTet,
+    linkText,
     message,
     subject,
     token,
   }: {
     email: string
     forwardUrl?: string
-    linkTet: string
+    linkText: string
     message: string
     subject: string
     token: string
   }) => {
     const forwardUrlParam = forwardUrl ? `&forwardUrl=${encodeURI(forwardUrl)}` : ''
     const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${forwardUrlParam}`
-    const text = message + `<a href="${magicLink}">${linkTet}</a>`
+    const html = message + `<p><a href="${magicLink}">${linkText}</a></p>`
     const emailResult = await req.payload.sendEmail({
+      html,
       subject,
-      text,
       to: email,
     })
     req.payload.logger.info(`subscribe email sent \n ${magicLink}`)
@@ -205,8 +205,8 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     const emailResult = await sendVerifyEmail({
       email,
       forwardUrl: afterVerifyUrl,
-      linkTet: 'Verify',
-      message: data.message || `<h1>Click here to verify your subscription:</h1>`,
+      linkText: '<b>Verify</b>',
+      message: data.message || `<p>Click here to verify your subscription:</p>`,
       subject: data.subject || 'Please verify your subscription',
       token,
     })
@@ -246,7 +246,7 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     const emailResult = await sendVerifyEmail({
       email,
       forwardUrl: afterVerifyUrl,
-      linkTet: 'Verify',
+      linkText: 'Verify',
       message: data.message || `<h1>Click here to verify your subscription:</h1>`,
       subject: data.subject || 'Please verify your subscription',
       token,
@@ -284,7 +284,7 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     const emailResult = await sendVerifyEmail({
       email,
       forwardUrl: afterVerifyUrl,
-      linkTet: 'Verify',
+      linkText: 'Verify',
       message: data.message || `<h1>Click here to verify your email:</h1>`,
       subject: data.subject || 'Please verify your subscription',
       token,

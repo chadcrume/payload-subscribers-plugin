@@ -65,10 +65,13 @@ export const requestMagicLinkHandler: PayloadHandler = async (req) => {
   const forwardUrlParam = forwardUrl ? `&forwardUrl=${encodeURI(forwardUrl)}` : ''
   const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${forwardUrlParam}`
   const subject = data.subject || 'Your Magic Login Link'
-  const message = data.message || `<h1>Click here to login:</h1><a href="${magicLink}">Login</a>`
+  const message = `
+  ${data.message || '<p>Use this link to log in:</p>'}
+  <p><a href="${magicLink}"><b>Login</b></a></p>
+  `
   const emailResult = await req.payload.sendEmail({
+    html: message,
     subject,
-    text: message,
     to: user.email,
   })
   //   req.payload.logger.info(`email result: ${JSON.stringify(emailResult)}`)
