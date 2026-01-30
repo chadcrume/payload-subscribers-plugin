@@ -46,8 +46,6 @@ export function SubscriberProvider({ children }: ProviderProps) {
           path: '/api/subscriberAuth',
         })
 
-        console.log(`authResponse`, authResponse)
-
         if (authResponse.ok) {
           // Call the server function to get the user data
           const { permissions, subscriber } = await authResponse.json()

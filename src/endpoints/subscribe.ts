@@ -130,6 +130,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
   //
   // Require email
   if (!email) {
+    req.payload.logger.error(
+      JSON.stringify(
+        { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse,
+        undefined,
+        2,
+      ),
+    )
     return Response.json(
       { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse,
       { status: 400 },
@@ -141,6 +148,16 @@ export const subscribeHandler: PayloadHandler = async (req) => {
   const { invalidOptInsInput, verifiedOptInIDs } = await verifyOptIns(req.payload, optIns)
 
   if (invalidOptInsInput) {
+    req.payload.logger.error(
+      JSON.stringify(
+        {
+          error: 'Invalid input: ' + JSON.stringify(optIns),
+          now: new Date().toISOString(),
+        } as SubscribeResponse,
+        undefined,
+        2,
+      ),
+    )
     return Response.json(
       {
         error: 'Invalid input: ' + JSON.stringify(optIns),
@@ -170,6 +187,16 @@ export const subscribeHandler: PayloadHandler = async (req) => {
     //
     // Error: Auth-ed user doesn't match subscriber email
     //
+    req.payload.logger.error(
+      JSON.stringify(
+        {
+          error: 'Unauthorized: ' + email,
+          now: new Date().toISOString(),
+        } as SubscribeResponse,
+        undefined,
+        2,
+      ),
+    )
     return Response.json(
       {
         error: 'Unauthorized: ' + email,
@@ -211,6 +238,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       token,
     })
     if (!emailResult) {
+      req.payload.logger.error(
+        JSON.stringify(
+          { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
+          undefined,
+          2,
+        ),
+      )
       return Response.json(
         { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
         { status: 400 },
@@ -235,6 +269,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       verificationTokenExpires: expiresAt,
     })
     if (!updateResults) {
+      req.payload.logger.error(
+        JSON.stringify(
+          { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
+          undefined,
+          2,
+        ),
+      )
       return Response.json(
         { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
         { status: 400 },
@@ -252,6 +293,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       token,
     })
     if (!emailResult) {
+      req.payload.logger.error(
+        JSON.stringify(
+          { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
+          undefined,
+          2,
+        ),
+      )
       return Response.json(
         { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
         { status: 400 },
@@ -275,6 +323,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       verificationTokenExpires: expiresAt,
     })
     if (!updateResults) {
+      req.payload.logger.error(
+        JSON.stringify(
+          { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
+          undefined,
+          2,
+        ),
+      )
       return Response.json(
         { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
         { status: 400 },
@@ -290,6 +345,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
       token,
     })
     if (!emailResult) {
+      req.payload.logger.error(
+        JSON.stringify(
+          { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
+          undefined,
+          2,
+        ),
+      )
       return Response.json(
         { error: 'Unknown email result', now: new Date().toISOString() } as SubscribeResponse,
         { status: 400 },
@@ -329,6 +391,13 @@ export const subscribeHandler: PayloadHandler = async (req) => {
   //
   // Uncaught case
   //
+  req.payload.logger.error(
+    JSON.stringify(
+      { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
+      undefined,
+      2,
+    ),
+  )
   return Response.json(
     { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse,
     { status: 400 },

@@ -1,6 +1,6 @@
-import type { Subscriber } from '../copied/payload-types.js'
-
 import { headers as nextHeaders } from 'next/headers.js'
+
+import type { Subscriber } from '../copied/payload-types.js'
 
 // If you're using Next.js, you'll have to import headers from next/headers, like so:
 import type { Endpoint, PayloadHandler, Permissions } from 'payload'
@@ -13,7 +13,7 @@ export type SubscriberAuthResponse =
   | {
       now: string
       permissions: Permissions
-      subscriber: Subscriber
+      subscriber: null | Subscriber
     }
 
 /**
@@ -23,6 +23,7 @@ export type SubscriberAuthResponse =
  * @returns { status: 400, json: {error: ('No subscriber authed' | catchError | 'Unknown error'), now: date} }
  */
 export const subscriberAuthHandler: PayloadHandler = async (req) => {
+  // req.payload.logger.info('subscriberAuthHandler')
   // Log the user in via Payload headers
   const headers = await nextHeaders()
 
@@ -48,15 +49,18 @@ export const subscriberAuthHandler: PayloadHandler = async (req) => {
       } as SubscriberAuthResponse)
     }
 
+    // req.payload.logger.info('subscriberAuthHandler: No subscriber authed')
     return Response.json(
       {
-        error: 'No subscriber authed',
+        // error: 'No subscriber authed',
         now: new Date().toISOString(),
+        permissions,
+        subscriber: null,
       } as SubscriberAuthResponse,
-      { headers, status: 400 },
+      { headers, status: 200 },
     )
   } catch (error: unknown) {
-    req.payload.logger.info(`subscriberAuth error: ${JSON.stringify(error)}`)
+    // req.payload.logger.info(`subscriberAuth error: ${JSON.stringify(error)}`)
     return Response.json(
       {
         error,
