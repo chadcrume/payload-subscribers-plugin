@@ -1,13 +1,12 @@
 'use client'
 
+import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import {
   RequestMagicLink,
   type RequestMagicLinkResponse,
   Subscribe,
   type SubscribeResponse,
-} from 'payload-subscribers-plugin/ui'
-
-import { useSubscriber } from '../../contexts/SubscriberProvider.js'
+} from '../../exports/ui.js'
 
 export type { RequestMagicLinkResponse, SubscribeResponse }
 
