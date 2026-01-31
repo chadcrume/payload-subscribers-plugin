@@ -2,8 +2,9 @@
 
 ## To do before initial npm publish
 
-* Upgrade all packages, including node, payload, next, etc
-  
+* ✔ Upgrade all packages, including node, payload, next, etc
+* Improve README for Components
+* Add renderButton to all Components that have a button
 * Parameterize collection to use for auth
 
 

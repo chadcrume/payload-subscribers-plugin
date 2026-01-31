@@ -24,7 +24,6 @@ export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
-  showResult?: boolean
 }
 
 export type SubscribeClasses = {
@@ -52,7 +51,6 @@ export const Subscribe = ({
     section: '',
   },
   handleSubscribe,
-  showResult = true,
 }: ISubscribe) => {
   const { refreshSubscriber, subscriber } = useSubscriber()
 
@@ -176,7 +174,7 @@ export const Subscribe = ({
           </button>
         </div>
       </form>
-      {!!result && !!showResult && (
+      {!!result && (
         <p
           className={mergeClassNames([
             styles.message,

@@ -30,7 +30,6 @@ export interface IVerifyMagicLink {
     onClick?: () => any
     text?: string
   }) => React.ReactNode
-  showResultBeforeForwarding: boolean
 }
 
 export type VerifyMagicLinkClasses = {
@@ -74,7 +73,6 @@ export const VerifyMagicLink = ({
         {text}
       </button>
     ),
-  showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
   const { serverURL } = useServerUrl()
   const {
@@ -167,7 +165,7 @@ export const VerifyMagicLink = ({
       {!result && (
         <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
       )}
-      {result && showResultBeforeForwarding && (
+      {result && (
         <p
           className={mergeClassNames([
             styles.message,

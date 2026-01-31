@@ -17,7 +17,6 @@ export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
-  showResult?: boolean
 }
 
 export type RequestMagicLinkClasses = {
@@ -41,7 +40,6 @@ export const RequestMagicLink = ({
     message: '',
   },
   handleMagicLinkRequested,
-  showResult = true,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
   const { serverURL } = useServerUrl()
@@ -96,7 +94,7 @@ export const RequestMagicLink = ({
 
   return (
     <div className={mergeClassNames([styles.container, classNames.container])}>
-      {result && (showResult || status == 'error') ? (
+      {result ? (
         <p
           className={mergeClassNames([
             styles.message,
