@@ -1,1 +1,1 @@
-import 'ui.ts'
+export * from './ui.js'
