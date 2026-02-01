@@ -1,9 +1,11 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Field } from 'payload'
 
 import { OptedInChannels } from './fields/OptedInChannels.js'
 
+export const defaultTokenExpiration = 30 * 60 // 30 minutes
+
 export const SubscribersCollectionFactory = ({
-  tokenExpiration = 30 * 60, // 30 minutes
+  tokenExpiration = defaultTokenExpiration,
 }: {
   tokenExpiration?: number
 }) => {
@@ -37,55 +39,59 @@ export const SubscribersCollectionFactory = ({
         type: 'text',
         label: 'First Name',
       },
-      {
-        name: 'status',
-        type: 'select',
-        defaultValue: 'pending', // Default to pending until verified
-        label: 'Subscription Status',
-        options: [
-          {
-            label: 'Subscribed',
-            value: 'subscribed',
-          },
-          {
-            label: 'Unsubscribed',
-            value: 'unsubscribed',
-          },
-          {
-            label: 'Pending Verification',
-            value: 'pending',
-          },
-        ],
-        required: true,
-      },
-      {
-        name: 'source',
-        type: 'text', // e.g., 'Homepage form', 'Blog post A', etc.
-        label: 'Signup Source',
-      },
-      {
-        name: 'verificationToken',
-        type: 'text',
-        admin: {
-          hidden: true, // Hide this field in the admin panel for security/cleanliness
-        },
-        label: 'Verification Token',
-      },
-      {
-        name: 'verificationTokenExpires',
-        type: 'date',
-        admin: {
-          hidden: true, // Hide this field in the admin panel for security/cleanliness
-        },
-        label: 'Verification Token Expiration',
-      },
-
-      /**
-       * Plugin field relationship to optinchannels
-       */
-      OptedInChannels,
+      ...subscribersCollectionFields,
     ],
   }
 
   return Subscribers
 }
+
+export const subscribersCollectionFields: Field[] = [
+  {
+    name: 'status',
+    type: 'select',
+    defaultValue: 'pending', // Default to pending until verified
+    label: 'Subscription Status',
+    options: [
+      {
+        label: 'Subscribed',
+        value: 'subscribed',
+      },
+      {
+        label: 'Unsubscribed',
+        value: 'unsubscribed',
+      },
+      {
+        label: 'Pending Verification',
+        value: 'pending',
+      },
+    ],
+    required: true,
+  },
+  {
+    name: 'source',
+    type: 'text', // e.g., 'Homepage form', 'Blog post A', etc.
+    label: 'Signup Source',
+  },
+  {
+    name: 'verificationToken',
+    type: 'text',
+    admin: {
+      hidden: true, // Hide this field in the admin panel for security/cleanliness
+    },
+    label: 'Verification Token',
+  },
+  {
+    name: 'verificationTokenExpires',
+    type: 'date',
+    admin: {
+      hidden: true, // Hide this field in the admin panel for security/cleanliness
+    },
+    label: 'Verification Token Expiration',
+  },
+
+  /**
+   * Plugin field relationship to optinchannels
+   */
+  OptedInChannels,
+]

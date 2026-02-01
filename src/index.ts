@@ -1,14 +1,18 @@
-import type { BasePayload, CollectionSlug, Config } from 'payload'
+import type { BasePayload, CollectionSlug, Config, Field } from 'payload'
 
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
-import { SubscribersCollectionFactory } from './collections/Subscribers.js'
+import {
+  defaultTokenExpiration,
+  SubscribersCollectionFactory,
+  subscribersCollectionFields,
+} from './collections/Subscribers.js'
 import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
-import logoutEndpoint from './endpoints/logout.js'
-import requestMagicLinkEndpoint from './endpoints/requestMagicLink.js'
-import subscribeEndpoint from './endpoints/subscribe.js'
-import subscriberAuthEndpoint from './endpoints/subscriberAuth.js'
-import verifyMagicLinkEndpoint from './endpoints/verifyMagicLink.js'
+import createEndpointLogout from './endpoints/logout.js'
+import createEndpointRequestMagicLink from './endpoints/requestMagicLink.js'
+import createEndpointSubscribe from './endpoints/subscribe.js'
+import createEndpointSubscriberAuth from './endpoints/subscriberAuth.js'
+import createEndpointVerifyMagicLink from './endpoints/verifyMagicLink.js'
 import { getTestEmail } from './helpers/testData.js'
 
 export type PayloadSubscribersConfig = {
@@ -25,6 +29,12 @@ export type PayloadSubscribersConfig = {
    */
   disabled?: boolean
   /**
+   * The collection to make the subscribers collection
+   * - Set auth if not
+   * - Add optIns field
+   */
+  subscribersCollectionSlug?: CollectionSlug
+  /**
    * Defaults to 30 minutes
    */
   tokenExpiration?: number
@@ -37,12 +47,33 @@ export const payloadSubscribersPlugin =
       config.collections = []
     }
 
-    config.collections.push(
-      OptInChannels,
-      SubscribersCollectionFactory({
-        tokenExpiration: pluginOptions.tokenExpiration || 60 * 60, // 1 hour
-      }),
-    )
+    config.collections.push(OptInChannels)
+    let subscribersCollection = pluginOptions.subscribersCollectionSlug
+      ? config.collections.find(
+          (collection) => collection.slug == pluginOptions.subscribersCollectionSlug,
+        )
+      : undefined
+
+    if (subscribersCollection) {
+      // Configure the input collection to be the subscribers collection
+      config.collections = config.collections.filter(
+        (collection) => collection.slug != subscribersCollection?.slug,
+      )
+      subscribersCollection.fields.push(...subscribersCollectionFields)
+      if (!subscribersCollection.auth) {
+        subscribersCollection = {
+          ...subscribersCollection,
+          auth: { tokenExpiration: defaultTokenExpiration },
+        }
+      }
+      config.collections.push(subscribersCollection)
+    } else {
+      // Configure the default built-in subscribers collection
+      subscribersCollection = SubscribersCollectionFactory({
+        tokenExpiration: pluginOptions.tokenExpiration,
+      })
+      config.collections.push(subscribersCollection)
+    }
 
     if (pluginOptions.collections) {
       for (const collectionSlug in pluginOptions.collections) {
@@ -82,11 +113,21 @@ export const payloadSubscribersPlugin =
 
     config.endpoints.push(
       getOptInChannelsEndpoint,
-      logoutEndpoint,
-      requestMagicLinkEndpoint,
-      subscribeEndpoint,
-      subscriberAuthEndpoint,
-      verifyMagicLinkEndpoint,
+      createEndpointLogout({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
+      createEndpointRequestMagicLink({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
+      createEndpointSubscribe({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
+      createEndpointSubscriberAuth({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
+      createEndpointVerifyMagicLink({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
     )
 
     const incomingOnInit = config.onInit
