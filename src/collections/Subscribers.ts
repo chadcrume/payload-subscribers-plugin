@@ -1,16 +1,20 @@
-import type { CollectionConfig, Field } from 'payload'
+import type { CollectionConfig, CollectionSlug, Field } from 'payload'
 
 import { OptedInChannels } from './fields/OptedInChannels.js'
 
 export const defaultTokenExpiration = 30 * 60 // 30 minutes
 
+const defaultCollectionSlug = 'subscribers'
+
 export const SubscribersCollectionFactory = ({
+  slug,
   tokenExpiration = defaultTokenExpiration,
 }: {
+  slug?: CollectionSlug
   tokenExpiration?: number
 }) => {
   const Subscribers: CollectionConfig = {
-    slug: 'subscribers',
+    slug: slug ? slug : defaultCollectionSlug,
     access: {
       // Public access for creation (signup form)
       create: () => true,

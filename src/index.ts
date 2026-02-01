@@ -70,6 +70,7 @@ export const payloadSubscribersPlugin =
     } else {
       // Configure the default built-in subscribers collection
       subscribersCollection = SubscribersCollectionFactory({
+        slug: pluginOptions.subscribersCollectionSlug,
         tokenExpiration: pluginOptions.tokenExpiration,
       })
       config.collections.push(subscribersCollection)
@@ -168,7 +169,7 @@ export const payloadSubscribersPlugin =
       // })
 
       const { totalDocs: totalSubscribers } = await payload.count({
-        collection: 'subscribers',
+        collection: subscribersCollection.slug as CollectionSlug,
         where: {
           email: {
             equals: testData.testEmail,
@@ -179,7 +180,7 @@ export const payloadSubscribersPlugin =
       // payload.logger.info(`testData.testEmail == '${testData.testEmail}'`)
       if (totalSubscribers === 0) {
         await payload.create({
-          collection: 'subscribers',
+          collection: subscribersCollection.slug as CollectionSlug,
           data: {
             email: testData.testEmail,
             password: 'something super secret',
