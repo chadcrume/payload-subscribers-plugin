@@ -1,4 +1,4 @@
-import type { BasePayload, CollectionSlug, Config, Field } from 'payload'
+import type { BasePayload, CollectionSlug, Config } from 'payload'
 
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'

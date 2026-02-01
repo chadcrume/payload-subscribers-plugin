@@ -1,4 +1,4 @@
-import type { CollectionSlug, Endpoint, PayloadHandler, TypedUser } from 'payload'
+import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 import type { Subscriber } from 'src/copied/payload-types.js'
 
 import { getHash } from '../helpers/token.js'

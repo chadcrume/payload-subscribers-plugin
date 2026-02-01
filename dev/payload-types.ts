@@ -64,7 +64,7 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     users: UserAuthOperations;
-    subscribers: SubscriberAuthOperations;
+    customers: CustomerAuthOperations;
   };
   blocks: {};
   collections: {
@@ -72,7 +72,7 @@ export interface Config {
     media: Media;
     users: User;
     'opt-in-channels': OptInChannel;
-    subscribers: Subscriber;
+    customers: Customer;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -84,7 +84,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'opt-in-channels': OptInChannelsSelect<false> | OptInChannelsSelect<true>;
-    subscribers: SubscribersSelect<false> | SubscribersSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -101,8 +101,8 @@ export interface Config {
     | (User & {
         collection: 'users';
       })
-    | (Subscriber & {
-        collection: 'subscribers';
+    | (Customer & {
+        collection: 'customers';
       });
   jobs: {
     tasks: unknown;
@@ -127,7 +127,7 @@ export interface UserAuthOperations {
     password: string;
   };
 }
-export interface SubscriberAuthOperations {
+export interface CustomerAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -212,9 +212,9 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscribers".
+ * via the `definition` "customers".
  */
-export interface Subscriber {
+export interface Customer {
   id: string;
   firstName?: string | null;
   status: 'subscribed' | 'unsubscribed' | 'pending';
@@ -281,8 +281,8 @@ export interface PayloadLockedDocument {
         value: string | OptInChannel;
       } | null)
     | ({
-        relationTo: 'subscribers';
-        value: string | Subscriber;
+        relationTo: 'customers';
+        value: string | Customer;
       } | null);
   globalSlug?: string | null;
   user:
@@ -291,8 +291,8 @@ export interface PayloadLockedDocument {
         value: string | User;
       }
     | {
-        relationTo: 'subscribers';
-        value: string | Subscriber;
+        relationTo: 'customers';
+        value: string | Customer;
       };
   updatedAt: string;
   createdAt: string;
@@ -309,8 +309,8 @@ export interface PayloadPreference {
         value: string | User;
       }
     | {
-        relationTo: 'subscribers';
-        value: string | Subscriber;
+        relationTo: 'customers';
+        value: string | Customer;
       };
   key?: string | null;
   value?:
@@ -398,9 +398,9 @@ export interface OptInChannelsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscribers_select".
+ * via the `definition` "customers_select".
  */
-export interface SubscribersSelect<T extends boolean = true> {
+export interface CustomersSelect<T extends boolean = true> {
   firstName?: T;
   status?: T;
   source?: T;

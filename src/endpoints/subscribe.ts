@@ -1,4 +1,5 @@
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
+import type { Subscriber } from 'src/copied/payload-types.js'
 
 import { getTokenAndHash } from '../helpers/token.js'
 import { verifyOptIns } from '../helpers/verifyOptIns.js'
@@ -188,7 +189,7 @@ function createEndpointSubscribe({
         email: { equals: email },
       },
     })
-    const subscriber = userResults.docs[0]
+    const subscriber = userResults.docs[0] as Subscriber
 
     //
     // Now we have a subscriber and validatedOptIns
@@ -385,14 +386,14 @@ function createEndpointSubscribe({
       //
       const { tokenHash } = getTokenAndHash() // Use for magic link
       // Update subscriber with optIns
-      const updateResults = await updateSubscriber({
+      const updateResults = (await updateSubscriber({
         id: subscriber.id,
         optIns: verifiedOptInIDs,
         password: tokenHash,
         status: 'subscribed',
         verificationToken: '',
         verificationTokenExpires: null,
-      })
+      })) as Subscriber
 
       // Return results, including the verified optIns
       return Response.json({

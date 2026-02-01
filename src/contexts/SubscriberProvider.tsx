@@ -68,16 +68,20 @@ export function SubscriberProvider({ children }: ProviderProps) {
   const logOut = useCallback(async () => {
     setIsLoaded(false)
     try {
-      const sdk = new PayloadSDK<Config>({
-        baseURL: serverURL || '',
-      })
-      const logoutResponse = await sdk.request({
-        json: {},
+      // const sdk = new PayloadSDK<Config>({
+      //   baseURL: serverURL || '',
+      // })
+      // const logoutResponse = await sdk.request({
+      //   json: {},
+      //   method: 'POST',
+      //   path: '/api/logout',
+      // })
+      // Unsure why sdk isn't working here
+      const logoutResponse = await fetch('/api/logout', {
         method: 'POST',
-        path: '/api/logout',
       })
 
-      console.log(`logoutResponse`, logoutResponse)
+      // console.log(`logoutResponse`, logoutResponse)
 
       if (logoutResponse.ok) {
         setSubscriber(null)

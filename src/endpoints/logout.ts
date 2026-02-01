@@ -1,5 +1,7 @@
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 
+import { headers as nextHeaders } from 'next/headers.js'
+
 export type LogoutResponse =
   | {
       error: string
@@ -24,13 +26,13 @@ function createEndpointLogout({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   const logoutHandler: PayloadHandler = async (req) => {
+    const headers = await nextHeaders()
+
     try {
       const logoutResult = await fetch(
         `${req.payload.config.serverURL}/api/${subscribersCollectionSlug}/logout`,
         {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           method: 'POST',
         },
       )
