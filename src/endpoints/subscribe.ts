@@ -70,7 +70,7 @@ function createEndpointSubscribe({
       verificationTokenExpires?: Date
     }) => {
       await req.payload.create({
-        collection: 'subscribers',
+        collection: subscribersCollectionSlug,
         data: {
           email,
           optIns,
@@ -99,7 +99,7 @@ function createEndpointSubscribe({
     }) => {
       const updateResults = await req.payload.update({
         id,
-        collection: 'subscribers',
+        collection: subscribersCollectionSlug,
         data: {
           optIns,
           password,
@@ -183,7 +183,7 @@ function createEndpointSubscribe({
     //
     // Verify subscriber exists
     const userResults = await req.payload.find({
-      collection: 'subscribers',
+      collection: subscribersCollectionSlug,
       where: {
         email: { equals: email },
       },

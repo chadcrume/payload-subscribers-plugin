@@ -30,27 +30,25 @@ export const SubscribersCollectionFactory = ({
       // maxLoginAttempts: 5, // Automatically lock a user out after X amount of failed logins
       // lockTime: 600 * 1000, // Time period to allow the max login attempts
     },
-    fields: [
-      {
-        name: 'email',
-        type: 'email', // Enforces valid email format
-        label: 'Email Address',
-        required: true,
-        unique: true, // Ensures no duplicate emails
-      },
-      {
-        name: 'firstName',
-        type: 'text',
-        label: 'First Name',
-      },
-      ...subscribersCollectionFields,
-    ],
+    fields: [...subscribersCollectionFields],
   }
 
   return Subscribers
 }
 
 export const subscribersCollectionFields: Field[] = [
+  {
+    name: 'email',
+    type: 'email', // Enforces valid email format
+    label: 'Email Address',
+    required: true,
+    unique: true, // Ensures no duplicate emails
+  },
+  {
+    name: 'firstName',
+    type: 'text',
+    label: 'First Name',
+  },
   {
     name: 'status',
     type: 'select',

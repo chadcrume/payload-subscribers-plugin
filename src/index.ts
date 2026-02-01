@@ -66,6 +66,14 @@ export const payloadSubscribersPlugin =
           auth: { tokenExpiration: defaultTokenExpiration },
         }
       }
+      if (!subscribersCollection.admin?.useAsTitle) {
+        if (!subscribersCollection.admin) {
+          subscribersCollection.admin = { useAsTitle: 'email' }
+        } else {
+          // Throw error? Or override?
+          subscribersCollection.admin.useAsTitle = 'email'
+        }
+      }
       config.collections.push(subscribersCollection)
     } else {
       // Configure the default built-in subscribers collection

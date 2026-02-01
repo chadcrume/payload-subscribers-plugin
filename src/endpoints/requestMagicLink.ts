@@ -2,6 +2,8 @@ import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest, TypedUse
 
 import crypto from 'crypto'
 
+import { getTokenAndHash } from '../helpers/token.js'
+
 export type RequestMagicLinkResponse =
   | {
       emailResult: any
@@ -53,16 +55,32 @@ function createEndpointRequestMagicLink({
     const user = userResults.docs[0] as TypedUser
 
     if (!user) {
-      return Response.json(
-        { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
-        { status: 400 },
-      )
+      //
+      // Create subscriber with status 'pending',
+      // and an invisible unknowable password,
+      //
+      const { tokenHash: tokenHash2 } = getTokenAndHash() // Unknowable
+      const createResult = await req.payload.create({
+        collection: subscribersCollectionSlug,
+        data: {
+          email,
+          password: tokenHash2,
+          status: 'pending',
+        },
+        draft: false,
+      })
+      if (!createResult) {
+        return Response.json(
+          { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
+          { status: 400 },
+        )
+      }
     }
+
+    // Update user with verificationToken
     const token = crypto.randomBytes(32).toString('hex')
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
-
-    // Update user
     await req.payload.update({
       collection: subscribersCollectionSlug,
       data: {
