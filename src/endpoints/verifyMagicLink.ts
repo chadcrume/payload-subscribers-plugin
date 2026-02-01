@@ -1,6 +1,8 @@
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 import type { Subscriber } from 'src/copied/payload-types.js'
 
+import { defaultCollectionSlug } from '../collections/Subscribers.js'
+
 import { getHash } from '../helpers/token.js'
 
 export type VerifyMagicLinkResponse =
@@ -22,7 +24,7 @@ export type VerifyMagicLinkResponse =
  *
  */
 function createEndpointVerifyMagicLink({
-  subscribersCollectionSlug,
+  subscribersCollectionSlug = defaultCollectionSlug,
 }: {
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {

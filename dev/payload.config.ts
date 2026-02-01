@@ -1,10 +1,10 @@
 import type { CollectionSlug } from 'payload'
 
+import { customSubscribersCollectionsSlug } from '@helpers/credentials.js'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 
 import { getServerUrl } from '../src/server-functions/serverUrl.js'
 import { testEmailAdapter } from './helpers/testEmailAdapter.js'
-
 // import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
@@ -75,7 +75,7 @@ const buildConfigWithMemoryDB = async () => {
           posts: true,
         },
         disabled: false,
-        subscribersCollectionSlug: 'customers' as CollectionSlug,
+        subscribersCollectionSlug: customSubscribersCollectionsSlug,
       }),
     ],
     secret: process.env.PAYLOAD_SECRET || 'test-secret_key',

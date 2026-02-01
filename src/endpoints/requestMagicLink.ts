@@ -1,6 +1,7 @@
 import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest, TypedUser } from 'payload'
 
 import crypto from 'crypto'
+import { defaultCollectionSlug } from '../collections/Subscribers.js'
 
 import { getTokenAndHash } from '../helpers/token.js'
 
@@ -23,7 +24,7 @@ export type RequestMagicLinkResponse =
  *
  */
 function createEndpointRequestMagicLink({
-  subscribersCollectionSlug,
+  subscribersCollectionSlug = defaultCollectionSlug,
 }: {
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {

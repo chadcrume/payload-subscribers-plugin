@@ -5,6 +5,8 @@ import type { Subscriber } from '../copied/payload-types.js'
 // If you're using Next.js, you'll have to import headers from next/headers, like so:
 import type { CollectionSlug, Endpoint, PayloadHandler, Permissions } from 'payload'
 
+import { defaultCollectionSlug } from '../collections/Subscribers.js'
+
 export type SubscriberAuthResponse =
   | {
       error: string
@@ -25,7 +27,7 @@ export type SubscriberAuthResponse =
  *
  */
 function createEndpointSubscriberAuth({
-  subscribersCollectionSlug,
+  subscribersCollectionSlug = defaultCollectionSlug,
 }: {
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {

@@ -1,6 +1,8 @@
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 import type { Subscriber } from 'src/copied/payload-types.js'
 
+import { defaultCollectionSlug } from '../collections/Subscribers.js'
+
 import { getTokenAndHash } from '../helpers/token.js'
 import { verifyOptIns } from '../helpers/verifyOptIns.js'
 
@@ -31,7 +33,7 @@ export type SubscribeResponse =
  *
  */
 function createEndpointSubscribe({
-  subscribersCollectionSlug,
+  subscribersCollectionSlug = defaultCollectionSlug,
 }: {
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {

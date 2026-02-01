@@ -2,6 +2,8 @@ import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 
 import { headers as nextHeaders } from 'next/headers.js'
 
+import { defaultCollectionSlug } from '../collections/Subscribers.js'
+
 export type LogoutResponse =
   | {
       error: string
@@ -21,7 +23,7 @@ export type LogoutResponse =
  *
  */
 function createEndpointLogout({
-  subscribersCollectionSlug,
+  subscribersCollectionSlug = defaultCollectionSlug,
 }: {
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {

@@ -4,7 +4,7 @@ import { OptedInChannels } from './fields/OptedInChannels.js'
 
 export const defaultTokenExpiration = 30 * 60 // 30 minutes
 
-const defaultCollectionSlug = 'subscribers'
+export const defaultCollectionSlug = 'subscribers'
 
 export const SubscribersCollectionFactory = ({
   slug,
