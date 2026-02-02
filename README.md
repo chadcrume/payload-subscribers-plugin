@@ -63,7 +63,7 @@ const Page = () => {
   return (
     <main>
       <RequestOrSubscribe
-        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+        classNames={{ button: 'customCssClassNames', container: 'customCssClassNames', emailInput: 'customCssClassNames' }}
       />
     </main>
   )
@@ -81,8 +81,7 @@ const Page = () => {
   return (
     <main id="main-content">
       <VerifyMagicLink
-        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
-        showResultBeforeForwarding={true}
+        classNames={{ button: 'customCssClassNames', container: 'customCssClassNames', emailInput: 'customCssClassNames' }}
       />
     </main>
   )
@@ -95,7 +94,7 @@ const Page = () => {
 
 #### **collections**
 
-You can specify collections in the plugin options which will be amended to include a relationTo field referring to the optInChannels collection. Right now this does not override the plugin-added subscribers collection, which is still used for the primary record of subscribers and used for authentication. The collections amended with an optIns can be used, for example, to manage your subscription channels and any email campaigns related. 
+You can specify collections in the plugin options which will be amended to include a relationTo field referring to the optInChannels collection. Right now this does not override the plugin-added subscribers collection, which is still used for the primary record of subscribers and used for authentication. The collections amended with an optIns can be used, for example, to manage your subscription channels and any email campaigns related.
 
 #### **disabled**
 
@@ -131,7 +130,7 @@ Seeded when plugin inits.
 
 #### **OptedInChannels**
 
-*THE FIELD SPEC IS CURRENTLY NOT EXPORTED* Documenting here in case that seems useful in the future.
+_THE FIELD SPEC IS CURRENTLY NOT EXPORTED_ Documenting here in case that seems useful in the future.
 
 This is the same field used by the plugin **collections** to amended a relationTo field referring to the optInChannels collection.
 
@@ -179,18 +178,29 @@ Shows Subscribe to authenticated subscribers, otherwise shows RequestMagicLink.
 </div> -->
 
 ```typescript
-// classNames prop
-
-export type RequestOrSubscribeClasses = {
-  button?: string
-  container?: string
-  emailInput?: string
-  error?: string
-  form?: string
-  loading?: string
-  message?: string
-  section?: string
-}
+  <RequestMagicLink
+    // Provide your own global class names to add to the component elements. Optional
+    classNames={{
+      button: 'customCssClassNames',
+      container: 'customCssClassNames',
+      emailInput: 'customCssClassNames',
+      error: 'customCssClassNames',
+      form: 'customCssClassNames',
+      loading: 'customCssClassNames',
+      message: 'customCssClassNames',
+      section: 'customCssClassNames',
+    }}
+    // Called after a subscribers opt-ins have been updated. Optional
+    handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
+    // Called after a subscribers opt-ins have been updated. Optional
+    handleSubscribe={async (result: SubscribeResponse) => {}}
+    // Provided your own button component. Optional
+    renderButton={({ name, onClick, text }) =>
+      <button name={name} onClick={onClick} type="button">
+        {text}
+      </button>
+    }
+  />
 ```
 
 #### **RequestMagicLink**
@@ -198,16 +208,25 @@ export type RequestOrSubscribeClasses = {
 Form to input email address and get a magic link email sent.
 
 ```typescript
-// classNames prop
-
-export type RequestMagicLinkClasses = {
-  button?: string
-  container?: string
-  emailInput?: string
-  error?: string
-  form?: string
-  message?: string
-}
+  <RequestMagicLink
+    // Provide your own global class names to add to the component elements. Optional
+    classNames={{
+      button: 'customCssClassNames',
+      container: 'customCssClassNames',
+      emailInput: 'customCssClassNames',
+      error: 'customCssClassNames',
+      form: 'customCssClassNames',
+      message: 'customCssClassNames',
+    }}
+    // Called after a subscribers opt-ins have been updated. Optional
+    handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
+    // Provided your own button component. Optional
+    renderButton={({ name, onClick, text }) =>
+      <button name={name} onClick={onClick} type="button">
+        {text}
+      </button>
+    }
+  />
 ```
 
 #### **VerifyMagicLink**
@@ -215,16 +234,35 @@ export type RequestMagicLinkClasses = {
 Component that verifies a magic link using expected url parameters.
 
 ```typescript
-// classNames prop
-
-export type VerifyMagicLinkClasses = {
-  button?: string
-  container?: string
-  error?: string
-  form?: string
-  loading?: string
-  message?: string
-}
+  <VerifyMagicLink
+    // Provide your own global class names to add to the component elements. Optional
+    classNames={{
+      button: 'customCssClassNames',
+      container: 'customCssClassNames',
+      error: 'customCssClassNames',
+      form: 'customCssClassNames',
+      loading: 'customCssClassNames',
+      message: 'customCssClassNames',
+    }}
+    // Called after a magic link email has been sent. Optional
+    handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
+    // Called after a magic link has been verified. Optional
+    handleMagicLinkVerified={async (result: RequestMagicLinkResponse) => {}}
+    // Provided your own button component. Optional
+    renderButton={({ name, forwardUrl, onClick, text }) =>
+      forwardUrl ? (
+        <a href={forwardUrl}>
+          <button name={name} type="button">
+            {text}
+          </button>
+        </a>
+      ) : (
+        <button name={name} onClick={onClick} type="button">
+          {text}
+        </button>
+      )
+    }
+  />
 ```
 
 #### **Subscribe**
@@ -232,18 +270,27 @@ export type VerifyMagicLinkClasses = {
 Allows a subscriber to select from among all active optInChannels.
 
 ```typescript
-// classNames prop
-
-export type SubscribeClasses = {
-  button?: string
-  container?: string
-  emailInput?: string
-  error?: string
-  form?: string
-  loading?: string
-  message?: string
-  section?: string
-}
+  <Subscribe
+    // Provide your own global class names to add to the component elements. Optional
+    classNames={{
+      button: 'customCssClassNames',
+      container: 'customCssClassNames',
+      emailInput: 'customCssClassNames',
+      error: 'customCssClassNames',
+      form: 'customCssClassNames',
+      loading: 'customCssClassNames',
+      message: 'customCssClassNames',
+      section: 'customCssClassNames',
+    }}
+    // Called after a subscribers opt-ins have been updated. Optional
+    handleSubscribe={async (result: SubscribeResponse) => {}}
+    // Provided your own button component. Optional
+    renderButton={({ name, onClick, text }) =>
+      <button name={name} onClick={onClick} type="button">
+        {text}
+      </button>
+    }
+  />
 ```
 
 #### **SubscriberMenu**

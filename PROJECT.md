@@ -1,5 +1,13 @@
 # Payload Subscribers Plugin Project
 
+## To do before initial npm publish
+
+* ✔ Upgrade all packages, including node, payload, next, etc
+* ✔ Improve README for Components
+* ✔ Parameterize collection to use for auth
+* Add renderButton to all Components that have a button
+
+
 ## Features Roadmap
 
 * Update request+verify to use Payload's forgot and reset flow?

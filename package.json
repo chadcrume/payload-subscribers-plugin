@@ -1,6 +1,5 @@
 {
   "name": "payload-subscribers-plugin",
-  "version": "1.0.0",
   "description": "A Payload CMS (3.0) plugin to add subscriber features into a site or app",
   "author": {
     "name": "Chad Crume",
@@ -21,10 +20,11 @@
       "default": "./src/exports/ui.ts"
     }
   },
-  "main": "./src/index.js",
+  "main": "./src/index.ts",
   "types": "./src/index.ts",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "pnpm copyfiles && pnpm build:types && pnpm build:swc",
@@ -48,16 +48,17 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
-    "@payloadcms/db-mongodb": "3.68.5",
+    "@payloadcms/db-mongodb": "3.73.0",
     "@payloadcms/eslint-config": "3.9.0",
-    "@payloadcms/next": "3.68.5",
-    "@payloadcms/ui": "3.68.5",
+    "@payloadcms/next": "3.73.0",
+    "@payloadcms/sdk": "3.73.0",
+    "@payloadcms/ui": "3.73.0",
     "@playwright/test": "1.56.1",
     "@swc-node/register": "1.10.9",
     "@swc/cli": "0.6.0",
     "@types/node": "^22.19.7",
-    "@types/react": "19.2.1",
-    "@types/react-dom": "19.2.1",
+    "@types/react": "19.2.10",
+    "@types/react-dom": "19.2.3",
     "copyfiles": "2.4.1",
     "cross-env": "^7.0.3",
     "eslint": "^9.39.2",
@@ -65,11 +66,11 @@
     "mongodb-memory-server": "10.1.4",
     "next": "16.1.6",
     "open": "^10.2.0",
-    "payload": "3.68.5",
+    "payload": "3.73.0",
     "prettier": "^3.8.1",
     "qs-esm": "7.0.2",
-    "react": "19.2.1",
-    "react-dom": "19.2.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "sharp": "0.34.2",
     "sort-package-json": "^2.15.1",
     "typescript": "5.7.3",
@@ -77,10 +78,11 @@
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
-    "next": "16.1.6",
-    "payload": "^3.68.5",
-    "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "next": "^15.4.10",
+    "payload": "^3.71.1",
+    "@payloadcms/sdk": "^3.71.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "engines": {
     "node": "^18.20.2 || >=20.9.0",
@@ -94,9 +96,9 @@
         "default": "./dist/index.js"
       },
       "./ui": {
-        "import": "./dist/exports/ui.ts",
-        "types": "./dist/exports/ui.ts",
-        "default": "./dist/exports/ui.ts"
+        "import": "./dist/exports/ui.js",
+        "types": "./dist/exports/ui.d.ts",
+        "default": "./dist/exports/ui.js"
       }
     },
     "main": "./dist/index.js",
@@ -104,13 +106,14 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "sharp",
+      "@swc/core",
       "esbuild",
+      "mongodb-memory-server",
+      "sharp",
       "unrs-resolver"
     ]
   },
   "registry": "https://registry.npmjs.org/",
-  "dependencies": {
-    "@payloadcms/sdk": "3.68.5"
-  }
+  "dependencies": {},
+  "version": "0.0.1-5"
 }

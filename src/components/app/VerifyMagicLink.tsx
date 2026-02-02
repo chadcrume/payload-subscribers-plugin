@@ -1,17 +1,16 @@
 'use client'
 
-import type { Config } from '../../copied/payload-types.js'
-import type { RequestMagicLinkResponse } from 'src/endpoints/requestMagicLink.js'
-import type { VerifyMagicLinkResponse } from 'src/endpoints/verifyMagicLink.js'
-
 import { PayloadSDK } from '@payloadcms/sdk'
 import { useSearchParams } from 'next/navigation.js'
 import { useCallback, useEffect, useState } from 'react'
 
-export { VerifyMagicLinkResponse }
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
-import { useSubscriber } from 'payload-subscribers-plugin/ui'
+import type { RequestMagicLinkResponse } from '../..//endpoints/requestMagicLink.js'
+import type { Config } from '../../copied/payload-types.js'
+import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
 
+export { VerifyMagicLinkResponse }
+import { useSubscriber } from '../../exports/ui.js'
+import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -31,7 +30,6 @@ export interface IVerifyMagicLink {
     onClick?: () => any
     text?: string
   }) => React.ReactNode
-  showResultBeforeForwarding: boolean
 }
 
 export type VerifyMagicLinkClasses = {
@@ -75,7 +73,6 @@ export const VerifyMagicLink = ({
         {text}
       </button>
     ),
-  showResultBeforeForwarding = true,
 }: IVerifyMagicLink) => {
   const { serverURL } = useServerUrl()
   const {
@@ -168,7 +165,7 @@ export const VerifyMagicLink = ({
       {!result && (
         <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
       )}
-      {result && showResultBeforeForwarding && (
+      {result && (
         <p
           className={mergeClassNames([
             styles.message,
