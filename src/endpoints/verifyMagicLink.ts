@@ -2,8 +2,7 @@ import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 import type { Subscriber } from 'src/copied/payload-types.js'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
-
-import { getHash } from '../helpers/token.js'
+import { getHash, getTokenAndHash } from '../helpers/token.js'
 
 export type VerifyMagicLinkResponse =
   | {
@@ -125,8 +124,9 @@ function createEndpointVerifyMagicLink({
     }
     // console.log('login', headers)
 
+    const { tokenHash: tokenHash2 } = getTokenAndHash() // Unknowable
     const data = {
-      password: 'something super secret',
+      password: tokenHash2,
       status: 'subscribed' as 'pending' | 'subscribed' | 'unsubscribed' | undefined,
       verificationToken: '',
       verificationTokenExpires: null,

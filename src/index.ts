@@ -14,6 +14,7 @@ import createEndpointSubscribe from './endpoints/subscribe.js'
 import createEndpointSubscriberAuth from './endpoints/subscriberAuth.js'
 import createEndpointVerifyMagicLink from './endpoints/verifyMagicLink.js'
 import { getTestEmail } from './helpers/testData.js'
+import { getTokenAndHash } from './helpers/token.js'
 
 export type PayloadSubscribersConfig = {
   /**
@@ -185,13 +186,14 @@ export const payloadSubscribersPlugin =
         },
       })
 
+      const { tokenHash } = getTokenAndHash() // Unknowable
       // payload.logger.info(`testData.testEmail == '${testData.testEmail}'`)
       if (totalSubscribers === 0) {
         await payload.create({
           collection: subscribersCollection.slug as CollectionSlug,
           data: {
             email: testData.testEmail,
-            password: 'something super secret',
+            password: tokenHash,
             status: 'pending',
           },
         })
