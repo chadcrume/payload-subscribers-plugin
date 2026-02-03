@@ -71,11 +71,6 @@ export const subscribersCollectionFields: Field[] = [
     required: true,
   },
   {
-    name: 'source',
-    type: 'text', // e.g., 'Homepage form', 'Blog post A', etc.
-    label: 'Signup Source',
-  },
-  {
     name: 'verificationToken',
     type: 'text',
     admin: {
