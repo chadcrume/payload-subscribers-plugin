@@ -2,6 +2,18 @@
 
 A plugin to manage subscribers and the "channels" they can subscribe to.
 
+This includes ways to allow your subscribers to:
+* Sign up or sign in by requesting a magic link email
+* Verify the magic link to authenticate
+* Opt in or out of "opt-in channels"
+
+You manage the opt-in channels via the Payload admin.
+
+The plugin relies on your email adapter configured in your payload config to send emails.
+
+That is all this plugin does currently. Potential features might include email authoring and send scheduler or simple CRM features. 
+
+
 ## Installation
 
 ```bash
@@ -9,6 +21,8 @@ pnpm add payload-subscribers-plugin
 ```
 
 ## Usage
+
+You need to have an email adapter configured in your Payload config.
 
 Add the plugin to your Payload config.
 
@@ -18,12 +32,22 @@ Add the plugin to your Payload config.
 export default buildConfig({
   plugins: [
     payloadSubscribersPlugin({
+
+      // Add slugs of your collections which should have a relationship field to the optInChannels.
       collections: {
-        // Add slugs of your collections which should have a relationship field to the optInChannels.
         posts: true,
       },
+
       // Easily disable the collection logic.
       disabled: false,
+
+      // Specify the collection to use as the subscribers collection
+      //  - Optional. If not specified, the plugin will add a 'subscribers' collection.
+      //  - Sets auth if not already
+      //  - Adds (or overrides) fields: email, firstName, status, optIns, 
+      //    verificationToken, verificationTokenExpires, and source
+      subscribersCollectionSlug?: CollectionSlug
+
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
       tokenExpiration: 60 * 60,
     }),
@@ -172,7 +196,7 @@ The **subscribe** endpoint will remove all optIns. But need a way to set the sub
 
 #### **RequestOrSubscribe**
 
-Shows Subscribe to authenticated subscribers, otherwise shows RequestMagicLink.
+Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherwise shows [RequestMagicLink](#RequestMagicLink).
 
 <!-- <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
 </div> -->
@@ -207,6 +231,8 @@ Shows Subscribe to authenticated subscribers, otherwise shows RequestMagicLink.
 
 Form to input email address and get a magic link email sent.
 
+<img src="./docs/images/RequestMagicLink.png" alt="RequestMagicLink" style="max-width: 500px; width: 100%;">
+
 ```typescript
   <RequestMagicLink
     // Provide your own global class names to add to the component elements. Optional
@@ -232,6 +258,8 @@ Form to input email address and get a magic link email sent.
 #### **VerifyMagicLink**
 
 Component that verifies a magic link using expected url parameters.
+
+<img src="./docs/images/VerifyMagicLink.png" alt="VerifyMagicLink" style="max-width: 500px; width: 100%;">
 
 ```typescript
   <VerifyMagicLink
@@ -269,6 +297,8 @@ Component that verifies a magic link using expected url parameters.
 
 Allows a subscriber to select from among all active optInChannels.
 
+<img src="./docs/images/Subscribe.png" alt="Subscribe" style="max-width: 500px; width: 100%;">
+
 ```typescript
   <Subscribe
     // Provide your own global class names to add to the component elements. Optional
@@ -295,6 +325,8 @@ Allows a subscriber to select from among all active optInChannels.
 
 #### **SubscriberMenu**
 
+A simple user menu, most useful for testing. Seen in the screenshots above. Includes a "welcome" message, a link to a /subscribe route, and a log out button.
+
 ```typescript
 // classNames prop
 
@@ -303,3 +335,7 @@ export type SubscriberMenuClasses = {
   container?: string
 }
 ```
+
+## Contributing
+
+Community contributions are welcome! I haven't organized around that yet, so let me know if you're interested by opening an issue on the GitHub repo.

@@ -30,9 +30,10 @@ export type PayloadSubscribersConfig = {
    */
   disabled?: boolean
   /**
-   * The collection to make the subscribers collection
-   * - Set auth if not
-   * - Add optIns field
+   * The collection to use as the subscribers collection
+   * - Optional. If not specified, the plugin will add a 'subscribers' collection.
+   * - Sets the collection auth if not already.
+   * - Adds (or overrides) fields: email, firstName, status, optIns, verificationToken, verificationTokenExpires.
    */
   subscribersCollectionSlug?: CollectionSlug
   /**
