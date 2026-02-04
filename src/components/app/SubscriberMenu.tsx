@@ -1,7 +1,6 @@
 'use client'
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
-
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -27,18 +26,23 @@ export const SubscriberMenu = ({
     <div className={mergeClassNames([styles.container, classNames.container])}>
       {/* <pre>{JSON.stringify(result, null, 2)}</pre> */}
       {subscriber && (
-        <div>
-          Welcome, {subscriber?.email} - <a href={'/subscribe'}>Manage subscriptions</a> -{' '}
-          <button
-            className={mergeClassNames([styles.button, classNames.button])}
-            onClick={(e) => {
-              e.preventDefault()
-              logOut()
-            }}
-            type="button"
-          >
-            Log out
-          </button>
+        <div style={{ display: 'flex' }}>
+          <div style={{ flexGrow: 1 }}>Welcome, {subscriber?.email}</div>
+          <div style={{ flexGrow: 1 }}>
+            <a href={'/subscribe'}>Manage subscriptions</a>
+          </div>
+          <div style={{ flexGrow: 1 }}>
+            <button
+              className={mergeClassNames([styles.button, classNames.button])}
+              onClick={(e) => {
+                e.preventDefault()
+                logOut()
+              }}
+              type="button"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       )}
     </div>
