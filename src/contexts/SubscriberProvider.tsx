@@ -37,13 +37,9 @@ export function SubscriberProvider({ children }: ProviderProps) {
     const initSubscriber = async () => {
       setIsLoaded(false)
       try {
-        const sdk = new PayloadSDK<Config>({
-          baseURL: serverURL || '',
-        })
-        const authResponse = await sdk.request({
-          json: {},
+        const authResponse = await fetch('/api/subscriberAuth', {
+          // body: JSON.stringify({}),
           method: 'POST',
-          path: '/api/subscriberAuth',
         })
 
         if (authResponse.ok) {

@@ -72,7 +72,7 @@ function createEndpointSubscriberAuth({
           permissions,
           subscriber: null,
         } as SubscriberAuthResponse,
-        { headers, status: 200 },
+        { headers, status: 400 },
       )
     } catch (error: unknown) {
       // req.payload.logger.info(`subscriberAuth error: ${JSON.stringify(error)}`)
