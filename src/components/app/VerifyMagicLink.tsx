@@ -9,7 +9,7 @@ import type { Config } from '../../copied/payload-types.js'
 import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
 
 export { VerifyMagicLinkResponse }
-import { useSubscriber } from '../../exports/ui.js'
+import { RequestMagicLink, useSubscriber } from '../../exports/ui.js'
 import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
@@ -92,49 +92,55 @@ export const VerifyMagicLink = ({
   const { refreshSubscriber } = useSubscriber()
 
   const callVerify = useCallback(async () => {
-    const sdk = new PayloadSDK<Config>({
-      baseURL: serverURL || '',
-    })
+    if (!email || !token) {
+      console.info('Invalid input')
+      return { error: 'Invalid input' }
+    }
+    try {
+      // I tried using PayloadSDK.request, but when the endpoint
+      // returns a not-okay status, PayloadSDK.request returns its
+      // own "Bad request" error, and doesn't share the endpoint
+      // result data.
+      const verifyEndpointResult = await fetch(serverURL + '/api/verifyToken', {
+        body: JSON.stringify({
+          email,
+          token,
+        }),
+        method: 'POST',
+      })
 
-    const verifyResult = await sdk.request({
-      json: {
-        email,
-        token,
-      },
-      method: 'POST',
-      path: '/api/verifyToken',
-    })
-
-    return verifyResult
+      // return verifyEndpointResult
+      if (verifyEndpointResult && verifyEndpointResult.json) {
+        console.log(1)
+        const resultJson = await verifyEndpointResult.json()
+        return { error: resultJson.error, message: resultJson.message }
+      } else if (verifyEndpointResult && verifyEndpointResult.text) {
+        console.log(2)
+        const resultText = await verifyEndpointResult.text()
+        return { error: resultText }
+      } else {
+        console.log(3)
+        return { error: verifyEndpointResult.status }
+      }
+    } catch (error: unknown) {
+      console.log('catch')
+      return { error }
+    }
   }, [email, serverURL, token])
 
   useEffect(() => {
     async function verify() {
-      const verifyResult = await callVerify()
-      if (verifyResult.ok) {
-        const resultJson = await verifyResult.json()
-        setResult(resultJson.message || resultJson.error)
-        setIsError(resultJson.error && !resultJson.message)
-
-        // // This is causing out of control rendering. Not totally sure why, or of another way to do it.
-        // refreshSubscriber()
-
-        // // This is also causing out of control rendering. Not totally sure why, or of another way to do it.
-        // if (handleMagicLinkVerified) {
-        //   handleMagicLinkVerified(resultJson)
-        // }
-      } else {
-        // const resultText = await verifyResult.text()
-        setResult('An error occured. Please try again')
-        setIsError(true)
-      }
+      const { error, message } = await callVerify()
+      setResult(message || `An error occured. Please try again. (${error})`)
+      setIsError(error && !message)
+      // console.info('callVerify not okay', { error, message })
     }
     if (!subscriber) {
       void verify()
     }
   }, [callVerify, serverURL, email, handleMagicLinkVerified, refreshSubscriber, subscriber, token])
 
-  const handleRequestMagicLink = async () => {
+  const handleRequestAnother = async () => {
     const sdk = new PayloadSDK<Config>({
       baseURL: serverURL || '',
     })
@@ -160,38 +166,44 @@ export const VerifyMagicLink = ({
       setIsError(true)
     }
   }
+
   return (
-    <div className={mergeClassNames([styles.container, classNames.container])}>
-      {!result && (
-        <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
+    <>
+      {(!email || !token) && <RequestMagicLink classNames={classNames} />}
+      {email && token && (
+        <div className={mergeClassNames([styles.container, classNames.container])}>
+          {!result && (
+            <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
+          )}
+          {result && (
+            <p
+              className={mergeClassNames([
+                styles.message,
+                classNames.message,
+                isError ? [styles.error, classNames.error] : [],
+              ])}
+            >
+              {result}
+            </p>
+          )}
+          <div className={mergeClassNames([styles.form, classNames.form])}>
+            {result &&
+              isError &&
+              renderButton({
+                name: 'request',
+                onClick: handleRequestAnother,
+                text: 'Request another magic link',
+              })}
+            {result &&
+              forwardUrl &&
+              renderButton({
+                name: 'continue',
+                forwardUrl,
+                text: 'Continue',
+              })}
+          </div>
+        </div>
       )}
-      {result && (
-        <p
-          className={mergeClassNames([
-            styles.message,
-            classNames.message,
-            isError ? [styles.error, classNames.error] : [],
-          ])}
-        >
-          {result}
-        </p>
-      )}
-      <div className={mergeClassNames([styles.form, classNames.form])}>
-        {result &&
-          isError &&
-          renderButton({
-            name: 'request',
-            onClick: handleRequestMagicLink,
-            text: 'Request another magic link',
-          })}
-        {result &&
-          forwardUrl &&
-          renderButton({
-            name: 'continue',
-            forwardUrl,
-            text: 'Continue',
-          })}
-      </div>
-    </div>
+    </>
   )
 }
