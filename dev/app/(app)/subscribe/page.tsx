@@ -1,5 +1,6 @@
-import { Subscribe, type SubscribeResponse } from 'payload-subscribers-plugin/ui'
-import React from 'react'
+import type { SubscribeResponse } from 'payload-subscribers-plugin/ui'
+
+import { SubscribeClient } from '@/components/SubscribeClient.js'
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function handleSubscribe(result: SubscribeResponse) {
@@ -12,10 +13,7 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Subscribe</h1>
-        <Subscribe
-          classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
-          handleSubscribe={handleSubscribe}
-        />
+        <SubscribeClient handleSubscribe={handleSubscribe} />
       </main>
     </>
   )

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import {
   RequestMagicLink,
@@ -34,10 +36,12 @@ export function RequestOrSubscribe({
   },
   handleMagicLinkRequested,
   handleSubscribe,
+  verifyUrl,
 }: {
   classNames?: RequestOrSubscribeClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleSubscribe?: (result: SubscribeResponse) => void
+  verifyUrl?: URL
 }) {
   const { subscriber } = useSubscriber()
 
@@ -45,11 +49,16 @@ export function RequestOrSubscribe({
   return (
     <>
       {subscriber ? (
-        <Subscribe classNames={classNames} handleSubscribe={handleSubscribe} />
+        <Subscribe
+          classNames={classNames}
+          handleSubscribe={handleSubscribe}
+          verifyUrl={verifyUrl}
+        />
       ) : (
         <RequestMagicLink
           classNames={classNames}
           handleMagicLinkRequested={handleMagicLinkRequested}
+          verifyUrl={verifyUrl}
         />
       )}
       {/* <div>subscriber = {JSON.stringify(subscriber)}</div> */}

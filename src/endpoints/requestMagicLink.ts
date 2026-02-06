@@ -1,8 +1,8 @@
 import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest, TypedUser } from 'payload'
 
 import crypto from 'crypto'
-import { defaultCollectionSlug } from '../collections/Subscribers.js'
 
+import { defaultCollectionSlug } from '../collections/Subscribers.js'
 import { getTokenAndHash } from '../helpers/token.js'
 
 export type RequestMagicLinkResponse =
@@ -31,16 +31,16 @@ function createEndpointRequestMagicLink({
   /**
    * requestMagicLink Endpoint Handler
    * @param req
-   * @data { email }
+   * @data { email, verifyUrl }
    * @returns { status: 200, json: {message: string, now: date} }
    * @returns { status: 400, json: {error: ('Bad data' | 'Unknown email result'), now: date} }
    */
   const requestMagicLinkHandler: PayloadHandler = async (req: PayloadRequest) => {
     const data = req?.json ? await req.json() : {}
-    const { email, forwardUrl } = data // if by POST data
+    const { email, verifyUrl } = data // if by POST data
     // const { email } = req.routeParams // if by path
 
-    if (!email) {
+    if (!email || !verifyUrl) {
       return Response.json(
         { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
         { status: 400 },
@@ -94,8 +94,7 @@ function createEndpointRequestMagicLink({
     })
 
     // Send email
-    const forwardUrlParam = forwardUrl ? `&forwardUrl=${encodeURI(forwardUrl)}` : ''
-    const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${forwardUrlParam}`
+    const magicLink = `${verifyUrl}${verifyUrl.search ? '&' : '?'}token=${token}&email=${email}`
     const subject = data.subject || 'Your Magic Login Link'
     const message = `
   ${data.message || '<p>Use this link to log in:</p>'}

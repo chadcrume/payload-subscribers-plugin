@@ -115,7 +115,7 @@ describe('Plugin integration tests', () => {
     const testEmail = getTestEmail()
 
     const request = new Request(`${serverURL}/api/emailToken`, {
-      body: JSON.stringify({ email: testEmail }),
+      body: JSON.stringify({ email: testEmail, verifyUrl: '/verify' }),
       method: 'POST',
     })
     const payloadRequest = await createPayloadRequest({ config, request })
@@ -195,8 +195,8 @@ describe('Plugin integration tests', () => {
 
     const user = userResult[0]
 
-    const verifyRequest = new Request(`${serverURL}/api/verifyToken2`, {
-      body: JSON.stringify({ email: user.email, token: testToken }),
+    const verifyRequest = new Request(`${serverURL}/api/verifyToken`, {
+      body: JSON.stringify({ email: user.email, token: testToken, verifyUrl: '/verify' }),
       method: 'POST',
     })
     const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })

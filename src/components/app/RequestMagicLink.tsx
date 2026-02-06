@@ -17,6 +17,7 @@ export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
+  verifyUrl?: URL
 }
 
 export type RequestMagicLinkClasses = {
@@ -40,10 +41,10 @@ export const RequestMagicLink = ({
     message: '',
   },
   handleMagicLinkRequested,
+  verifyUrl,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
   const { serverURL } = useServerUrl()
-
   const [status, setStatus] = useState<statusValues>('default')
 
   const sdk = new PayloadSDK<Config>({
@@ -59,11 +60,10 @@ export const RequestMagicLink = ({
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const forwardUrl = window.location.pathname + '?now=' + new Date().toISOString()
     const emailTokenResponse = await sdk.request({
       json: {
         email,
-        forwardUrl,
+        verifyUrl: verifyUrl?.href,
       },
       method: 'POST',
       path: '/api/emailToken',

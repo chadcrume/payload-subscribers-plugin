@@ -21,20 +21,18 @@ import styles from './shared.module.css'
 // Pass your config from generated types as generic
 
 export interface IVerifyMagicLink {
+  children?: React.ReactNode
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
-  renderButton?: (props: {
-    forwardUrl?: string
-    name?: string
-    onClick?: () => any
-    text?: string
-  }) => React.ReactNode
+  renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
+  verifyUrl?: URL
 }
 
 export type VerifyMagicLinkClasses = {
   button?: string
   container?: string
+  emailInput?: string
   error?: string
   form?: string
   loading?: string
@@ -42,9 +40,11 @@ export type VerifyMagicLinkClasses = {
 }
 
 export const VerifyMagicLink = ({
+  children,
   classNames = {
     button: '',
     container: '',
+    emailInput: '',
     error: '',
     form: '',
     loading: '',
@@ -52,27 +52,17 @@ export const VerifyMagicLink = ({
   },
   handleMagicLinkRequested,
   handleMagicLinkVerified,
-  renderButton = ({ name, forwardUrl, onClick, text }) =>
-    forwardUrl ? (
-      <a href={forwardUrl}>
-        <button
-          className={mergeClassNames([styles.button, classNames.button])}
-          name={name}
-          type="button"
-        >
-          {text}
-        </button>
-      </a>
-    ) : (
-      <button
-        className={mergeClassNames([styles.button, classNames.button])}
-        name={name}
-        onClick={onClick}
-        type="button"
-      >
-        {text}
-      </button>
-    ),
+  renderButton = ({ name, onClick, text }) => (
+    <button
+      className={mergeClassNames([styles.button, classNames.button])}
+      name={name}
+      onClick={onClick}
+      type="button"
+    >
+      {text}
+    </button>
+  ),
+  verifyUrl,
 }: IVerifyMagicLink) => {
   const { serverURL } = useServerUrl()
   const {
@@ -82,7 +72,6 @@ export const VerifyMagicLink = ({
 
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
-  const forwardUrl = searchParams.get('forwardUrl')
   const token = searchParams.get('token')
 
   const [result, setResult] = useState<string>()
@@ -148,7 +137,7 @@ export const VerifyMagicLink = ({
     const emailResult = await sdk.request({
       json: {
         email,
-        forwardUrl,
+        verifyUrl: verifyUrl?.href,
       },
       method: 'POST',
       path: '/api/emailToken',
@@ -189,18 +178,13 @@ export const VerifyMagicLink = ({
           <div className={mergeClassNames([styles.form, classNames.form])}>
             {result &&
               isError &&
+              renderButton &&
               renderButton({
                 name: 'request',
                 onClick: handleRequestAnother,
                 text: 'Request another magic link',
               })}
-            {result &&
-              forwardUrl &&
-              renderButton({
-                name: 'continue',
-                forwardUrl,
-                text: 'Continue',
-              })}
+            {result && children}
           </div>
         </div>
       )}
