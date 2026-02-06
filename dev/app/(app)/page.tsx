@@ -1,9 +1,6 @@
 import type { RequestMagicLinkResponse, SubscribeResponse } from 'payload-subscribers-plugin/ui'
 
-import React from 'react'
-
-// import { Homepage } from '@/components/Homepage'
-import { RequestOrSubscribe } from 'payload-subscribers-plugin/ui'
+import { RequestOrSubscribeClient } from '@/components/RequestOrSubscribeClient.js'
 
 // eslint-disable-next-line @typescript-eslint/require-await
 const handleSubscribe = async (result: SubscribeResponse) => {
@@ -22,8 +19,7 @@ const Page = () => {
     <>
       <main id="main-content">
         <h1>Home</h1>
-        <RequestOrSubscribe
-          classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+        <RequestOrSubscribeClient
           handleMagicLinkRequested={handleMagicLinkRequested}
           handleSubscribe={handleSubscribe}
         />

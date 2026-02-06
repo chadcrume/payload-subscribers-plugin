@@ -5,9 +5,10 @@
 * ✔ Upgrade all packages, including node, payload, next, etc
 * ✔ Improve README for Components
 * ✔ Parameterize collection to use for auth
-* Improve README for Options
-* Improve README for UX Flow
-* Improve README for Requirements
+* ✔ Improve README for Options
+* ✔ Improve README for UX Flow
+* ✔ Improve README for Requirements
+* ✔ Add components optional prop for afterVerifyUrl
 * Add renderButton to all Components that have a button
 
 

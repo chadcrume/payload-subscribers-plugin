@@ -2,9 +2,12 @@
 
 import type { VerifyMagicLinkResponse } from 'payload-subscribers-plugin/ui'
 
+import { useSearchParams } from 'next/navigation.js'
 import { useSubscriber, VerifyMagicLink } from 'payload-subscribers-plugin/ui'
 
 export function VerifyClient() {
+  const searchParams = useSearchParams()
+  const forwardUrl = searchParams.get('forwardUrl') || ''
   const { refreshSubscriber } = useSubscriber()
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -20,8 +23,13 @@ export function VerifyClient() {
       <VerifyMagicLink
         classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
         handleMagicLinkVerified={handleMagicLinkVerified}
-        showResultBeforeForwarding={true}
-      />
+      >
+        <a href={forwardUrl}>
+          <button className={'customCss'} name={'continue'} type="button">
+            Continue
+          </button>
+        </a>
+      </VerifyMagicLink>
     </main>
   )
 }

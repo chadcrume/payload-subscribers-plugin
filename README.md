@@ -3,16 +3,16 @@
 A plugin to manage subscribers and the "channels" they can subscribe to.
 
 This includes ways to allow your subscribers to:
-* Sign up or sign in by requesting a magic link email
-* Verify the magic link to authenticate
-* Opt in or out of "opt-in channels"
+
+- Sign up or sign in by requesting a magic link email
+- Verify the magic link to authenticate
+- Opt in or out of "opt-in channels"
 
 You manage the opt-in channels via the Payload admin.
 
 The plugin relies on your email adapter configured in your payload config to send emails.
 
-That is all this plugin does currently. Potential features might include email authoring and send scheduler or simple CRM features. 
-
+That is all this plugin does currently. Potential features might include email authoring and send scheduler or simple CRM features.
 
 ## Installation
 
@@ -44,7 +44,7 @@ export default buildConfig({
       // Specify the collection to use as the subscribers collection
       //  - Optional. If not specified, the plugin will add a 'subscribers' collection.
       //  - Sets auth if not already
-      //  - Adds (or overrides) fields: email, firstName, status, optIns, 
+      //  - Adds (or overrides) fields: email, firstName, status, optIns,
       //    verificationToken, verificationTokenExpires, and source
       subscribersCollectionSlug?: CollectionSlug
 
@@ -202,7 +202,9 @@ Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherw
 </div> -->
 
 ```typescript
-  <RequestMagicLink
+  <RequestOrSubscribe
+    // Provide the URL the user should go to after clicking the link in the email and having it verified
+    afterVerifyUrl={new URL(window.href)}
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
@@ -224,6 +226,8 @@ Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherw
         {text}
       </button>
     }
+    // Provide the URL to your route that has the VerifyMagicLink component on it.
+    verifyUrl={verifyUrl}
   />
 ```
 
@@ -235,6 +239,8 @@ Form to input email address and get a magic link email sent.
 
 ```typescript
   <RequestMagicLink
+    // Provide the URL the user should go to after clicking the link in the email and having it verified
+    afterVerifyUrl={new URL(window.href)}
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
@@ -252,6 +258,8 @@ Form to input email address and get a magic link email sent.
         {text}
       </button>
     }
+    // Provide the URL to your route that has the VerifyMagicLink component on it.
+    verifyUrl={verifyUrl}
   />
 ```
 
@@ -277,20 +285,25 @@ Component that verifies a magic link using expected url parameters.
     // Called after a magic link has been verified. Optional
     handleMagicLinkVerified={async (result: RequestMagicLinkResponse) => {}}
     // Provided your own button component. Optional
-    renderButton={({ name, forwardUrl, onClick, text }) =>
-      forwardUrl ? (
-        <a href={forwardUrl}>
-          <button name={name} type="button">
-            {text}
-          </button>
-        </a>
-      ) : (
+    renderButton={({ name, onClick, text }) =>
         <button name={name} onClick={onClick} type="button">
           {text}
         </button>
-      )
     }
-  />
+    // Provide the URL to your route that has the VerifyMagicLink component on it.
+    // Used when this VerifyMagicLink component provides an option to request another link
+    // when verifying the current one fails.
+    verifyUrl={verifyUrl}
+  >
+    // Provide children to render after link is verified. Optional
+    // Since you provide the verifyUrl to any of the plugin components, you can include a forwardUrl 
+    // as a search param, which your route can then use here.
+    <a href={forwardUrl}>
+      <button className={'customCss'} name={'continue'} type="button">
+        Continue
+      </button>
+    </a>
+  </VerifyMagicLink>
 ```
 
 #### **Subscribe**
@@ -301,6 +314,8 @@ Allows a subscriber to select from among all active optInChannels.
 
 ```typescript
   <Subscribe
+    // Provide the URL the user should go to after clicking the link in the email and having it verified
+    afterVerifyUrl={new URL(window.href)}
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
@@ -320,6 +335,8 @@ Allows a subscriber to select from among all active optInChannels.
         {text}
       </button>
     }
+    // Provide the URL to your route that has the VerifyMagicLink component on it.
+    verifyUrl={verifyUrl}
   />
 ```
 

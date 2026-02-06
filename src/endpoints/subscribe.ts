@@ -2,7 +2,6 @@ import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 import type { Subscriber } from 'src/copied/payload-types.js'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
-
 import { getTokenAndHash } from '../helpers/token.js'
 import { verifyOptIns } from '../helpers/verifyOptIns.js'
 
@@ -46,11 +45,8 @@ function createEndpointSubscribe({
    */
   const subscribeHandler: PayloadHandler = async (req) => {
     const data = req?.json ? await req.json() : {}
-    const {
-      afterVerifyUrl,
-      email,
-      optIns,
-    }: { afterVerifyUrl: string; email: string; optIns: string[] } = data // if by POST data
+    const { email, optIns, verifyUrl }: { email: string; optIns: string[]; verifyUrl: string } =
+      data // if by POST data
     // const { email } = req.routeParams // if by path
 
     //
@@ -116,21 +112,20 @@ function createEndpointSubscribe({
     }
     const sendVerifyEmail = async ({
       email,
-      forwardUrl,
       linkText,
       message,
       subject,
       token,
+      verifyUrl,
     }: {
       email: string
-      forwardUrl?: string
       linkText: string
       message: string
       subject: string
       token: string
+      verifyUrl?: string
     }) => {
-      const forwardUrlParam = forwardUrl ? `&forwardUrl=${encodeURI(forwardUrl)}` : ''
-      const magicLink = `${req.payload.config.serverURL}/verify?token=${token}&email=${email}${forwardUrlParam}`
+      const magicLink = `${verifyUrl}${verifyUrl?.search ? '&' : '?'}token=${token}&email=${email}`
       const html = message + `<p><a href="${magicLink}">${linkText}</a></p>`
       const emailResult = await req.payload.sendEmail({
         html,
@@ -247,11 +242,11 @@ function createEndpointSubscribe({
       // Send email
       const emailResult = await sendVerifyEmail({
         email,
-        forwardUrl: afterVerifyUrl,
         linkText: '<b>Verify</b>',
         message: data.message || `<p>Click here to verify your subscription:</p>`,
         subject: data.subject || 'Please verify your subscription',
         token,
+        verifyUrl,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -302,11 +297,11 @@ function createEndpointSubscribe({
       // Send email
       const emailResult = await sendVerifyEmail({
         email,
-        forwardUrl: afterVerifyUrl,
         linkText: 'Verify',
         message: data.message || `<h1>Click here to verify your subscription:</h1>`,
         subject: data.subject || 'Please verify your subscription',
         token,
+        verifyUrl,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -354,11 +349,11 @@ function createEndpointSubscribe({
 
       const emailResult = await sendVerifyEmail({
         email,
-        forwardUrl: afterVerifyUrl,
         linkText: 'Verify',
         message: data.message || `<h1>Click here to verify your email:</h1>`,
         subject: data.subject || 'Please verify your subscription',
         token,
+        verifyUrl,
       })
       if (!emailResult) {
         req.payload.logger.error(

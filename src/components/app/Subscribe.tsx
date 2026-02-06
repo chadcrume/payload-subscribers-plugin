@@ -24,6 +24,7 @@ export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
+  verifyUrl?: URL
 }
 
 export type SubscribeClasses = {
@@ -51,6 +52,7 @@ export const Subscribe = ({
     section: '',
   },
   handleSubscribe,
+  verifyUrl,
 }: ISubscribe) => {
   const { refreshSubscriber, subscriber } = useSubscriber()
 
@@ -88,9 +90,9 @@ export const Subscribe = ({
   const handleSubmit = async () => {
     const subscribeResult = await sdk.request({
       json: {
-        afterVerifyUrl: window.location.pathname + '?now=' + new Date().toISOString(),
         email,
         optIns: selectedChannelIDs,
+        verifyUrl: verifyUrl?.href,
       },
       method: 'POST',
       path: '/api/subscribe',
