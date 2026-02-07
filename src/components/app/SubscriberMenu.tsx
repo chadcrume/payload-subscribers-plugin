@@ -4,6 +4,12 @@ import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
+/** Props for the VerifyMagicLink component. */
+export interface ISubscriberMenu {
+  classNames?: SubscriberMenuClasses
+  subscribeUrl?: string | URL
+}
+
 /** Optional CSS class overrides for SubscriberMenu elements. */
 export type SubscriberMenuClasses = {
   button?: string
@@ -26,11 +32,11 @@ export const SubscriberMenu = ({
     group: '',
   },
   subscribeUrl,
-}: {
-  classNames?: SubscriberMenuClasses
-  subscribeUrl?: URL
-}) => {
+}: ISubscriberMenu) => {
   const { logOut, subscriber } = useSubscriber()
+  if (typeof subscribeUrl == 'string') {
+    subscribeUrl = new URL(subscribeUrl)
+  }
   return (
     <div
       className={mergeClassNames([

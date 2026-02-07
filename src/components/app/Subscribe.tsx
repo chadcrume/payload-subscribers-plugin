@@ -19,7 +19,7 @@ export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
-  verifyUrl?: URL
+  verifyUrl?: string | URL
 }
 
 /** Optional CSS class overrides for Subscribe elements. */
@@ -58,6 +58,10 @@ export const Subscribe = ({
   handleSubscribe,
   verifyUrl,
 }: ISubscribe) => {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
+
   const { refreshSubscriber, subscriber } = useSubscriber()
 
   const { serverURL } = useServerUrl()

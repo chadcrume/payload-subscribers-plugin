@@ -1,7 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import {
   RequestMagicLink,
@@ -11,6 +9,16 @@ import {
 } from '../../exports/ui.js'
 
 export type { RequestMagicLinkResponse, SubscribeResponse }
+
+/**
+ * Props for the RequestOrSubscribe component.
+ */
+export interface IRequestOrSubscribe {
+  classNames?: RequestOrSubscribeClasses
+  handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
+  handleSubscribe?: (result: SubscribeResponse) => void
+  verifyUrl?: string | URL
+}
 
 /** Optional CSS class overrides for RequestOrSubscribe and its child components. */
 export type RequestOrSubscribeClasses = {
@@ -48,12 +56,11 @@ export function RequestOrSubscribe({
   handleMagicLinkRequested,
   handleSubscribe,
   verifyUrl,
-}: {
-  classNames?: RequestOrSubscribeClasses
-  handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
-  handleSubscribe?: (result: SubscribeResponse) => void
-  verifyUrl?: URL
-}) {
+}: IRequestOrSubscribe) {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
+
   const { subscriber } = useSubscriber()
 
   // Example: Conditionally render something or pass the state to children

@@ -20,7 +20,7 @@ export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
-  verifyUrl?: URL
+  verifyUrl?: string | URL
 }
 
 /** Optional CSS class overrides for RequestMagicLink elements. */
@@ -54,6 +54,10 @@ export const RequestMagicLink = ({
   handleMagicLinkRequested,
   verifyUrl,
 }: IRequestMagicLink) => {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
+
   const { subscriber } = useSubscriber()
   const { serverURL } = useServerUrl()
   const [status, setStatus] = useState<statusValues>('default')

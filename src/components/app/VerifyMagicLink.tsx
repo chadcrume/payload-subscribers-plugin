@@ -25,7 +25,7 @@ export interface IVerifyMagicLink {
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
   renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
-  verifyUrl?: URL
+  verifyUrl?: string | URL
 }
 
 /** Optional CSS class overrides for VerifyMagicLink elements. */
@@ -72,6 +72,9 @@ export const VerifyMagicLink = ({
   ),
   verifyUrl,
 }: IVerifyMagicLink) => {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
   const { serverURL } = useServerUrl()
   const {
     // refreshSubscriber,
