@@ -10,12 +10,7 @@ import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
-// const payload = await getPayload({
-//   config: configPromise,
-// })
-
-// Pass your config from generated types as generic
-
+/** Props for the SelectOptInChannels component. */
 export interface ISelectOptInChannels {
   classNames?: SelectOptInChannelsClasses
   handleOptInChannelsSelected?: (result: OptInChannel[]) => void
@@ -23,6 +18,7 @@ export interface ISelectOptInChannels {
   selectedOptInChannelIDs?: string[]
 }
 
+/** Optional CSS class overrides for SelectOptInChannels elements. */
 export type SelectOptInChannelsClasses = {
   button?: string
   container?: string
@@ -36,6 +32,13 @@ export type SelectOptInChannelsClasses = {
   optionsGroup?: string
 }
 
+/**
+ * Fetches active opt-in channels from GET /api/optinchannels and renders a list of checkboxes.
+ * Reports selected channels via handleOptInChannelsSelected. Supports pre-selection via selectedOptInChannelIDs.
+ *
+ * @param props - See ISelectOptInChannels
+ * @returns Section titled "Opt-in Channels" with checkboxes and loading/error state
+ */
 export const SelectOptInChannels = ({
   classNames = {
     button: '',

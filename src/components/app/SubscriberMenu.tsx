@@ -4,16 +4,21 @@ import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
-// interface IAuth {
-//   props?: any
-// }
-
+/** Optional CSS class overrides for SubscriberMenu elements. */
 export type SubscriberMenuClasses = {
   button?: string
   container?: string
   group?: string
 }
 
+/**
+ * Displays subscriber UI when authenticated: welcome message, optional "Manage subscriptions" link,
+ * and a logout button. Renders nothing when no subscriber is in context.
+ *
+ * @param props.classNames - Optional class overrides for container, group, and button
+ * @param props.subscribeUrl - If set, shows a "Manage subscriptions" link to this URL
+ * @returns Container with welcome text, subscribe link (if subscribeUrl), and Log out button, or null
+ */
 export const SubscriberMenu = ({
   classNames = {
     button: '',

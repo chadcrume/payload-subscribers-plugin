@@ -14,12 +14,7 @@ import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
 
-// const payload = await getPayload({
-//   config: configPromise,
-// })
-
-// Pass your config from generated types as generic
-
+/** Props for the Subscribe component. */
 export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
@@ -27,6 +22,7 @@ export interface ISubscribe {
   verifyUrl?: URL
 }
 
+/** Optional CSS class overrides for Subscribe elements. */
 export type SubscribeClasses = {
   button?: string
   container?: string
@@ -40,6 +36,14 @@ export type SubscribeClasses = {
 
 type statusValues = 'default' | 'error' | 'sent' | 'updated'
 
+/**
+ * Subscribe/preferences form for authenticated subscribers. Shows SelectOptInChannels and an email
+ * input when not yet authenticated. Submits to POST /api/subscribe to update opt-ins or trigger
+ * verification email. Calls refreshSubscriber and handleSubscribe on success.
+ *
+ * @param props - See ISubscribe
+ * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
+ */
 export const Subscribe = ({
   classNames = {
     button: '',

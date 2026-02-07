@@ -15,12 +15,12 @@ export type VerifyMagicLinkResponse =
     }
 
 /**
- * createEndpointLogout
- * @param options
- * @returns
+ * Factory that creates the verify-magic-link endpoint config and handler.
+ * Validates token from the magic link, marks the subscriber as verified, and logs them in.
  *
- * Factory to generate the endpoint config with handler based on input option for subscribersCollectionSlug
- *
+ * @param options - Config options for the endpoint
+ * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @returns Payload Endpoint config for POST /verifyToken
  */
 function createEndpointVerifyMagicLink({
   subscribersCollectionSlug = defaultCollectionSlug,
@@ -28,11 +28,11 @@ function createEndpointVerifyMagicLink({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   /**
-   * verifyMagicLink Endpoint Handler
-   * @param req
-   * @data { email, forwardUrl, token }
-   * @returns { status: 200, json: {message: string, now: date} }
-   * @returns { status: 400, json: {error: ('Bad data' | 'Token not verified' | 'Token expired'), now: date} }
+   * Handler for POST /verifyToken. Validates email + token from magic link, updates subscriber
+   * password and status, and performs login to set auth cookies.
+   *
+   * @param req - Payload request; body must include `email` and `token`
+   * @returns 200 with `message`, `now` and Set-Cookie on success; 400 with `error` and `now` on bad data, invalid token, or expiry
    */
   const verifyMagicLinkHandler: PayloadHandler = async (req) => {
     const reqData = req?.json ? await req.json() : {}
@@ -149,9 +149,7 @@ function createEndpointVerifyMagicLink({
     )
   }
 
-  /**
-   * verifyMagicLink Endpoint Config
-   */
+  /** Endpoint config for verifying magic link and logging in. Mount as POST /verifyToken. */
   const verifyMagicLinkEndpoint: Endpoint = {
     handler: verifyMagicLinkHandler,
     method: 'post',

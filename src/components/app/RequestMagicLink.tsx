@@ -13,6 +13,9 @@ import styles from './shared.module.css'
 
 export { RequestMagicLinkResponse }
 
+/**
+ * Props for the RequestMagicLink component.
+ */
 export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
@@ -20,6 +23,7 @@ export interface IRequestMagicLink {
   verifyUrl?: URL
 }
 
+/** Optional CSS class overrides for RequestMagicLink elements. */
 export type RequestMagicLinkClasses = {
   button?: string
   container?: string
@@ -31,6 +35,13 @@ export type RequestMagicLinkClasses = {
 
 type statusValues = 'default' | 'error' | 'sent'
 
+/**
+ * Form component that lets users request a magic-login link by email. Submits to POST /api/emailToken
+ * and shows success or error message. Uses SubscriberProvider for pre-filling email when available.
+ *
+ * @param props - See IRequestMagicLink
+ * @returns Form UI with email input and "Request magic link" button
+ */
 export const RequestMagicLink = ({
   classNames = {
     button: '',

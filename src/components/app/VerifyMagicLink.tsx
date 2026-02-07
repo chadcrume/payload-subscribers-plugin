@@ -18,8 +18,7 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-// Pass your config from generated types as generic
-
+/** Props for the VerifyMagicLink component. */
 export interface IVerifyMagicLink {
   children?: React.ReactNode
   classNames?: VerifyMagicLinkClasses
@@ -29,6 +28,7 @@ export interface IVerifyMagicLink {
   verifyUrl?: URL
 }
 
+/** Optional CSS class overrides for VerifyMagicLink elements. */
 export type VerifyMagicLinkClasses = {
   button?: string
   container?: string
@@ -39,6 +39,14 @@ export type VerifyMagicLinkClasses = {
   message?: string
 }
 
+/**
+ * Handles the verify step of magic-link flow. When URL has email and token query params, calls
+ * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
+ * "Request another magic link" via renderButton and optional callbacks.
+ *
+ * @param props - See IVerifyMagicLink
+ * @returns RequestMagicLink when no token/email; otherwise verifying state, result message, and optional button/children
+ */
 export const VerifyMagicLink = ({
   children,
   classNames = {

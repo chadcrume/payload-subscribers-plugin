@@ -12,6 +12,7 @@ import {
 
 export type { RequestMagicLinkResponse, SubscribeResponse }
 
+/** Optional CSS class overrides for RequestOrSubscribe and its child components. */
 export type RequestOrSubscribeClasses = {
   button?: string
   container?: string
@@ -23,6 +24,16 @@ export type RequestOrSubscribeClasses = {
   section?: string
 }
 
+/**
+ * Composite component that shows Subscribe when a subscriber is authenticated, otherwise
+ * RequestMagicLink. Used as a single entry point for "sign in or manage subscriptions."
+ *
+ * @param props.classNames - Optional class overrides passed to child components
+ * @param props.handleMagicLinkRequested - Callback when a magic link is requested (no subscriber yet)
+ * @param props.handleSubscribe - Callback when subscription/opt-ins are updated (subscriber present)
+ * @param props.verifyUrl - Base URL for verify links in emails
+ * @returns Either Subscribe or RequestMagicLink based on subscriber context
+ */
 export function RequestOrSubscribe({
   classNames = {
     button: '',

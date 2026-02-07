@@ -14,8 +14,11 @@ export type GetOptInChannelsResponse =
     }
 
 /**
+ * Payload handler for GET /optinchannels. Returns all active opt-in channels
+ * for subscription preferences.
  *
- * @returns
+ * @param req - Payload request object
+ * @returns Response with `optInChannels` array on success, or `error` and `now` on failure (400)
  */
 export const getOptInChannelsHandler: PayloadHandler = async (req) => {
   const findResults = await req.payload.find({
@@ -45,7 +48,8 @@ export const getOptInChannelsHandler: PayloadHandler = async (req) => {
 }
 
 /**
- * getOptInChannels Endpoint Config
+ * Endpoint config for listing active opt-in channels. Mount as GET /optinchannels.
+ * Used by the subscribe UI to fetch available subscription channels.
  */
 const getOptInChannelsEndpoint: Endpoint = {
   handler: getOptInChannelsHandler,

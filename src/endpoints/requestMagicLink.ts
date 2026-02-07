@@ -16,12 +16,12 @@ export type RequestMagicLinkResponse =
     }
 
 /**
- * createEndpointRequestMagicLink
- * @param options
- * @returns
+ * Factory that creates the request-magic-link endpoint config and handler.
+ * Sends a magic-link email to the given address (creates a pending subscriber if needed).
  *
- * Factory to generate the endpoint config with handler based on input option for subscribersCollectionSlug
- *
+ * @param options - Config options for the endpoint
+ * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @returns Payload Endpoint config for POST /emailToken
  */
 function createEndpointRequestMagicLink({
   subscribersCollectionSlug = defaultCollectionSlug,
@@ -29,11 +29,11 @@ function createEndpointRequestMagicLink({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   /**
-   * requestMagicLink Endpoint Handler
-   * @param req
-   * @data { email, verifyUrl }
-   * @returns { status: 200, json: {message: string, now: date} }
-   * @returns { status: 400, json: {error: ('Bad data' | 'Unknown email result'), now: date} }
+   * Handler for POST /emailToken. Accepts email and verifyUrl, creates/updates a pending
+   * subscriber with a verification token, and sends a magic-link email.
+   *
+   * @param req - Payload request; body must include `email` and `verifyUrl`
+   * @returns 200 with `emailResult` and `now` on success; 400 with `error` and `now` on bad data or email failure
    */
   const requestMagicLinkHandler: PayloadHandler = async (req: PayloadRequest) => {
     const data = req?.json ? await req.json() : {}
@@ -123,9 +123,7 @@ function createEndpointRequestMagicLink({
     } as RequestMagicLinkResponse)
   }
 
-  /**
-   * requestMagicLink Endpoint Config
-   */
+  /** Endpoint config for requesting a magic link. Mount as POST /emailToken. */
   const requestMagicLinkEndpoint: Endpoint = {
     handler: requestMagicLinkHandler,
     method: 'post',
