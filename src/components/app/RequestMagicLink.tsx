@@ -93,13 +93,20 @@ export const RequestMagicLink = ({
   }
 
   return (
-    <div className={mergeClassNames([styles.container, classNames.container])}>
+    <div
+      className={mergeClassNames([
+        'subscribers-request subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
       {result ? (
         <p
           className={mergeClassNames([
+            'subscribers-message',
             styles.message,
             classNames.message,
-            status == 'error' ? [styles.error, classNames.error] : [],
+            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
           ])}
         >
           {result}
@@ -108,19 +115,26 @@ export const RequestMagicLink = ({
         <></>
       )}
       <form
-        className={mergeClassNames([styles.form, classNames.form])}
+        className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}
         method="POST"
         onSubmit={handleSubmit}
       >
         <input
           aria-label="enter your email"
-          className={mergeClassNames([styles.emailInput, classNames.emailInput])}
+          className={mergeClassNames([
+            'subscribers-emailInput',
+            styles.emailInput,
+            classNames.emailInput,
+          ])}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="enter your email"
           type="email"
           value={email}
         />
-        <button className={mergeClassNames([styles.button, classNames.button])} type="submit">
+        <button
+          className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+          type="submit"
+        >
           Request magic link
         </button>
       </form>

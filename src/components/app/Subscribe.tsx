@@ -144,34 +144,49 @@ export const Subscribe = ({
   }
 
   return (
-    <div className={mergeClassNames([styles.container, classNames.container])}>
+    <div
+      className={mergeClassNames([
+        'subscribers-subscribe subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
       <h2>Subscribe</h2>
-      <div className={mergeClassNames([styles.section, classNames.section])}>
+      <div className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}>
         <SelectOptInChannels
           handleOptInChannelsSelected={handleOptInChannelsSelected}
           selectedOptInChannelIDs={selectedChannelIDs}
         />
       </div>
       <form
-        className={mergeClassNames([styles.form, classNames.form])}
+        className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
           await handleSubmit()
         }}
       >
-        <div className={mergeClassNames([styles.section, classNames.section])}>
+        <div
+          className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}
+        >
           {!subscriber && (
             <input
               aria-label="enter your email"
-              className={mergeClassNames([styles.emailInput, classNames.emailInput])}
+              className={mergeClassNames([
+                'subscribers-emailInput',
+                styles.emailInput,
+                classNames.emailInput,
+              ])}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="enter your email"
               type="email"
               value={email}
             />
           )}
-          <button className={mergeClassNames([styles.button, classNames.button])} type="submit">
+          <button
+            className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+            type="submit"
+          >
             Save choices
           </button>
         </div>
@@ -179,9 +194,10 @@ export const Subscribe = ({
       {!!result && (
         <p
           className={mergeClassNames([
+            'subscribers-message',
             styles.message,
             classNames.message,
-            status == 'error' ? [styles.error, classNames.error] : [],
+            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
           ])}
         >
           {result}

@@ -263,6 +263,17 @@ Form to input email address and get a magic link email sent.
   />
 ```
 
+```html
+<!-- The HTML scaffolding with global CSS classes you can use -->
+<div class="subscribers-request subscribers-container">
+  <p class="subscribers-message subscribers-error">{result}</p>
+  <form class="subscribers-form">
+    <input class="subscribers-emailInput" type="email" />
+    <button class="subscribers-button">Request magic link</button>
+  </form>
+</div>
+```
+
 #### **VerifyMagicLink**
 
 Component that verifies a magic link using expected url parameters.
@@ -296,7 +307,7 @@ Component that verifies a magic link using expected url parameters.
     verifyUrl={verifyUrl}
   >
     // Provide children to render after link is verified. Optional
-    // Since you provide the verifyUrl to any of the plugin components, you can include a forwardUrl 
+    // Since you provide the verifyUrl to any of the plugin components, you can include a forwardUrl
     // as a search param, which your route can then use here.
     <a href={forwardUrl}>
       <button className={'customCss'} name={'continue'} type="button">
@@ -304,6 +315,18 @@ Component that verifies a magic link using expected url parameters.
       </button>
     </a>
   </VerifyMagicLink>
+```
+
+```html
+<!-- The HTML scaffolding with global CSS classes you can use -->
+<div class="subscribers-verify subscribers-container">
+  <p class="subscribers-loading">verifying...</p>
+  <p class="subscribers-message">{result}</p>
+  <div class="subscribers-form">
+    {renderButton({ name: "request", onClick: handleRequestAnother, text:"Request another magic
+    link", })} {children}
+  </div>
+</div>
 ```
 
 #### **Subscribe**
@@ -340,6 +363,38 @@ Allows a subscriber to select from among all active optInChannels.
   />
 ```
 
+```html
+<!-- The HTML scaffolding with global CSS classes you can use -->
+<div class="subscribers-subscribe subscribers-container">
+  <h2>Subscribe</h2>
+  <div class="subscribers-section">
+    <!-- START: SelectOptInChannels -->
+    <div class="subscribers-container">
+      <h3>Opt-in Channels</h3>
+      <p class="subscribers-loading">verifying...</p>
+      <div class="subscribers-optionsGroup">
+        <!-- START: FOR EACH CHANNEL -->
+        <div class="subscribers-optInCheckboxItem">
+          <label class="subscribers-optInCheckboxLabel" ,>
+            <input class="subscribers-optInCheckbox" type="checkbox" />
+            {channel.title}
+          </label>
+        </div>
+        <!-- END: FOR EACH CHANNEL -->
+      </div>
+    </div>
+    <!-- END: SelectOptInChannels -->
+  </div>
+  <form class="subscribers-form">
+    <div class="subscribers-section">
+      <input class="subscribers-emailInput" placeholder="enter your email" type="email" />
+      <button class="subscribers-button" type="submit">Save choices</button>
+    </div>
+  </form>
+  <p class="subscribers-message subscribers-error">{result}</p>
+</div>
+```
+
 #### **SubscriberMenu**
 
 A simple user menu, most useful for testing. Seen in the screenshots above. Includes a "welcome" message, a link to a /subscribe route, and a log out button.
@@ -347,10 +402,29 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
 ```typescript
 // classNames prop
 
-export type SubscriberMenuClasses = {
-  button?: string
-  container?: string
-}
+<SubscriberMenu
+  classNames={{
+    button: 'customCssClassNames',
+    container: 'customCssClassNames',
+  }}
+  subscribeUrl={new URL('/subscribe', serverURL)}
+ />
+
+```
+
+```html
+<!-- The HTML scaffolding with global CSS classes you can use -->
+<div class="subscribers-menu subscribers-container">
+  <div class="subscribers-group">
+    <div class="subscribers-welcome">Welcome, {subscriber email}</div>
+    <div class="subscribers-subs-link">
+      <a href="{subscribeUrl}">Manage subscriptions</a>
+    </div>
+    <div class="subscribers-logout">
+      <button class="subscribers-button" type="button">Log out</button>
+    </div>
+  </div>
+</div>
 ```
 
 ## Contributing
