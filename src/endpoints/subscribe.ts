@@ -24,12 +24,13 @@ export type SubscribeResponse =
     }
 
 /**
- * createEndpointLogout
- * @param options
- * @returns
+ * Factory that creates the subscribe endpoint config and handler.
+ * Handles new subscriptions (pending + verify email), magic-link resends, and updating
+ * opt-ins for already-verified subscribers.
  *
- * Factory to generate the endpoint config with handler based on input option for subscribersCollectionSlug
- *
+ * @param options - Config options for the endpoint
+ * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @returns Payload Endpoint config for POST /subscribe
  */
 function createEndpointSubscribe({
   subscribersCollectionSlug = defaultCollectionSlug,
@@ -37,11 +38,11 @@ function createEndpointSubscribe({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   /**
-   * subscribe Endpoint Handler
-   * @param req
-   * @data { email }
-   * @returns { status: 200, json: {message: string, now: date} }
-   * @returns { status: 400, json: {error: ('Bad data' | 'Already subscribed' | 'Unknown email result'), now: date} }
+   * Handler for POST /subscribe. Accepts email, optIns, and verifyUrl. Creates pending
+   * subscribers and sends verify emails, or updates opt-ins for authenticated subscribers.
+   *
+   * @param req - Payload request; body: `email`, `optIns` (channel IDs), `verifyUrl`
+   * @returns 200 with `emailResult`/`now`, or `email`/`optIns`/`now` when opt-ins updated; 400 with `error`/`now` on failure
    */
   const subscribeHandler: PayloadHandler = async (req) => {
     const data = req?.json ? await req.json() : {}
@@ -415,9 +416,7 @@ function createEndpointSubscribe({
     )
   }
 
-  /**
-   * subscribe Endpoint Config
-   */
+  /** Endpoint config for subscription and opt-in updates. Mount as POST /subscribe. */
   const subscribeEndpoint: Endpoint = {
     handler: subscribeHandler,
     method: 'post',

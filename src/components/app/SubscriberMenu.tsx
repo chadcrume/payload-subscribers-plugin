@@ -4,36 +4,59 @@ import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
-// interface IAuth {
-//   props?: any
-// }
+/** Props for the VerifyMagicLink component. */
+export interface ISubscriberMenu {
+  classNames?: SubscriberMenuClasses
+  subscribeUrl?: string | URL
+}
 
+/** Optional CSS class overrides for SubscriberMenu elements. */
 export type SubscriberMenuClasses = {
   button?: string
   container?: string
+  group?: string
 }
 
+/**
+ * Displays subscriber UI when authenticated: welcome message, optional "Manage subscriptions" link,
+ * and a logout button. Renders nothing when no subscriber is in context.
+ *
+ * @param props.classNames - Optional class overrides for container, group, and button
+ * @param props.subscribeUrl - If set, shows a "Manage subscriptions" link to this URL
+ * @returns Container with welcome text, subscribe link (if subscribeUrl), and Log out button, or null
+ */
 export const SubscriberMenu = ({
   classNames = {
     button: '',
     container: '',
+    group: '',
   },
-}: {
-  classNames?: SubscriberMenuClasses
-}) => {
+  subscribeUrl,
+}: ISubscriberMenu) => {
   const { logOut, subscriber } = useSubscriber()
+  if (typeof subscribeUrl == 'string') {
+    subscribeUrl = new URL(subscribeUrl)
+  }
   return (
-    <div className={mergeClassNames([styles.container, classNames.container])}>
+    <div
+      className={mergeClassNames([
+        'subscribers-menu subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
       {/* <pre>{JSON.stringify(result, null, 2)}</pre> */}
       {subscriber && (
-        <div style={{ display: 'flex' }}>
-          <div style={{ flexGrow: 1 }}>Welcome, {subscriber?.email}</div>
-          <div style={{ flexGrow: 1 }}>
-            <a href={'/subscribe'}>Manage subscriptions</a>
-          </div>
-          <div style={{ flexGrow: 1 }}>
+        <div className={mergeClassNames(['subscribers-group', styles.group, classNames.group])}>
+          <div className="subscribers-welcome">Welcome, {subscriber?.email}</div>
+          {subscribeUrl && (
+            <div className="subscribers-subs-link">
+              <a href={subscribeUrl.href}>Manage subscriptions</a>
+            </div>
+          )}
+          <div className="subscribers-logout">
             <button
-              className={mergeClassNames([styles.button, classNames.button])}
+              className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
               onClick={(e) => {
                 e.preventDefault()
                 logOut()

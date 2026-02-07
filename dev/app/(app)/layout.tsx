@@ -4,7 +4,10 @@ import { SubscriberMenu, SubscriberProvider } from 'payload-subscribers-plugin/u
 import React from 'react'
 
 import './global.css'
+import { getServerUrl } from '../../../src/server-functions/serverUrl.js'
 import { HomeChecker } from '../../components/HomeChecker.js'
+
+const { serverURL } = await getServerUrl()
 
 export const metadata: Metadata = {
   description: 'Payload Subscribers Plugin dev site',
@@ -22,7 +25,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <body>
         <SubscriberProvider>
           <HomeChecker>
-            <SubscriberMenu classNames={{ button: 'customCss', container: 'customCss' }} />
+            <SubscriberMenu
+              classNames={{ button: 'customCss', container: 'customCss' }}
+              subscribeUrl={serverURL + '/subscribe'}
+            />
           </HomeChecker>
           {children}
         </SubscriberProvider>

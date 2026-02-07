@@ -19,12 +19,12 @@ export type SubscriberAuthResponse =
     }
 
 /**
- * createEndpointLogout
- * @param options
- * @returns
+ * Factory that creates the subscriber-auth endpoint config and handler.
+ * Authenticates the current request via Payload auth and returns the subscriber and permissions if from the subscribers collection.
  *
- * Factory to generate the endpoint config with handler based on input option for subscribersCollectionSlug
- *
+ * @param options - Config options for the endpoint
+ * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @returns Payload Endpoint config for POST /subscriberAuth
  */
 function createEndpointSubscriberAuth({
   subscribersCollectionSlug = defaultCollectionSlug,
@@ -32,10 +32,11 @@ function createEndpointSubscriberAuth({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   /**
-   * subscriberAuth Endpoint Handler
-   * @param req
-   * @returns { status: 200, json: {message: string, now: date} }
-   * @returns { status: 400, json: {error: ('No subscriber authed' | catchError | 'Unknown error'), now: date} }
+   * Handler for POST /subscriberAuth. Uses Payload auth (e.g. cookies) to resolve the current user;
+   * if the user belongs to the subscribers collection, returns subscriber and permissions.
+   *
+   * @param req - Payload request (auth via headers)
+   * @returns 200 with `subscriber`, `permissions`, `now` when a subscriber is authed; 400 with `subscriber: null` or `error` otherwise
    */
   const subscriberAuthHandler: PayloadHandler = async (req) => {
     // req.payload.logger.info('subscriberAuthHandler')
@@ -86,9 +87,7 @@ function createEndpointSubscriberAuth({
     }
   }
 
-  /**
-   * subscriberAuth Endpoint Config
-   */
+  /** Endpoint config for checking current subscriber auth. Mount as POST /subscriberAuth. */
   const subscriberAuthEndpoint: Endpoint = {
     handler: subscriberAuthHandler,
     method: 'post',

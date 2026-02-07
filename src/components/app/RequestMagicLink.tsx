@@ -13,13 +13,17 @@ import styles from './shared.module.css'
 
 export { RequestMagicLinkResponse }
 
+/**
+ * Props for the RequestMagicLink component.
+ */
 export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
-  verifyUrl?: URL
+  verifyUrl?: string | URL
 }
 
+/** Optional CSS class overrides for RequestMagicLink elements. */
 export type RequestMagicLinkClasses = {
   button?: string
   container?: string
@@ -31,6 +35,13 @@ export type RequestMagicLinkClasses = {
 
 type statusValues = 'default' | 'error' | 'sent'
 
+/**
+ * Form component that lets users request a magic-login link by email. Submits to POST /api/emailToken
+ * and shows success or error message. Uses SubscriberProvider for pre-filling email when available.
+ *
+ * @param props - See IRequestMagicLink
+ * @returns Form UI with email input and "Request magic link" button
+ */
 export const RequestMagicLink = ({
   classNames = {
     button: '',
@@ -43,6 +54,10 @@ export const RequestMagicLink = ({
   handleMagicLinkRequested,
   verifyUrl,
 }: IRequestMagicLink) => {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
+
   const { subscriber } = useSubscriber()
   const { serverURL } = useServerUrl()
   const [status, setStatus] = useState<statusValues>('default')
@@ -93,13 +108,20 @@ export const RequestMagicLink = ({
   }
 
   return (
-    <div className={mergeClassNames([styles.container, classNames.container])}>
+    <div
+      className={mergeClassNames([
+        'subscribers-request subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
       {result ? (
         <p
           className={mergeClassNames([
+            'subscribers-message',
             styles.message,
             classNames.message,
-            status == 'error' ? [styles.error, classNames.error] : [],
+            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
           ])}
         >
           {result}
@@ -108,19 +130,26 @@ export const RequestMagicLink = ({
         <></>
       )}
       <form
-        className={mergeClassNames([styles.form, classNames.form])}
+        className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}
         method="POST"
         onSubmit={handleSubmit}
       >
         <input
           aria-label="enter your email"
-          className={mergeClassNames([styles.emailInput, classNames.emailInput])}
+          className={mergeClassNames([
+            'subscribers-emailInput',
+            styles.emailInput,
+            classNames.emailInput,
+          ])}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="enter your email"
           type="email"
           value={email}
         />
-        <button className={mergeClassNames([styles.button, classNames.button])} type="submit">
+        <button
+          className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+          type="submit"
+        >
           Request magic link
         </button>
       </form>

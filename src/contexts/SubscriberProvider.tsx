@@ -8,6 +8,7 @@ import type { Config, Subscriber } from '../copied/payload-types.js'
 
 import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
+/** Value provided by SubscriberProvider: current subscriber, auth state, and actions. */
 export type SubscriberContextType = {
   isLoaded: boolean
   logOut: () => void
@@ -18,10 +19,19 @@ export type SubscriberContextType = {
 
 const SubscriberContext = createContext<SubscriberContextType | undefined>(undefined)
 
+/** Props for SubscriberProvider. */
 interface ProviderProps {
-  children?: ReactNode // Recommended type for children
+  children?: ReactNode
 }
 
+/**
+ * Provider that fetches and holds the current subscriber auth state (via POST /api/subscriberAuth).
+ * Exposes subscriber, permissions, refreshSubscriber, and logOut to descendants. Must wrap any
+ * component that uses useSubscriber().
+ *
+ * @param props.children - React tree to wrap
+ * @returns SubscriberContext.Provider with current auth state and actions
+ */
 export function SubscriberProvider({ children }: ProviderProps) {
   // eslint-disable-next-line
   const [subscriber, setSubscriber] = useState<null | (Subscriber & { optIns: string[] })>(null)
@@ -108,7 +118,12 @@ export function SubscriberProvider({ children }: ProviderProps) {
   return <SubscriberContext.Provider value={contextValue}>{children}</SubscriberContext.Provider>
 }
 
-// Custom hook to easily consume the context and add error handling
+/**
+ * Consumes SubscriberContext. Use only inside a SubscriberProvider.
+ *
+ * @returns Current subscriber (or null), permissions, isLoaded, refreshSubscriber, and logOut
+ * @throws Error if used outside SubscriberProvider
+ */
 export function useSubscriber() {
   const context = useContext(SubscriberContext)
   if (context === undefined) {

@@ -18,17 +18,17 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-// Pass your config from generated types as generic
-
+/** Props for the VerifyMagicLink component. */
 export interface IVerifyMagicLink {
   children?: React.ReactNode
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
   renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
-  verifyUrl?: URL
+  verifyUrl?: string | URL
 }
 
+/** Optional CSS class overrides for VerifyMagicLink elements. */
 export type VerifyMagicLinkClasses = {
   button?: string
   container?: string
@@ -39,6 +39,14 @@ export type VerifyMagicLinkClasses = {
   message?: string
 }
 
+/**
+ * Handles the verify step of magic-link flow. When URL has email and token query params, calls
+ * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
+ * "Request another magic link" via renderButton and optional callbacks.
+ *
+ * @param props - See IVerifyMagicLink
+ * @returns RequestMagicLink when no token/email; otherwise verifying state, result message, and optional button/children
+ */
 export const VerifyMagicLink = ({
   children,
   classNames = {
@@ -54,7 +62,7 @@ export const VerifyMagicLink = ({
   handleMagicLinkVerified,
   renderButton = ({ name, onClick, text }) => (
     <button
-      className={mergeClassNames([styles.button, classNames.button])}
+      className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
       name={name}
       onClick={onClick}
       type="button"
@@ -64,6 +72,9 @@ export const VerifyMagicLink = ({
   ),
   verifyUrl,
 }: IVerifyMagicLink) => {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
   const { serverURL } = useServerUrl()
   const {
     // refreshSubscriber,
@@ -160,22 +171,37 @@ export const VerifyMagicLink = ({
     <>
       {(!email || !token) && <RequestMagicLink classNames={classNames} />}
       {email && token && (
-        <div className={mergeClassNames([styles.container, classNames.container])}>
+        <div
+          className={mergeClassNames([
+            'subscribers-verify subscribers-container',
+            styles.container,
+            classNames.container,
+          ])}
+        >
           {!result && (
-            <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
+            <p
+              className={mergeClassNames([
+                'subscribers-loading',
+                styles.loading,
+                classNames.loading,
+              ])}
+            >
+              verifying...
+            </p>
           )}
           {result && (
             <p
               className={mergeClassNames([
+                'subscribers-message',
                 styles.message,
                 classNames.message,
-                isError ? [styles.error, classNames.error] : [],
+                isError ? ['subscribers-error', styles.error, classNames.error] : [],
               ])}
             >
               {result}
             </p>
           )}
-          <div className={mergeClassNames([styles.form, classNames.form])}>
+          <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
             {result &&
               isError &&
               renderButton &&

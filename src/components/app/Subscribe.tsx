@@ -14,19 +14,15 @@ import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
 
-// const payload = await getPayload({
-//   config: configPromise,
-// })
-
-// Pass your config from generated types as generic
-
+/** Props for the Subscribe component. */
 export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
-  verifyUrl?: URL
+  verifyUrl?: string | URL
 }
 
+/** Optional CSS class overrides for Subscribe elements. */
 export type SubscribeClasses = {
   button?: string
   container?: string
@@ -40,6 +36,14 @@ export type SubscribeClasses = {
 
 type statusValues = 'default' | 'error' | 'sent' | 'updated'
 
+/**
+ * Subscribe/preferences form for authenticated subscribers. Shows SelectOptInChannels and an email
+ * input when not yet authenticated. Submits to POST /api/subscribe to update opt-ins or trigger
+ * verification email. Calls refreshSubscriber and handleSubscribe on success.
+ *
+ * @param props - See ISubscribe
+ * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
+ */
 export const Subscribe = ({
   classNames = {
     button: '',
@@ -54,6 +58,10 @@ export const Subscribe = ({
   handleSubscribe,
   verifyUrl,
 }: ISubscribe) => {
+  if (typeof verifyUrl == 'string') {
+    verifyUrl = new URL(verifyUrl)
+  }
+
   const { refreshSubscriber, subscriber } = useSubscriber()
 
   const { serverURL } = useServerUrl()
@@ -144,34 +152,49 @@ export const Subscribe = ({
   }
 
   return (
-    <div className={mergeClassNames([styles.container, classNames.container])}>
+    <div
+      className={mergeClassNames([
+        'subscribers-subscribe subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
       <h2>Subscribe</h2>
-      <div className={mergeClassNames([styles.section, classNames.section])}>
+      <div className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}>
         <SelectOptInChannels
           handleOptInChannelsSelected={handleOptInChannelsSelected}
           selectedOptInChannelIDs={selectedChannelIDs}
         />
       </div>
       <form
-        className={mergeClassNames([styles.form, classNames.form])}
+        className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
           await handleSubmit()
         }}
       >
-        <div className={mergeClassNames([styles.section, classNames.section])}>
+        <div
+          className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}
+        >
           {!subscriber && (
             <input
               aria-label="enter your email"
-              className={mergeClassNames([styles.emailInput, classNames.emailInput])}
+              className={mergeClassNames([
+                'subscribers-emailInput',
+                styles.emailInput,
+                classNames.emailInput,
+              ])}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="enter your email"
               type="email"
               value={email}
             />
           )}
-          <button className={mergeClassNames([styles.button, classNames.button])} type="submit">
+          <button
+            className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+            type="submit"
+          >
             Save choices
           </button>
         </div>
@@ -179,9 +202,10 @@ export const Subscribe = ({
       {!!result && (
         <p
           className={mergeClassNames([
+            'subscribers-message',
             styles.message,
             classNames.message,
-            status == 'error' ? [styles.error, classNames.error] : [],
+            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
           ])}
         >
           {result}

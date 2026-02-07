@@ -12,3 +12,12 @@
 .error {
   color: red;
 }
+
+.group {
+  display: flex
+}
+
+.group > div {
+  flex-grow: 1;
+}
+

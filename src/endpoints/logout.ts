@@ -15,12 +15,12 @@ export type LogoutResponse =
     }
 
 /**
- * createEndpointLogout
- * @param options
- * @returns
+ * Factory that creates the logout endpoint config and handler.
+ * Clears the current subscriber session by delegating to Payload's collection logout.
  *
- * Factory to generate the endpoint config with handler based on input option for subscribersCollectionSlug
- *
+ * @param options - Config options for the endpoint
+ * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @returns Payload Endpoint config for POST /logout
  */
 function createEndpointLogout({
   subscribersCollectionSlug = defaultCollectionSlug,
@@ -89,9 +89,7 @@ function createEndpointLogout({
     }
   }
 
-  /**
-   * logout Endpoint Config
-   */
+  /** Endpoint config for subscriber logout. Mount as POST /logout. */
   const logoutEndpoint: Endpoint = {
     handler: logoutHandler,
     method: 'post',
