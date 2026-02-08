@@ -94,7 +94,7 @@ const Page = () => {
 }
 ```
 
-**_IMPORANT:_** Be sure to create a /verify route
+**_IMPORTANT:_** Be sure to create a /verify route
 
 ```typescript
 // verify/page.tsx
