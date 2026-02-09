@@ -93,7 +93,6 @@ export const VerifyMagicLink = ({
 
   const callVerify = useCallback(async () => {
     if (!email || !token) {
-      console.info('Invalid input')
       return { error: 'Invalid input' }
     }
     try {
@@ -111,19 +110,15 @@ export const VerifyMagicLink = ({
 
       // return verifyEndpointResult
       if (verifyEndpointResult && verifyEndpointResult.json) {
-        console.log(1)
         const resultJson = await verifyEndpointResult.json()
         return { error: resultJson.error, message: resultJson.message }
       } else if (verifyEndpointResult && verifyEndpointResult.text) {
-        console.log(2)
         const resultText = await verifyEndpointResult.text()
         return { error: resultText }
       } else {
-        console.log(3)
         return { error: verifyEndpointResult.status }
       }
     } catch (error: unknown) {
-      console.log('catch')
       return { error }
     }
   }, [email, serverURL, token])
