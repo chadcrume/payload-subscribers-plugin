@@ -3,7 +3,7 @@ import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest, TypedUse
 import crypto from 'crypto'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
-import { getTokenAndHash } from '../helpers/token.js'
+import { getHmacHash, getTokenAndHash } from '../helpers/token.js'
 
 export type RequestMagicLinkResponse =
   | {
@@ -21,12 +21,15 @@ export type RequestMagicLinkResponse =
  *
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @param options.unsubscribeUrl - The URL to use for unsubscribe links
  * @returns Payload Endpoint config for POST /emailToken
  */
 function createEndpointRequestMagicLink({
   subscribersCollectionSlug = defaultCollectionSlug,
+  unsubscribeUrl,
 }: {
   subscribersCollectionSlug: CollectionSlug
+  unsubscribeUrl?: URL
 }): Endpoint {
   /**
    * Handler for POST /emailToken. Accepts email and verifyUrl, creates/updates a pending
@@ -79,27 +82,34 @@ function createEndpointRequestMagicLink({
     }
 
     // Update user with verificationToken
-    const token = crypto.randomBytes(32).toString('hex')
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+    // const token = crypto.randomBytes(32).toString('hex')
+    // const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+    // const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+    const { expiresAt, token, tokenHash } = getTokenAndHash(15 * 60 * 1000)
     await req.payload.update({
       collection: subscribersCollectionSlug,
       data: {
         verificationToken: tokenHash,
-        verificationTokenExpires: expiresAt.toISOString(),
+        verificationTokenExpires: expiresAt?.toISOString(),
       },
       where: {
         email: { equals: user.email },
       },
     })
+    const { hashToken: unsubscribeHash } = getHmacHash(email)
 
     // Send email
     const magicLink = `${verifyUrl}${verifyUrl.search ? '&' : '?'}token=${token}&email=${email}`
+    const unsubscribeLink = !unsubscribeUrl
+      ? undefined
+      : `${unsubscribeUrl?.href}${unsubscribeUrl?.search ? '&' : '?'}email=${email}&hash=${unsubscribeHash}`
     const subject = data.subject || 'Your Magic Login Link'
     const message = `
-  ${data.message || '<p>Use this link to log in:</p>'}
-  <p><a href="${magicLink}"><b>Login</b></a></p>
+  ${data.message || '<p>You requested a magic link to log in. Click the button below</p>'}
+  <p><a href="${magicLink}"><button><b>Login</b></button></a></p>
+  ${unsubscribeLink ? `<p>Click here to <a href="${unsubscribeLink}">unsubscribe</a></p>` : ``}
   `
+
     const emailResult = await req.payload.sendEmail({
       html: message,
       subject,

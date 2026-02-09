@@ -2,7 +2,7 @@ import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 import type { Subscriber } from 'src/copied/payload-types.js'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
-import { getTokenAndHash } from '../helpers/token.js'
+import { getHmacHash, getTokenAndHash } from '../helpers/token.js'
 import { verifyOptIns } from '../helpers/verifyOptIns.js'
 
 export type SubscribeResponse =
@@ -46,9 +46,15 @@ function createEndpointSubscribe({
    */
   const subscribeHandler: PayloadHandler = async (req) => {
     const data = req?.json ? await req.json() : {}
-    const { email, optIns, verifyUrl }: { email: string; optIns: string[]; verifyUrl: string } =
-      data // if by POST data
+    const {
+      email,
+      optIns,
+      unsubscribeUrl,
+      verifyUrl,
+    }: { email: string; optIns: string[]; unsubscribeUrl?: string; verifyUrl: string } = data // if by POST data
     // const { email } = req.routeParams // if by path
+    const verifyUrlObj: URL = new URL(verifyUrl)
+    const unsubscribeUrlObj: undefined | URL = unsubscribeUrl ? new URL(unsubscribeUrl) : undefined
 
     //
     // HELPERS
@@ -117,6 +123,8 @@ function createEndpointSubscribe({
       message,
       subject,
       token,
+      unsubscribeHash,
+      unsubscribeUrl,
       verifyUrl,
     }: {
       email: string
@@ -124,10 +132,19 @@ function createEndpointSubscribe({
       message: string
       subject: string
       token: string
-      verifyUrl?: string
+      unsubscribeHash?: string
+      unsubscribeUrl?: URL
+      verifyUrl: URL
     }) => {
-      const magicLink = `${verifyUrl}${verifyUrl?.search ? '&' : '?'}token=${token}&email=${email}`
-      const html = message + `<p><a href="${magicLink}">${linkText}</a></p>`
+      const magicLink = `${verifyUrl.href}${verifyUrl?.search ? '&' : '?'}token=${token}&email=${email}`
+      const unsubscribeLink = unsubscribeUrl
+        ? `${unsubscribeUrl.href}${unsubscribeUrl.search ? '&' : '?'}email=${email}&hash=${unsubscribeHash}`
+        : undefined
+      const html =
+        message + `<p><a href="${magicLink}">${linkText}</a></p>` + unsubscribeLink
+          ? `<p>Click here to <a href="${unsubscribeLink}"><b>unsubscribe</b></a></p>`
+          : ``
+
       const emailResult = await req.payload.sendEmail({
         html,
         subject,
@@ -192,6 +209,11 @@ function createEndpointSubscribe({
     //
     // Now we have a subscriber and validatedOptIns
     // Handle scenarios
+
+    //
+    // Create the hash for an unsubscribe link
+    const { hashToken: unsubscribeHash } = getHmacHash(email)
+
     //
     // ********************************************************
     //
@@ -247,7 +269,9 @@ function createEndpointSubscribe({
         message: data.message || `<p>Click here to verify your subscription:</p>`,
         subject: data.subject || 'Please verify your subscription',
         token,
-        verifyUrl,
+        unsubscribeHash,
+        unsubscribeUrl: unsubscribeUrlObj,
+        verifyUrl: verifyUrlObj,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -302,7 +326,9 @@ function createEndpointSubscribe({
         message: data.message || `<h1>Click here to verify your subscription:</h1>`,
         subject: data.subject || 'Please verify your subscription',
         token,
-        verifyUrl,
+        unsubscribeHash,
+        unsubscribeUrl: unsubscribeUrlObj,
+        verifyUrl: verifyUrlObj,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -354,7 +380,9 @@ function createEndpointSubscribe({
         message: data.message || `<h1>Click here to verify your email:</h1>`,
         subject: data.subject || 'Please verify your subscription',
         token,
-        verifyUrl,
+        unsubscribeHash,
+        unsubscribeUrl: unsubscribeUrlObj,
+        verifyUrl: verifyUrlObj,
       })
       if (!emailResult) {
         req.payload.logger.error(

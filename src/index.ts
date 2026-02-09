@@ -40,6 +40,10 @@ export type PayloadSubscribersConfig = {
    * Defaults to 30 minutes
    */
   tokenExpiration?: number
+  /**
+   * The route or full URL for unsubscribe links
+   */
+  unsubscribeUrl?: string
 }
 
 export const payloadSubscribersPlugin =
@@ -50,6 +54,20 @@ export const payloadSubscribersPlugin =
     }
 
     config.collections.push(OptInChannels)
+
+    // Get a URL object from the unsubscribeUrl option
+    function isAbsolute(url: string): boolean {
+      // Checks if it starts with "//" or contains "://" after the first character
+      return url.indexOf('://') > 0 || url.indexOf('//') === 0
+    }
+    const unsubscribeUrl = !pluginOptions.unsubscribeUrl
+      ? undefined
+      : isAbsolute(pluginOptions.unsubscribeUrl)
+        ? new URL(pluginOptions.unsubscribeUrl)
+        : config.serverURL
+          ? new URL(pluginOptions.unsubscribeUrl, config.serverURL)
+          : undefined
+
     let subscribersCollection = pluginOptions.subscribersCollectionSlug
       ? config.collections.find(
           (collection) => collection.slug == pluginOptions.subscribersCollectionSlug,
@@ -129,6 +147,7 @@ export const payloadSubscribersPlugin =
       }),
       createEndpointRequestMagicLink({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+        unsubscribeUrl,
       }),
       createEndpointSubscribe({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
