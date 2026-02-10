@@ -140,10 +140,11 @@ function createEndpointSubscribe({
       const unsubscribeLink = unsubscribeUrl
         ? `${unsubscribeUrl.href}${unsubscribeUrl.search ? '&' : '?'}email=${email}&hash=${unsubscribeHash}`
         : undefined
-      const html =
-        message + `<p><a href="${magicLink}">${linkText}</a></p>` + unsubscribeLink
-          ? `<p>Click here to <a href="${unsubscribeLink}"><b>unsubscribe</b></a></p>`
-          : ``
+      const html = `
+${message}<p><a href="${magicLink}">${linkText}</a></p>
+${
+  unsubscribeLink ? `<p>Click here to <a href="${unsubscribeLink}"><b>unsubscribe</b></a></p>` : ``
+}`
 
       const emailResult = await req.payload.sendEmail({
         html,

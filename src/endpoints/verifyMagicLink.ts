@@ -73,7 +73,7 @@ function createEndpointVerifyMagicLink({
     //   `verifyMagicLinkHandler ${email} \n ${tokenHash} \n ${user.verificationTokenExpires} \n ${user.verificationToken}`,
     // )
     if (!user.verificationTokenExpires || tokenHash != user.verificationToken) {
-      // req.payload.logger.info(`Token not verified: ${tokenHash} != ${user.verificationToken}`)
+      req.payload.logger.info(`Token not verified: ${tokenHash} != ${user.verificationToken}`)
       return Response.json(
         { error: 'Token not verified', now: new Date().toISOString() } as VerifyMagicLinkResponse,
         { status: 400 },
@@ -124,10 +124,13 @@ function createEndpointVerifyMagicLink({
     }
     // console.log('login', headers)
 
+    const status: 'pending' | 'subscribed' | 'unsubscribed' | undefined =
+      user?.status == 'pending' ? 'subscribed' : user?.status
+
     const { tokenHash: tokenHash2 } = getTokenAndHash() // Unknowable
     const data = {
       password: tokenHash2,
-      status: 'subscribed' as 'pending' | 'subscribed' | 'unsubscribed' | undefined,
+      status,
       verificationToken: '',
       verificationTokenExpires: null,
     }

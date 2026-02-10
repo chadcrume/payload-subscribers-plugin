@@ -161,6 +161,7 @@ export const Subscribe = ({
     >
       <h2>Subscribe</h2>
       <div className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}>
+        {subscriber?.status == 'unsubscribed' && <p>You are unsubscribed</p>}
         <SelectOptInChannels
           handleOptInChannelsSelected={handleOptInChannelsSelected}
           selectedOptInChannelIDs={selectedChannelIDs}
@@ -195,7 +196,9 @@ export const Subscribe = ({
             className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
             type="submit"
           >
-            Save choices
+            {!subscriber && <>Subscribe</>}
+            {subscriber && subscriber?.status != 'unsubscribed' && <>Save choices</>}
+            {subscriber?.status == 'unsubscribed' && <>Subscribe and save choices</>}
           </button>
         </div>
       </form>

@@ -4,7 +4,7 @@ import type { Subscriber } from 'src/copied/payload-types.js'
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
 import { getHmacHash } from '../helpers/token.js'
 
-export type SubscribeResponse =
+export type UnsubscribeResponse =
   // When unsubscriber status is set to 'unsubscribed'...
   | {
       error: string
@@ -25,7 +25,7 @@ export type SubscribeResponse =
  * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
  * @returns Payload Endpoint config for POST /unsubscribe
  */
-function createEndpointSubscribe({
+function createEndpointUnsubscribe({
   subscribersCollectionSlug = defaultCollectionSlug,
 }: {
   subscribersCollectionSlug: CollectionSlug
@@ -47,8 +47,10 @@ function createEndpointSubscribe({
     //
     // Require unsubscribeToken
     if (!unsubscribeToken) {
-      const result = { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse
-      req.payload.logger.error(JSON.stringify(result, undefined, 2))
+      const result = { error: 'Bad data', now: new Date().toISOString() } as UnsubscribeResponse
+      req.payload.logger.error(
+        `unsubscribe: No unsubscribeToken — ${JSON.stringify(result, undefined, 2)}`,
+      )
       return Response.json(result)
     }
 
@@ -56,8 +58,10 @@ function createEndpointSubscribe({
     // Verify unsubscribeToken
     const { hashToken: verifyUnsubscribeToken } = getHmacHash(email)
     if (unsubscribeToken != verifyUnsubscribeToken) {
-      const result = { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse
-      req.payload.logger.error(JSON.stringify(result, undefined, 2))
+      const result = { error: 'Bad data', now: new Date().toISOString() } as UnsubscribeResponse
+      req.payload.logger.error(
+        `unsubscribe: unsubscribeToken not verified — ${JSON.stringify(result, undefined, 2)}`,
+      )
       return Response.json(result)
     }
 
@@ -72,8 +76,10 @@ function createEndpointSubscribe({
     const subscriber = userResults.docs[0] as Subscriber
 
     if (!subscriber) {
-      const result = { error: 'Bad data', now: new Date().toISOString() } as SubscribeResponse
-      req.payload.logger.error(JSON.stringify(result, undefined, 2))
+      const result = { error: 'Bad data', now: new Date().toISOString() } as UnsubscribeResponse
+      req.payload.logger.error(
+        `unsubscribe: No subscriber — ${JSON.stringify(result, undefined, 2)}`,
+      )
       return Response.json(result)
     }
 
@@ -86,8 +92,10 @@ function createEndpointSubscribe({
       const result = {
         error: 'Unauthorized: ' + subscriber.email,
         now: new Date().toISOString(),
-      } as SubscribeResponse
-      req.payload.logger.error(JSON.stringify(result, undefined, 2))
+      } as UnsubscribeResponse
+      req.payload.logger.error(
+        `unsubscribe: Unauthorized — ${JSON.stringify(result, undefined, 2)}`,
+      )
       return Response.json(result)
     }
 
@@ -107,17 +115,21 @@ function createEndpointSubscribe({
       const result = {
         error: 'Unable to unsubscribe. Please try again.',
         now: new Date().toISOString(),
-      } as SubscribeResponse
-      req.payload.logger.error(JSON.stringify(result, undefined, 2))
+      } as UnsubscribeResponse
+      req.payload.logger.error(
+        `unsubscribe: Unknown updateResults — ${JSON.stringify(result, undefined, 2)}`,
+      )
       return Response.json(result, { status: 400 })
     }
 
     //
-    // Uncaught case
+    // Success
     //
-    const result = { error: 'Unknown error', now: new Date().toISOString() } as SubscribeResponse
-    req.payload.logger.error(JSON.stringify(result, undefined, 2))
-    return Response.json(result, { status: 400 })
+    const result = { message: 'Unsubscribed', now: new Date().toISOString() } as UnsubscribeResponse
+    req.payload.logger.error(
+      `unsubscribe: Unhandled scenario — ${JSON.stringify(result, undefined, 2)}`,
+    )
+    return Response.json(result)
   }
 
   /** Endpoint config for subscription and opt-in updates. Mount as POST /subscribe. */
@@ -130,4 +142,4 @@ function createEndpointSubscribe({
   return unsubscribeEndpoint
 }
 
-export default createEndpointSubscribe
+export default createEndpointUnsubscribe

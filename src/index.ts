@@ -12,6 +12,7 @@ import createEndpointLogout from './endpoints/logout.js'
 import createEndpointRequestMagicLink from './endpoints/requestMagicLink.js'
 import createEndpointSubscribe from './endpoints/subscribe.js'
 import createEndpointSubscriberAuth from './endpoints/subscriberAuth.js'
+import createEndpointUnsubscribe from './endpoints/unsubscribe.js'
 import createEndpointVerifyMagicLink from './endpoints/verifyMagicLink.js'
 import { getTestEmail } from './helpers/testData.js'
 import { getTokenAndHash } from './helpers/token.js'
@@ -153,6 +154,9 @@ export const payloadSubscribersPlugin =
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
       }),
       createEndpointSubscriberAuth({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
+      createEndpointUnsubscribe({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
       }),
       createEndpointVerifyMagicLink({

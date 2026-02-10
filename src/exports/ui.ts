@@ -8,6 +8,9 @@ export { Subscribe } from '../components/app/Subscribe.js'
 
 export { SubscriberMenu } from '../components/app/SubscriberMenu.js'
 
+export type { UnsubscribeResponse } from '../components/app/Unsubscribe.js'
+export { Unsubscribe } from '../components/app/Unsubscribe.js'
+
 export type { VerifyMagicLinkResponse } from '../components/app/VerifyMagicLink.js'
 export { VerifyMagicLink } from '../components/app/VerifyMagicLink.js'
 
