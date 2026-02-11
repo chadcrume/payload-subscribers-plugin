@@ -50,6 +50,9 @@ export default buildConfig({
 
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
       tokenExpiration: 60 * 60,
+      
+      // Provide your unsubscribe route. This route should include the Unsubscribe component.
+      unsubscribeUrl?: string
     }),
   ],
 })
@@ -94,7 +97,7 @@ const Page = () => {
 }
 ```
 
-**_IMPORANT:_** Be sure to create a /verify route
+**_IMPORTANT:_** Be sure to create a /verify route
 
 ```typescript
 // verify/page.tsx

@@ -93,7 +93,6 @@ export const VerifyMagicLink = ({
 
   const callVerify = useCallback(async () => {
     if (!email || !token) {
-      console.info('Invalid input')
       return { error: 'Invalid input' }
     }
     try {
@@ -101,7 +100,7 @@ export const VerifyMagicLink = ({
       // returns a not-okay status, PayloadSDK.request returns its
       // own "Bad request" error, and doesn't share the endpoint
       // result data.
-      const verifyEndpointResult = await fetch(serverURL + '/api/verifyToken', {
+      const verifyEndpointResult = await fetch(`${serverURL ? serverURL : ''}/api/verifyToken`, {
         body: JSON.stringify({
           email,
           token,
@@ -111,19 +110,15 @@ export const VerifyMagicLink = ({
 
       // return verifyEndpointResult
       if (verifyEndpointResult && verifyEndpointResult.json) {
-        console.log(1)
         const resultJson = await verifyEndpointResult.json()
         return { error: resultJson.error, message: resultJson.message }
       } else if (verifyEndpointResult && verifyEndpointResult.text) {
-        console.log(2)
         const resultText = await verifyEndpointResult.text()
         return { error: resultText }
       } else {
-        console.log(3)
         return { error: verifyEndpointResult.status }
       }
     } catch (error: unknown) {
-      console.log('catch')
       return { error }
     }
   }, [email, serverURL, token])
@@ -131,6 +126,7 @@ export const VerifyMagicLink = ({
   useEffect(() => {
     async function verify() {
       const { error, message } = await callVerify()
+      console.log(`Unknown error: (${error})`)
       setResult(message || `An error occured. Please try again. (${error})`)
       setIsError(error && !message)
       // console.info('callVerify not okay', { error, message })

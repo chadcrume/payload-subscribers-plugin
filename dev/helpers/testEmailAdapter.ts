@@ -9,7 +9,7 @@ export const testEmailAdapter: EmailAdapter<{ message: string }> = ({ payload })
   defaultFromName: 'Payload Test',
   sendEmail: async (message) => {
     const stringifiedTo = getStringifiedToAddress(message)
-    const res = `Test email to: '${stringifiedTo}', Subject: '${message.subject}'`
+    const res = `Test email to: '${stringifiedTo}', Subject: '${message.subject}', Html: '${message.html}'`
     payload.logger.info({ content: message, msg: res })
     return Promise.resolve({ message: res })
   },
