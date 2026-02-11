@@ -15,14 +15,6 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-/** Interface for the Unsubscribe's render function prop. */
-export interface IUnsubscribeRenderProps {
-  children?: React.ReactNode
-  isError: boolean
-  isLoading: boolean
-  result: string
-}
-
 /** Props for the Unsubscribe component. */
 export interface IUnsubscribe {
   children?: React.ReactNode
@@ -40,6 +32,14 @@ export type UnsubscribeClasses = {
   form?: string
   loading?: string
   message?: string
+}
+
+/** Interface for the Unsubscribe's render function prop. */
+export interface IUnsubscribeRenderProps {
+  children?: React.ReactNode
+  isError: boolean
+  isLoading: boolean
+  result: string
 }
 
 /**
