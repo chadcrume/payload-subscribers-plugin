@@ -181,9 +181,9 @@ Returns all active optInChannels data.
 
 Takes an email and list of optInChannel IDs, verifies them, and if the authenticated subscriber matches the email will update the channels that subscriber is opted into.
 
-#### TO DO: unsubscribe
+#### **unsubscribe**
 
-The **subscribe** endpoint will remove all optIns. But need a way to set the subscriber status to "unsubscribed"
+The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ---
 
