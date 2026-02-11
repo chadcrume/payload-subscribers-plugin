@@ -50,7 +50,7 @@ export default buildConfig({
 
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
       tokenExpiration: 60 * 60,
-      
+
       // Provide your unsubscribe route. This route should include the Unsubscribe component.
       unsubscribeUrl?: string
     }),
@@ -427,6 +427,38 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
       <button class="subscribers-button" type="button">Log out</button>
     </div>
   </div>
+</div>
+```
+
+#### **Unsubscribe**
+
+A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeUrl** plugin option.
+
+```typescript
+// classNames prop
+
+      <Unsubscribe
+        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+        handleUnsubscribe={handleUnsubscribe}
+      >
+      // <!-- children are rendered after unsubscribe is successful -->
+        <a href={'/subscribe'}>
+          <button className={'customCss'} name={'resubscribe'} type="button">
+            Resubscribe
+          </button>
+        </a>
+      </Unsubscribe>
+
+```
+
+```html
+<!-- The HTML scaffolding with global CSS classes you can use -->
+<div class="subscribers-container">
+  <!-- While loading -->
+  <p class="subscribers-loading">unsubscribing...</p>
+  <!-- After loading -->
+  <p class="subscribers-message">{result}</p>
+  <div class="subscribers-form">{children}</div>
 </div>
 ```
 

@@ -130,45 +130,33 @@ export const Unsubscribe = ({
   }, [callUnsubscribe, serverURL, email, refreshSubscriber, subscriber, hash])
 
   return (
-    <>
-      <div
-        className={mergeClassNames([
-          'subscribers-verify subscribers-container',
-          styles.container,
-          classNames.container,
-        ])}
-      >
-        {!result && (
-          <p
-            className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}
-          >
-            unsubscribing...
-          </p>
-        )}
-        {result && (
-          <p
-            className={mergeClassNames([
-              'subscribers-message',
-              styles.message,
-              classNames.message,
-              isError ? ['subscribers-error', styles.error, classNames.error] : [],
-            ])}
-          >
-            {result}
-          </p>
-        )}
-        <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-          {/* {result &&
-              isError &&
-              renderButton &&
-              renderButton({
-                name: 'request',
-                onClick: handleRequestAnother,
-                text: 'Request another magic link',
-              })} */}
-          {result && children}
-        </div>
+    <div
+      className={mergeClassNames([
+        'subscribers-verify subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
+      {!result && (
+        <p className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}>
+          unsubscribing...
+        </p>
+      )}
+      {result && (
+        <p
+          className={mergeClassNames([
+            'subscribers-message',
+            styles.message,
+            classNames.message,
+            isError ? ['subscribers-error', styles.error, classNames.error] : [],
+          ])}
+        >
+          {result}
+        </p>
+      )}
+      <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+        {result && children}
       </div>
-    </>
+    </div>
   )
 }
