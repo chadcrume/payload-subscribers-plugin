@@ -15,12 +15,20 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
+/** Interface for the Unsubscribe's render function prop. */
+export interface IUnsubscribeRenderProps {
+  children?: React.ReactNode
+  isError: boolean
+  isLoading: boolean
+  result: string
+}
+
 /** Props for the Unsubscribe component. */
 export interface IUnsubscribe {
   children?: React.ReactNode
   classNames?: UnsubscribeClasses
   handleUnsubscribe?: (result: UnsubscribeResponse) => void
-  renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
+  render?: (props: IUnsubscribeRenderProps) => React.ReactNode
 }
 
 /** Optional CSS class overrides for Unsubscribe elements. */
@@ -35,11 +43,18 @@ export type UnsubscribeClasses = {
 }
 
 /**
- * Handles the verify step of magic-link flow. When URL has email and hash query params, calls
- * POST /api/unsubscribe to complete the unsubscribe. Displays children provided after unsubscribe is attempted.
+ * Handles the unsubscribe action, to be used with unsubscribe URLs in emails, etc.
+ * Uses the URL params for email and hash to call /api/unsubscribe to complete the unsubscribe.
+ * Allows
+ * Displays children provided after unsubscribe is attempted.
  *
  * @param props - See IUnsubscribe
- * @returns Result message, and optional button/children
+ * @param props.children - (optional) Child ReadNodes to be rendered in the render function
+ * @param props.classNames - (optional) Optional additions to the structured CSS elements
+ * @param props.handleUnsubscribe - (optional) An event handler called after unsubscribe is attempted
+ * @param props.render - (optional) A function to override the default component rendering
+ * @returns The results of the **render** prop function — or a default layout — including loading status,
+ *          error status, result message, and component children
  */
 export const Unsubscribe = ({
   children,
@@ -53,17 +68,56 @@ export const Unsubscribe = ({
     message: '',
   },
   handleUnsubscribe,
-  renderButton = ({ name, onClick, text }) => (
-    <button
-      className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-      name={name}
-      onClick={onClick}
-      type="button"
-    >
-      {text}
-    </button>
-  ),
+  render,
 }: IUnsubscribe) => {
+  //
+  // Set up a default render function, used if there's not one in the props
+  const defaultRender = ({
+    children,
+    isError = false,
+    isLoading = true,
+    result = '',
+  }: IUnsubscribeRenderProps): React.ReactNode => {
+    return (
+      <div
+        className={mergeClassNames([
+          'subscribers-verify subscribers-container',
+          styles.container,
+          classNames.container,
+        ])}
+      >
+        {isLoading && (
+          <p
+            className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}
+          >
+            unsubscribing...
+          </p>
+        )}
+        {!isLoading && (
+          <>
+            <p
+              className={mergeClassNames([
+                'subscribers-message',
+                styles.message,
+                classNames.message,
+                isError ? ['subscribers-error', styles.error, classNames.error] : [],
+              ])}
+            >
+              {result}
+            </p>
+            <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+              {children}
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  if (!render) {
+    render = defaultRender
+  }
+
   const { serverURL } = useServerUrl()
   const {
     // refreshSubscriber,
@@ -114,7 +168,7 @@ export const Unsubscribe = ({
       handleUnsubscribe(resultJson)
     }
     return resultJson
-  }, [email, serverURL, hash])
+  }, [email, serverURL, handleUnsubscribe, hash])
 
   useEffect(() => {
     async function verify() {
@@ -129,34 +183,5 @@ export const Unsubscribe = ({
     }
   }, [callUnsubscribe, serverURL, email, refreshSubscriber, subscriber, hash])
 
-  return (
-    <div
-      className={mergeClassNames([
-        'subscribers-verify subscribers-container',
-        styles.container,
-        classNames.container,
-      ])}
-    >
-      {!result && (
-        <p className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}>
-          unsubscribing...
-        </p>
-      )}
-      {result && (
-        <p
-          className={mergeClassNames([
-            'subscribers-message',
-            styles.message,
-            classNames.message,
-            isError ? ['subscribers-error', styles.error, classNames.error] : [],
-          ])}
-        >
-          {result}
-        </p>
-      )}
-      <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-        {result && children}
-      </div>
-    </div>
-  )
+  return render({ children, isError, isLoading: !result, result: result || '' })
 }

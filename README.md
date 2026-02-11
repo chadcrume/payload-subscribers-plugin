@@ -435,24 +435,24 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
 A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeUrl** plugin option.
 
 ```typescript
-// classNames prop
+// Unsubscribe with built-in render layout
 
-      <Unsubscribe
-        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
-        handleUnsubscribe={handleUnsubscribe}
-      >
-      // <!-- children are rendered after unsubscribe is successful -->
-        <a href={'/subscribe'}>
-          <button className={'customCss'} name={'resubscribe'} type="button">
-            Resubscribe
-          </button>
-        </a>
-      </Unsubscribe>
+<Unsubscribe
+  classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+  handleUnsubscribe={handleUnsubscribe}
+>
+// <!-- children are rendered after unsubscribe is successful -->
+  <a href={'/subscribe'}>
+    <button name={'resubscribe'} type="button">
+      Resubscribe
+    </button>
+  </a>
+</Unsubscribe>
 
 ```
 
 ```html
-<!-- The HTML scaffolding with global CSS classes you can use -->
+<!-- The HTML scaffolding of the built-in render layout, with global CSS classes you can use -->
 <div class="subscribers-container">
   <!-- While loading -->
   <p class="subscribers-loading">unsubscribing...</p>
@@ -460,6 +460,50 @@ A component that uses URL parameters to execute the /api/unsubscribe end point. 
   <p class="subscribers-message">{result}</p>
   <div class="subscribers-form">{children}</div>
 </div>
+```
+
+```typescript
+// Unsubscribe with custom render layout
+
+<Unsubscribe 
+  render={
+    ({
+      children,
+      isError = false,
+      isLoading = true,
+      result = '',
+    }) => {
+      return (
+              <div>
+              {isLoading && (
+                <p>
+                  unsubscribing...
+                </p>
+              )}
+              {!isLoading && (
+                <>
+                  <p className={isError ? 'error' : ''}>
+                    {result}
+                  </p>
+                  <div>
+                    {children}
+                  </div>
+                </>
+              )}
+            </div>
+      )
+    }
+  }
+>
+// <!-- children are passed to your render function above, 
+//      but you could just embed them directly in it          -->
+  <a href={'/subscribe'}>
+    <button name={'resubscribe'} type="button">
+      Resubscribe
+    </button>
+  </a>
+</Unsubscribe>
+
 ```
 
 ## Contributing
