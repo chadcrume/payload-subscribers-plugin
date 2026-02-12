@@ -41,9 +41,19 @@ function createEndpointRequestMagicLink({
   const requestMagicLinkHandler: PayloadHandler = async (req: PayloadRequest) => {
     const data = req?.json ? await req.json() : {}
     const { email, verifyUrl } = data // if by POST data
-    // const { email } = req.routeParams // if by path
 
     if (!email || !verifyUrl) {
+      return Response.json(
+        { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
+        { status: 400 },
+      )
+    }
+
+    // Make a URL object from verifyUrl
+    let verifyUrlObj: URL
+    try {
+      verifyUrlObj = new URL(verifyUrl)
+    } catch (e) {
       return Response.json(
         { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
         { status: 400 },
@@ -99,7 +109,7 @@ function createEndpointRequestMagicLink({
     const { hashToken: unsubscribeHash } = getHmacHash(email)
 
     // Send email
-    const magicLink = `${verifyUrl}${verifyUrl.search ? '&' : '?'}token=${token}&email=${email}`
+    const magicLink = `${verifyUrlObj?.href}${verifyUrlObj?.search ? '&' : '?'}token=${token}&email=${email}`
     const unsubscribeLink = !unsubscribeUrl
       ? undefined
       : `${unsubscribeUrl?.href}${unsubscribeUrl?.search ? '&' : '?'}email=${email}&hash=${unsubscribeHash}`
