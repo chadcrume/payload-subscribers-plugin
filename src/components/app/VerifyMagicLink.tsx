@@ -129,10 +129,18 @@ export const VerifyMagicLink = ({
     render = defaultRender
   }
 
-  // Make sure verifyUrl is a URL object
-  if (typeof verifyUrl == 'string') {
-    verifyUrl = new URL(verifyUrl)
+  // Get a URL object from the verifyUrl option
+  function isAbsolute(url: string): boolean {
+    // Checks if it starts with "//" or contains "://" after the first character
+    return url.indexOf('://') > 0 || url.indexOf('//') === 0
   }
+  verifyUrl = !verifyUrl
+    ? undefined
+    : typeof verifyUrl == 'string' && isAbsolute(verifyUrl)
+      ? new URL(verifyUrl)
+      : window.location
+        ? new URL(verifyUrl, window.location.protocol + window.location.host)
+        : undefined
 
   const { serverURL } = useServerUrl()
   const {
