@@ -479,6 +479,40 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
 </div>
 ```
 
+```typescript
+// SubscriberMenu with custom render layout
+
+<SubscriberMenu
+  render={
+    ({ logOut, subscriber }) => (
+      <div>
+        {subscriber && (
+          <div>
+            <div>Welcome, {subscriber?.email}</div>
+            {subscribeUrl && (
+              <div>
+                <a href={subscribeUrl.href}>Manage subscriptions</a>
+              </div>
+            )}
+            <div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  logOut()
+                }}
+                type="button"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+/>
+```
+
 #### **Unsubscribe**
 
 A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeUrl** plugin option.

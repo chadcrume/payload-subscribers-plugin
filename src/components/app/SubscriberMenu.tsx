@@ -1,5 +1,7 @@
 'use client'
 
+import type { Subscriber } from '../../copied/payload-types.js'
+
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
@@ -7,6 +9,7 @@ import styles from './shared.module.css'
 /** Props for the VerifyMagicLink component. */
 export interface ISubscriberMenu {
   classNames?: SubscriberMenuClasses
+  render?: (props: ISubscriberMenuRenderProps) => React.ReactNode
   subscribeUrl?: string | URL
 }
 
@@ -17,11 +20,18 @@ export type SubscriberMenuClasses = {
   group?: string
 }
 
+/** Interface for the Unsubscribe's render function prop. */
+export interface ISubscriberMenuRenderProps {
+  logOut: () => void
+  subscriber: null | Subscriber
+}
+
 /**
  * Displays subscriber UI when authenticated: welcome message, optional "Manage subscriptions" link,
  * and a logout button. Renders nothing when no subscriber is in context.
  *
  * @param props.classNames - Optional class overrides for container, group, and button
+ * @param props.render - (optional) A function to override the default component rendering
  * @param props.subscribeUrl - If set, shows a "Manage subscriptions" link to this URL
  * @returns Container with welcome text, subscribe link (if subscribeUrl), and Log out button, or null
  */
@@ -31,13 +41,27 @@ export const SubscriberMenu = ({
     container: '',
     group: '',
   },
+  render,
   subscribeUrl,
 }: ISubscriberMenu) => {
-  const { logOut, subscriber } = useSubscriber()
-  if (typeof subscribeUrl == 'string') {
-    subscribeUrl = new URL(subscribeUrl)
+  // Get a URL object from the subscribeUrl option
+  function isAbsolute(url: string): boolean {
+    // Checks if it starts with "//" or contains "://" after the first character
+    return url.indexOf('://') > 0 || url.indexOf('//') === 0
   }
-  return (
+  subscribeUrl = !subscribeUrl
+    ? undefined
+    : typeof subscribeUrl == 'string' && isAbsolute(subscribeUrl)
+      ? new URL(subscribeUrl)
+      : window.location
+        ? new URL(subscribeUrl, window.location.protocol + window.location.host)
+        : undefined
+
+  const { logOut, subscriber } = useSubscriber()
+
+  // Set up a default render function, used if there's not one in the props,
+  // taking advantage of scope to access styles and classNames
+  const defaultRender = ({ logOut, subscriber }: ISubscriberMenuRenderProps): React.ReactNode => (
     <div
       className={mergeClassNames([
         'subscribers-menu subscribers-container',
@@ -70,4 +94,10 @@ export const SubscriberMenu = ({
       )}
     </div>
   )
+
+  if (!render) {
+    render = defaultRender
+  }
+
+  return render({ logOut, subscriber })
 }
