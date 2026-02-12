@@ -71,7 +71,8 @@ export const Unsubscribe = ({
   render,
 }: IUnsubscribe) => {
   //
-  // Set up a default render function, used if there's not one in the props
+  // Set up a default render function, used if there's not one in the props,
+  // taking advantage of scope to access styles and classNames
   const defaultRender = ({
     children,
     isError = false,
