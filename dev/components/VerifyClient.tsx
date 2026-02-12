@@ -4,6 +4,7 @@ import type { VerifyMagicLinkResponse } from 'payload-subscribers-plugin/ui'
 
 import { useSearchParams } from 'next/navigation.js'
 import { useSubscriber, VerifyMagicLink } from 'payload-subscribers-plugin/ui'
+import { useEffect, useState } from 'react'
 
 export function VerifyClient() {
   const searchParams = useSearchParams()
@@ -16,6 +17,16 @@ export function VerifyClient() {
     refreshSubscriber()
   }
 
+  const [verifyUrl, setVerifyUrl] = useState<URL>()
+  useEffect(() => {
+    setVerifyUrl(
+      new URL(
+        `/verify?forwardUrl=${encodeURIComponent(forwardUrl)}`,
+        window.location.protocol + window.location.host,
+      ),
+    )
+  }, [])
+
   // Example: Conditionally render something or pass the state to children
   return (
     <main id="main-content">
@@ -23,6 +34,7 @@ export function VerifyClient() {
       <VerifyMagicLink
         classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
         handleMagicLinkVerified={handleMagicLinkVerified}
+        verifyUrl={verifyUrl}
       >
         <a href={forwardUrl}>
           <button className={'customCss'} name={'continue'} type="button">
