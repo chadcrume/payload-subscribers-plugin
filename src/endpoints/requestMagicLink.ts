@@ -44,18 +44,43 @@ function createEndpointRequestMagicLink({
 
     if (!email || !verifyUrl) {
       return Response.json(
-        { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
+        {
+          error: 'Bad data — email and verifyUrl required',
+          now: new Date().toISOString(),
+        } as RequestMagicLinkResponse,
         { status: 400 },
       )
     }
 
     // Make a URL object from verifyUrl
-    let verifyUrlObj: URL
+    let verifyUrlObj: undefined | URL
     try {
-      verifyUrlObj = new URL(verifyUrl)
+      function isAbsolute(url: string): boolean {
+        // Checks if it starts with "//" or contains "://" after the first character
+        return url.indexOf('://') > 0 || url.indexOf('//') === 0
+      }
+      verifyUrlObj = !verifyUrl
+        ? undefined
+        : typeof verifyUrl == 'string' && isAbsolute(verifyUrl)
+          ? new URL(verifyUrl)
+          : // : config.serverURL
+            //   ? new URL(verifyUrl, verifyUrl)
+            undefined
     } catch (e) {
       return Response.json(
-        { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
+        {
+          error: 'Bad data — unable to use verifyUrl' + JSON.stringify(e),
+          now: new Date().toISOString(),
+        } as RequestMagicLinkResponse,
+        { status: 400 },
+      )
+    }
+    if (!verifyUrlObj) {
+      return Response.json(
+        {
+          error: 'Bad data — unable to use verifyUrl',
+          now: new Date().toISOString(),
+        } as RequestMagicLinkResponse,
         { status: 400 },
       )
     }
@@ -85,7 +110,10 @@ function createEndpointRequestMagicLink({
       })
       if (!createResult) {
         return Response.json(
-          { error: 'Bad data', now: new Date().toISOString() } as RequestMagicLinkResponse,
+          {
+            error: 'Error creating subscriber',
+            now: new Date().toISOString(),
+          } as RequestMagicLinkResponse,
           { status: 400 },
         )
       }
