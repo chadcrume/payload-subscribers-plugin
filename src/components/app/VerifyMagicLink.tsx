@@ -24,7 +24,7 @@ export interface IVerifyMagicLink {
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
-  renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
+  render?: (props: IUnsubscribeRenderProps) => React.ReactNode
   verifyUrl?: string | URL
 }
 
@@ -39,13 +39,29 @@ export type VerifyMagicLinkClasses = {
   message?: string
 }
 
+/** Interface for the Unsubscribe's render function prop. */
+export interface IUnsubscribeRenderProps {
+  children?: React.ReactNode
+  isError: boolean
+  isLoading: boolean
+  result: string
+}
+
 /**
  * Handles the verify step of magic-link flow. When URL has email and token query params, calls
  * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
  * "Request another magic link" via renderButton and optional callbacks.
  *
- * @param props - See IVerifyMagicLink
- * @returns RequestMagicLink when no token/email; otherwise verifying state, result message, and optional button/children
+ * @param props - IVerifyMagicLink
+ * @param props.children - (optional) Child ReadNodes to be rendered in the render function
+ * @param props.classNames - (optional) Optional additions to the structured CSS elements
+ * @param props.handleMagicLinkRequested - (optional) An event handler called after a new magic link is requested
+ * @param props.handleMagicLinkVerified - (optional) An event handler called after magic link is verified
+ * @param props.render - (optional) A function to override the default component rendering
+ * @param props.verifyUrl - (optional) The URL to your /verify route (presumably the same one where
+ *        you're using this component), to be used with "request another"
+ * @returns The results of the **render** prop function — or a default layout — including loading status,
+ *          error status, result message, and component children. Returns RequestMagicLink when no token/email.
  */
 export const VerifyMagicLink = ({
   children,
@@ -60,21 +76,70 @@ export const VerifyMagicLink = ({
   },
   handleMagicLinkRequested,
   handleMagicLinkVerified,
-  renderButton = ({ name, onClick, text }) => (
-    <button
-      className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-      name={name}
-      onClick={onClick}
-      type="button"
-    >
-      {text}
-    </button>
-  ),
+  render,
   verifyUrl,
 }: IVerifyMagicLink) => {
+  // Set up a default render function, used if there's not one in the props,
+  // taking advantage of scope to access styles and classNames
+  const defaultRender = ({
+    children,
+    isError = false,
+    isLoading = true,
+    result = '',
+  }: IUnsubscribeRenderProps): React.ReactNode => {
+    return (
+      <div
+        className={mergeClassNames([
+          'subscribers-verify subscribers-container',
+          styles.container,
+          classNames.container,
+        ])}
+      >
+        {isLoading && (
+          <p
+            className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}
+          >
+            verifying...
+          </p>
+        )}
+        {!isLoading && (
+          <p
+            className={mergeClassNames([
+              'subscribers-message',
+              styles.message,
+              classNames.message,
+              isError ? ['subscribers-error', styles.error, classNames.error] : [],
+            ])}
+          >
+            {result}
+          </p>
+        )}
+        <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+          {result && isError && verifyUrl && (
+            <button
+              className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+              name={'request'}
+              onClick={handleRequestAnother}
+              type="button"
+            >
+              {'Request another magic link'}
+            </button>
+          )}
+          {result && children}
+        </div>
+      </div>
+    )
+  }
+
+  if (!render) {
+    render = defaultRender
+  }
+
+  // Make sure verifyUrl is a URL object
   if (typeof verifyUrl == 'string') {
     verifyUrl = new URL(verifyUrl)
   }
+
   const { serverURL } = useServerUrl()
   const {
     // refreshSubscriber,
@@ -137,79 +202,33 @@ export const VerifyMagicLink = ({
   }, [callVerify, serverURL, email, handleMagicLinkVerified, refreshSubscriber, subscriber, token])
 
   const handleRequestAnother = async () => {
-    const sdk = new PayloadSDK<Config>({
-      baseURL: serverURL || '',
-    })
-
-    const emailResult = await sdk.request({
-      json: {
-        email,
-        verifyUrl: verifyUrl?.href,
-      },
-      method: 'POST',
-      path: '/api/emailToken',
-    })
-    if (emailResult.ok) {
-      const resultJson = await emailResult.json()
-      setResult('An email has been sent containing your magic link.')
-      setIsError(false)
-      if (handleMagicLinkRequested) {
-        handleMagicLinkRequested(resultJson)
+    if (verifyUrl) {
+      const emailResult = await fetch('/api/emailToken', {
+        body: JSON.stringify({
+          email,
+          verifyUrl: verifyUrl?.href,
+        }),
+        method: 'POST',
+      })
+      if (emailResult.ok) {
+        const resultJson = await emailResult.json()
+        setResult('An email has been sent containing your magic link.')
+        setIsError(false)
+        if (handleMagicLinkRequested) {
+          handleMagicLinkRequested(resultJson)
+        }
+      } else {
+        // const resultText = await emailResult.text()
+        setResult('An error occured. Please try again.')
+        setIsError(true)
       }
-    } else {
-      // const resultText = await emailResult.text()
-      setResult('An error occured. Please try again.')
-      setIsError(true)
     }
   }
 
   return (
     <>
       {(!email || !token) && <RequestMagicLink classNames={classNames} />}
-      {email && token && (
-        <div
-          className={mergeClassNames([
-            'subscribers-verify subscribers-container',
-            styles.container,
-            classNames.container,
-          ])}
-        >
-          {!result && (
-            <p
-              className={mergeClassNames([
-                'subscribers-loading',
-                styles.loading,
-                classNames.loading,
-              ])}
-            >
-              verifying...
-            </p>
-          )}
-          {result && (
-            <p
-              className={mergeClassNames([
-                'subscribers-message',
-                styles.message,
-                classNames.message,
-                isError ? ['subscribers-error', styles.error, classNames.error] : [],
-              ])}
-            >
-              {result}
-            </p>
-          )}
-          <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-            {result &&
-              isError &&
-              renderButton &&
-              renderButton({
-                name: 'request',
-                onClick: handleRequestAnother,
-                text: 'Request another magic link',
-              })}
-            {result && children}
-          </div>
-        </div>
-      )}
+      {email && token && render({ children, isError, isLoading: !result, result: result || '' })}
     </>
   )
 }
