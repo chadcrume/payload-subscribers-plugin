@@ -84,50 +84,46 @@ export const VerifyMagicLink = ({
     isError = false,
     isLoading = true,
     result = '',
-  }: IUnsubscribeRenderProps): React.ReactNode => {
-    return (
-      <div
-        className={mergeClassNames([
-          'subscribers-verify subscribers-container',
-          styles.container,
-          classNames.container,
-        ])}
-      >
-        {isLoading && (
-          <p
-            className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}
+  }: IUnsubscribeRenderProps): React.ReactNode => (
+    <div
+      className={mergeClassNames([
+        'subscribers-verify subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
+      {isLoading && (
+        <p className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}>
+          verifying...
+        </p>
+      )}
+      {!isLoading && (
+        <p
+          className={mergeClassNames([
+            'subscribers-message',
+            styles.message,
+            classNames.message,
+            isError ? ['subscribers-error', styles.error, classNames.error] : [],
+          ])}
+        >
+          {result}
+        </p>
+      )}
+      <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+        {result && isError && verifyUrl && (
+          <button
+            className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+            name={'request'}
+            onClick={handleRequestAnother}
+            type="button"
           >
-            verifying...
-          </p>
+            {'Request another magic link'}
+          </button>
         )}
-        {!isLoading && (
-          <p
-            className={mergeClassNames([
-              'subscribers-message',
-              styles.message,
-              classNames.message,
-              isError ? ['subscribers-error', styles.error, classNames.error] : [],
-            ])}
-          >
-            {result}
-          </p>
-        )}
-        <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-          {result && isError && verifyUrl && (
-            <button
-              className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-              name={'request'}
-              onClick={handleRequestAnother}
-              type="button"
-            >
-              {'Request another magic link'}
-            </button>
-          )}
-          {result && children}
-        </div>
+        {result && children}
       </div>
-    )
-  }
+    </div>
+  )
 
   if (!render) {
     render = defaultRender
