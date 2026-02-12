@@ -332,6 +332,55 @@ Component that verifies a magic link using expected url parameters.
 </div>
 ```
 
+```typescript
+// VerifyMagicLink with custom render layout
+
+<VerifyMagicLink
+  render={
+    ({
+      children,
+      isError = false,
+      isLoading = true,
+      result = '',
+    }) => (
+      <div>
+        {isLoading && (
+          <p>
+            verifying...
+          </p>
+        )}
+        {!isLoading && (
+          <p>
+            {result}
+          </p>
+        )}
+        <div>
+          {result && isError && (
+            <button
+              name={'request'}
+              onClick={handleRequestAnother}
+              type="button"
+            >
+              {'Request another magic link'}
+            </button>
+          )}
+          {result && children}
+        </div>
+      </div>
+    )
+  }
+>
+// <!-- children are passed to your render function above,
+//      but you could just embed them directly in it          -->
+  <a href={'/subscribe'}>
+    <button name={'resubscribe'} type="button">
+      Resubscribe
+    </button>
+  </a>
+</VerifyMagicLink>
+
+```
+
 #### **Subscribe**
 
 Allows a subscriber to select from among all active optInChannels.
@@ -465,7 +514,7 @@ A component that uses URL parameters to execute the /api/unsubscribe end point. 
 ```typescript
 // Unsubscribe with custom render layout
 
-<Unsubscribe 
+<Unsubscribe
   render={
     ({
       children,
@@ -495,7 +544,7 @@ A component that uses URL parameters to execute the /api/unsubscribe end point. 
     }
   }
 >
-// <!-- children are passed to your render function above, 
+// <!-- children are passed to your render function above,
 //      but you could just embed them directly in it          -->
   <a href={'/subscribe'}>
     <button name={'resubscribe'} type="button">
