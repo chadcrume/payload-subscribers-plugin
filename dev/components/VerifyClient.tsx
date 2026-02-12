@@ -25,7 +25,7 @@ export function VerifyClient() {
         window.location.protocol + window.location.host,
       ),
     )
-  }, [])
+  }, [forwardUrl])
 
   // Example: Conditionally render something or pass the state to children
   return (

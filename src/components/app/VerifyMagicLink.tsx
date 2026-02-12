@@ -1,11 +1,9 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { useSearchParams } from 'next/navigation.js'
 import { useCallback, useEffect, useState } from 'react'
 
 import type { RequestMagicLinkResponse } from '../..//endpoints/requestMagicLink.js'
-import type { Config } from '../../copied/payload-types.js'
 import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
 
 export { VerifyMagicLinkResponse }
