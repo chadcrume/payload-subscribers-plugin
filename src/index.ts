@@ -55,6 +55,12 @@ export type PayloadSubscribersConfig = {
 export const payloadSubscribersPlugin =
   (pluginOptions: PayloadSubscribersConfig) =>
   (config: Config): Config => {
+    if (!config.serverURL && !(pluginOptions.unsubscribeUrl && pluginOptions.verifyUrl)) {
+      throw new Error(
+        'payloadSubscribersPlugin requires config.serverURL OR valid values for all URL options: unsubscribeUrl, verifyUrl',
+      )
+    }
+
     if (!config.collections) {
       config.collections = []
     }
@@ -62,7 +68,9 @@ export const payloadSubscribersPlugin =
     config.collections.push(OptInChannels)
 
     const unsubscribeUrl = !pluginOptions.unsubscribeUrl
-      ? undefined
+      ? config.serverURL
+        ? new URL('/unsubscribe', config.serverURL)
+        : undefined
       : isAbsoluteURL(pluginOptions.unsubscribeUrl)
         ? new URL(pluginOptions.unsubscribeUrl)
         : config.serverURL
@@ -71,7 +79,9 @@ export const payloadSubscribersPlugin =
 
     // Get a URL object from the verifyUrl option
     const verifyUrl = !pluginOptions.verifyUrl
-      ? undefined
+      ? config.serverURL
+        ? new URL('/verify', config.serverURL)
+        : undefined
       : isAbsoluteURL(pluginOptions.verifyUrl)
         ? new URL(pluginOptions.verifyUrl)
         : config.serverURL
@@ -158,9 +168,12 @@ export const payloadSubscribersPlugin =
       createEndpointRequestMagicLink({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
         unsubscribeUrl,
+        verifyUrl,
       }),
       createEndpointSubscribe({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+        unsubscribeUrl,
+        verifyUrl,
       }),
       createEndpointSubscriberAuth({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,

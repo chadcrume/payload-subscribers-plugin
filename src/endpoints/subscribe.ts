@@ -29,19 +29,25 @@ export type SubscribeResponse =
  * opt-ins for already-verified subscribers.
  *
  * @param options - Config options for the endpoint
- * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
+ * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
+ * @param options.unsubscribeUrl - (optional) The URL to use for unsubscribe links
+ * @param options.verifyUrl - (required) The URL to use for verify links
  * @returns Payload Endpoint config for POST /subscribe
  */
 function createEndpointSubscribe({
   subscribersCollectionSlug = defaultCollectionSlug,
+  unsubscribeUrl,
+  verifyUrl,
 }: {
   subscribersCollectionSlug: CollectionSlug
+  unsubscribeUrl?: URL
+  verifyUrl: URL
 }): Endpoint {
   /**
-   * Handler for POST /subscribe. Accepts email, optIns, and verifyUrl. Creates pending
+   * Handler for POST /subscribe. Accepts email and optIns. Creates pending
    * subscribers and sends verify emails, or updates opt-ins for authenticated subscribers.
    *
-   * @param req - Payload request; body: `email`, `optIns` (channel IDs), `verifyUrl`
+   * @param req - Payload request. Expects body to be a json object { email, optIns, verifyData? }
    * @returns 200 with `emailResult`/`now`, or `email`/`optIns`/`now` when opt-ins updated; 400 with `error`/`now` on failure
    */
   const subscribeHandler: PayloadHandler = async (req) => {
@@ -49,12 +55,12 @@ function createEndpointSubscribe({
     const {
       email,
       optIns,
-      unsubscribeUrl,
-      verifyUrl,
-    }: { email: string; optIns: string[]; unsubscribeUrl?: string; verifyUrl: string } = data // if by POST data
-    // const { email } = req.routeParams // if by path
-    const verifyUrlObj: URL = new URL(verifyUrl)
-    const unsubscribeUrlObj: undefined | URL = unsubscribeUrl ? new URL(unsubscribeUrl) : undefined
+      verifyData,
+    }: {
+      email: string
+      optIns: string[]
+      verifyData?: string
+    } = data // if by POST data
 
     //
     // HELPERS
@@ -125,6 +131,7 @@ function createEndpointSubscribe({
       token,
       unsubscribeHash,
       unsubscribeUrl,
+      verifyData,
       verifyUrl,
     }: {
       email: string
@@ -134,11 +141,12 @@ function createEndpointSubscribe({
       token: string
       unsubscribeHash?: string
       unsubscribeUrl?: URL
+      verifyData?: string
       verifyUrl: URL
     }) => {
-      const magicLink = `${verifyUrl.href}${verifyUrl?.search ? '&' : '?'}token=${token}&email=${email}`
+      const magicLink = `${verifyUrl.href}${verifyUrl?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}${verifyData ? `&verifyData=${encodeURIComponent(verifyData)}` : ``}`
       const unsubscribeLink = unsubscribeUrl
-        ? `${unsubscribeUrl.href}${unsubscribeUrl.search ? '&' : '?'}email=${email}&hash=${unsubscribeHash}`
+        ? `${unsubscribeUrl.href}${unsubscribeUrl.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash || '')}`
         : undefined
       const html = `
 ${message}<p><a href="${magicLink}">${linkText}</a></p>
@@ -271,8 +279,9 @@ ${
         subject: data.subject || 'Please verify your subscription',
         token,
         unsubscribeHash,
-        unsubscribeUrl: unsubscribeUrlObj,
-        verifyUrl: verifyUrlObj,
+        unsubscribeUrl,
+        verifyData,
+        verifyUrl,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -328,8 +337,9 @@ ${
         subject: data.subject || 'Please verify your subscription',
         token,
         unsubscribeHash,
-        unsubscribeUrl: unsubscribeUrlObj,
-        verifyUrl: verifyUrlObj,
+        unsubscribeUrl,
+        verifyData,
+        verifyUrl,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -382,8 +392,9 @@ ${
         subject: data.subject || 'Please verify your subscription',
         token,
         unsubscribeHash,
-        unsubscribeUrl: unsubscribeUrlObj,
-        verifyUrl: verifyUrlObj,
+        unsubscribeUrl,
+        verifyData,
+        verifyUrl,
       })
       if (!emailResult) {
         req.payload.logger.error(

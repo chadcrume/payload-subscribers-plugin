@@ -116,7 +116,7 @@ describe('Plugin integration tests', () => {
     const testEmail = getTestEmail()
 
     const request = new Request(`${serverURL}/api/emailToken`, {
-      body: JSON.stringify({ email: testEmail, verifyUrl: payload.config.serverURL + '/verify' }),
+      body: JSON.stringify({ email: testEmail }),
       method: 'POST',
     })
     const payloadRequest = await createPayloadRequest({ config, request })
@@ -124,6 +124,7 @@ describe('Plugin integration tests', () => {
     payload.logger.info(`customSubscribersCollectionsSlug = ${customSubscribersCollectionsSlug}`)
     const response = await createEndpointRequestMagicLink({
       subscribersCollectionSlug: customSubscribersCollectionsSlug,
+      verifyUrl: new URL('/verify', serverURL),
     }).handler(payloadRequest)
 
     payload.logger.info(`called ${serverURL}/api/emailToken`)
@@ -204,7 +205,7 @@ describe('Plugin integration tests', () => {
     const user = userResult[0]
 
     const verifyRequest = new Request(`${serverURL}/api/verifyToken`, {
-      body: JSON.stringify({ email: user.email, token: testToken, verifyUrl: '/verify' }),
+      body: JSON.stringify({ email: user.email, token: testToken }),
       method: 'POST',
     })
     const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })

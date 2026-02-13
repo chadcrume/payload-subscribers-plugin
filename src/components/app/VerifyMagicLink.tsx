@@ -24,7 +24,7 @@ export interface IVerifyMagicLink {
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
   render?: (props: IUnsubscribeRenderProps) => React.ReactNode
-  verifyUrl?: string | URL
+  verifyData?: string
 }
 
 /** Optional CSS class overrides for VerifyMagicLink elements. */
@@ -58,8 +58,6 @@ export interface IUnsubscribeRenderProps {
  * @param props.handleMagicLinkRequested - (optional) An event handler called after a new magic link is requested
  * @param props.handleMagicLinkVerified - (optional) An event handler called after magic link is verified
  * @param props.render - (optional) A function to override the default component rendering
- * @param props.verifyUrl - (optional) The URL to your /verify route (presumably the same one where
- *        you're using this component), to be used with "request another"
  * @returns The results of the **render** prop function — or a default layout — including loading status,
  *          error status, result message, and component children. Returns RequestMagicLink when no token/email.
  */
@@ -77,7 +75,7 @@ export const VerifyMagicLink = ({
   handleMagicLinkRequested,
   handleMagicLinkVerified,
   render,
-  verifyUrl,
+  verifyData,
 }: IVerifyMagicLink) => {
   // Set up a default render function, used if there's not one in the props,
   // taking advantage of scope to access styles and classNames
@@ -113,7 +111,7 @@ export const VerifyMagicLink = ({
         </p>
       )}
       <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-        {result && isError && verifyUrl && (
+        {result && isError && (
           <button
             className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
             name={'request'}
@@ -131,15 +129,6 @@ export const VerifyMagicLink = ({
   if (!render) {
     render = defaultRender
   }
-
-  // Get a URL object from the verifyUrl option
-  verifyUrl = !verifyUrl
-    ? undefined
-    : typeof verifyUrl == 'string' && isAbsoluteURL(verifyUrl)
-      ? new URL(verifyUrl)
-      : window.location
-        ? new URL(verifyUrl, window.location.protocol + window.location.host)
-        : undefined
 
   const { serverURL } = useServerUrl()
   const {
@@ -204,26 +193,24 @@ export const VerifyMagicLink = ({
 
   const handleRequestAnother = () => {
     const doAsync = async () => {
-      if (verifyUrl) {
-        const emailResult = await fetch('/api/emailToken', {
-          body: JSON.stringify({
-            email,
-            verifyUrl: verifyUrl?.href,
-          }),
-          method: 'POST',
-        })
-        if (emailResult.ok) {
-          const resultJson = await emailResult.json()
-          setResult('An email has been sent containing your magic link.')
-          setIsError(false)
-          if (handleMagicLinkRequested) {
-            handleMagicLinkRequested(resultJson)
-          }
-        } else {
-          // const resultText = await emailResult.text()
-          setResult('An error occured. Please try again.')
-          setIsError(true)
+      const emailResult = await fetch('/api/emailToken', {
+        body: JSON.stringify({
+          email,
+          verifyData,
+        }),
+        method: 'POST',
+      })
+      if (emailResult.ok) {
+        const resultJson = await emailResult.json()
+        setResult('An email has been sent containing your magic link.')
+        setIsError(false)
+        if (handleMagicLinkRequested) {
+          handleMagicLinkRequested(resultJson)
         }
+      } else {
+        // const resultText = await emailResult.text()
+        setResult('An error occured. Please try again.')
+        setIsError(true)
       }
     }
     void doAsync()

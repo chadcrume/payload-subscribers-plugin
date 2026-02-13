@@ -18,7 +18,7 @@ export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
-  verifyUrl?: string | URL
+  verifyData?: string
 }
 
 /** Optional CSS class overrides for RequestMagicLink elements. */
@@ -50,19 +50,10 @@ export const RequestMagicLink = ({
     message: '',
   },
   handleMagicLinkRequested,
-  verifyUrl,
+  verifyData,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
   const { serverURL } = useServerUrl()
-
-  if (!verifyUrl && serverURL) {
-    console.log('verifyUrl DEFAULT')
-    verifyUrl = `${serverURL ? serverURL : ''}/verify`
-  }
-  if (typeof verifyUrl == 'string') {
-    console.log('verifyUrl STRING: ', verifyUrl)
-    verifyUrl = new URL(verifyUrl)
-  }
 
   const [status, setStatus] = useState<statusValues>('default')
 
@@ -75,54 +66,42 @@ export const RequestMagicLink = ({
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!verifyUrl) {
-      setStatus('error')
-      setResult(`An error occured. Please try again. \n(No verify URL available.)`)
-    } else {
-      // const emailTokenResponse = await sdk.request({
-      //   json: {
-      //     email,
-      //     verifyUrl: verifyUrl?.href,
-      //   },
-      //   method: 'POST',
-      //   path: '/api/emailToken',
-      // })
-      const emailTokenResponse = await fetch(`${serverURL ? serverURL : ''}/api/emailToken`, {
-        body: JSON.stringify({
-          email,
-          verifyUrl: verifyUrl?.href,
-        }),
-        method: 'POST',
-      })
-      if (emailTokenResponse.ok) {
-        const emailTokenResponseJson: RequestMagicLinkResponse = await emailTokenResponse.json()
-        if (handleMagicLinkRequested) {
-          handleMagicLinkRequested(emailTokenResponseJson)
-        }
-        // @ts-expect-error One or the other exists
-        const { emailResult, error } = emailTokenResponseJson
-        if (error) {
-          setStatus('error')
-          setResult(`An error occured. Please try again. \n ${error?.error ? error.error : error}`)
-        } else if (emailResult) {
-          setStatus('sent')
-          setResult('An email has been sent containing your magic link.')
-        } else {
-          setStatus('error')
-          setResult(`An error occured. Please try again. \nResult unknown`)
-        }
+
+    const emailTokenResponse = await fetch(`${serverURL ? serverURL : ''}/api/emailToken`, {
+      body: JSON.stringify({
+        email,
+        verifyData,
+      }),
+      method: 'POST',
+    })
+    if (emailTokenResponse.ok) {
+      const emailTokenResponseJson: RequestMagicLinkResponse = await emailTokenResponse.json()
+      if (handleMagicLinkRequested) {
+        handleMagicLinkRequested(emailTokenResponseJson)
+      }
+      // @ts-expect-error One or the other exists
+      const { emailResult, error } = emailTokenResponseJson
+      if (error) {
+        setStatus('error')
+        setResult(`An error occured. Please try again. \n ${error?.error ? error.error : error}`)
+      } else if (emailResult) {
+        setStatus('sent')
+        setResult('An email has been sent containing your magic link.')
       } else {
-        try {
-          const emailTokenResponseJson = await emailTokenResponse.json()
-          setStatus('error')
-          setResult(
-            `An error occured. Please try again. \n${emailTokenResponseJson?.error ? emailTokenResponseJson.error : emailTokenResponseJson}`,
-          )
-        } catch (error) {
-          const emailTokenResponseText = await emailTokenResponse.text()
-          setStatus('error')
-          setResult(`An error occured. Please try again. 2 \n${emailTokenResponseText}`)
-        }
+        setStatus('error')
+        setResult(`An error occured. Please try again. \nResult unknown`)
+      }
+    } else {
+      try {
+        const emailTokenResponseJson = await emailTokenResponse.json()
+        setStatus('error')
+        setResult(
+          `An error occured. Please try again. \n${emailTokenResponseJson?.error ? emailTokenResponseJson.error : emailTokenResponseJson}`,
+        )
+      } catch (error) {
+        const emailTokenResponseText = await emailTokenResponse.text()
+        setStatus('error')
+        setResult(`An error occured. Please try again. 2 \n${emailTokenResponseText}`)
       }
     }
   }

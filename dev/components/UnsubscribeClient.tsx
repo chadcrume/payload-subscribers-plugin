@@ -2,12 +2,9 @@
 
 import type { UnsubscribeResponse } from 'payload-subscribers-plugin/ui'
 
-import { useSearchParams } from 'next/navigation.js'
 import { Unsubscribe, useSubscriber } from 'payload-subscribers-plugin/ui'
 
 export function UnsubscribeClient() {
-  const searchParams = useSearchParams()
-  const forwardUrl = searchParams.get('forwardUrl') || ''
   const { refreshSubscriber } = useSubscriber()
 
   // eslint-disable-next-line @typescript-eslint/require-await

@@ -194,10 +194,15 @@ The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 ### 🔵 Client hooks
 
 #### **useRequestOrSubscribe**
+
 #### **useRequestMagicLink**
+
 #### **useVerifyMagicLink**
+
 #### **useSubscribe**
+
 #### **useSubscriberMenu**
+
 #### **useUnsubscribe**
 
 ---
@@ -236,14 +241,14 @@ Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherw
     handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
     // Called after a subscribers opt-ins have been updated. Optional
     handleSubscribe={async (result: SubscribeResponse) => {}}
-    // Provided your own button component. Optional
+    // Provide your own button component. Optional
     renderButton={({ name, onClick, text }) =>
       <button name={name} onClick={onClick} type="button">
         {text}
       </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on any verify link sent by either Request or Subscribe components
+    verifyData={`forwardURL=${window.location.href}`}
   />
 ```
 
@@ -274,8 +279,8 @@ Form to input email address and get a magic link email sent.
         {text}
       </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on any verify link sent
+    verifyData={`forwardURL=${window.location.href}`}
   />
 ```
 
@@ -317,10 +322,8 @@ Component that verifies a magic link using expected url parameters.
           {text}
         </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    // Used when this VerifyMagicLink component provides an option to request another link
-    // when verifying the current one fails.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on "request another" link sent
+    verifyData={`forwardURL=${window.location.href}`}
   >
     // Provide children to render after link is verified. Optional
     // Since you provide the verifyUrl to any of the plugin components, you can include a forwardUrl
@@ -423,8 +426,8 @@ Allows a subscriber to select from among all active optInChannels.
         {text}
       </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on any verify link sent
+    verifyData={`forwardURL=${window.location.href}`}
   />
 ```
 

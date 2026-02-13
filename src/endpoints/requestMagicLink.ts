@@ -2,7 +2,6 @@ import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest, TypedUse
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
 import { getHmacHash, getTokenAndHash } from '../helpers/token.js'
-import { isAbsoluteURL } from '../helpers/utilities.js'
 
 export type RequestMagicLinkResponse =
   | {
@@ -19,61 +18,39 @@ export type RequestMagicLinkResponse =
  * Sends a magic-link email to the given address (creates a pending subscriber if needed).
  *
  * @param options - Config options for the endpoint
- * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
- * @param options.unsubscribeUrl - The URL to use for unsubscribe links
+ * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
+ * @param options.unsubscribeUrl - (optional) The URL to use for unsubscribe links
+ * @param options.verifyUrl - (required) The URL to use for verify links
  * @returns Payload Endpoint config for POST /emailToken
  */
 function createEndpointRequestMagicLink({
   subscribersCollectionSlug = defaultCollectionSlug,
   unsubscribeUrl,
+  verifyUrl,
 }: {
   subscribersCollectionSlug: CollectionSlug
   unsubscribeUrl?: URL
+  verifyUrl: URL
 }): Endpoint {
+  // verifyUrl required
+  if (!verifyUrl || !verifyUrl.href) {
+    throw new Error('A verify URL is required')
+  }
   /**
-   * Handler for POST /emailToken. Accepts email and verifyUrl, creates/updates a pending
+   * Handler for POST /emailToken. Takes an email parameter. Creates/updates a pending
    * subscriber with a verification token, and sends a magic-link email.
    *
-   * @param req - Payload request; body must include `email` and `verifyUrl`
+   * @param req - Payload request. Expects body to be a json object { email, verifyData }
    * @returns 200 with `emailResult` and `now` on success; 400 with `error` and `now` on bad data or email failure
    */
   const requestMagicLinkHandler: PayloadHandler = async (req: PayloadRequest) => {
     const data = req?.json ? await req.json() : {}
-    const { email, verifyUrl } = data // if by POST data
+    const { email, verifyData } = data // if by POST data
 
-    if (!email || !verifyUrl) {
+    if (!email) {
       return Response.json(
         {
-          error: 'Email and verifyUrl required',
-          now: new Date().toISOString(),
-        } as RequestMagicLinkResponse,
-        { status: 400 },
-      )
-    }
-
-    // Make a URL object from verifyUrl
-    let verifyUrlObj: undefined | URL
-    try {
-      verifyUrlObj = !verifyUrl
-        ? undefined
-        : typeof verifyUrl == 'string' && isAbsoluteURL(verifyUrl)
-          ? new URL(verifyUrl)
-          : // : config.serverURL
-            //   ? new URL(verifyUrl, verifyUrl)
-            undefined
-    } catch (e) {
-      return Response.json(
-        {
-          error: 'Unable to use verifyUrl' + JSON.stringify(e),
-          now: new Date().toISOString(),
-        } as RequestMagicLinkResponse,
-        { status: 400 },
-      )
-    }
-    if (!verifyUrlObj) {
-      return Response.json(
-        {
-          error: 'Unable to use verifyUrl',
+          error: 'Email required',
           now: new Date().toISOString(),
         } as RequestMagicLinkResponse,
         { status: 400 },
@@ -132,10 +109,10 @@ function createEndpointRequestMagicLink({
     const { hashToken: unsubscribeHash } = getHmacHash(email)
 
     // Send email
-    const magicLink = `${verifyUrlObj?.href}${verifyUrlObj?.search ? '&' : '?'}token=${token}&email=${email}`
+    const magicLink = `${verifyUrl?.href}${verifyUrl?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&verifyData=${encodeURIComponent(verifyData)}`
     const unsubscribeLink = !unsubscribeUrl
       ? undefined
-      : `${unsubscribeUrl?.href}${unsubscribeUrl?.search ? '&' : '?'}email=${email}&hash=${unsubscribeHash}`
+      : `${unsubscribeUrl?.href}${unsubscribeUrl?.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash)}`
     const subject = data.subject || 'Your Magic Login Link'
     const message = `
   ${data.message || '<p>You requested a magic link to log in. Click the button below</p>'}

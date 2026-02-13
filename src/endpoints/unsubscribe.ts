@@ -31,10 +31,10 @@ function createEndpointUnsubscribe({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   /**
-   * Handler for POST /unsubscribe. Accepts email, optIns, and verifyUrl. Creates pending
-   * subscribers and sends verify emails, or updates opt-ins for authenticated subscribers.
+   * Handler for POST /unsubscribe. Accepts email and unsubscribeToken. Updates subscriber's status
+   * to 'unsubscribed'.
    *
-   * @param req - Payload request; body: `email`, `optIns` (channel IDs), `verifyUrl`
+   * @param req - Payload request. Expects body to be a json object { email, unsubscribeToken }
    * @returns 200 with `emailResult`/`now`, or `email`/`optIns`/`now` when opt-ins updated; 400 with `error`/`now` on failure
    */
   const unsubscribeHandler: PayloadHandler = async (req) => {

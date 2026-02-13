@@ -21,7 +21,7 @@ export interface ISubscribe {
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
   render?: (props: ISubscribeRenderProps) => React.ReactNode
-  verifyUrl?: string | URL
+  verifyData?: string
 }
 
 /** Optional CSS class overrides for Subscribe elements. */
@@ -70,7 +70,7 @@ export const Subscribe = ({
   },
   handleSubscribe,
   render,
-  verifyUrl,
+  verifyData,
 }: ISubscribe) => {
   // Set up a default render function, used if there's not one in the props,
   // taking advantage of scope to access styles and classNames
@@ -151,15 +151,6 @@ export const Subscribe = ({
     render = defaultRender
   }
 
-  // Get a URL object from the verifyUrl option
-  verifyUrl = !verifyUrl
-    ? undefined
-    : typeof verifyUrl == 'string' && isAbsoluteURL(verifyUrl)
-      ? new URL(verifyUrl)
-      : window.location
-        ? new URL(verifyUrl, window.location.protocol + window.location.host)
-        : undefined
-
   const { refreshSubscriber, subscriber } = useSubscriber()
 
   const { serverURL } = useServerUrl()
@@ -198,7 +189,7 @@ export const Subscribe = ({
       json: {
         email,
         optIns: selectedChannelIDs,
-        verifyUrl: verifyUrl?.href,
+        verifyData,
       },
       method: 'POST',
       path: '/api/subscribe',
