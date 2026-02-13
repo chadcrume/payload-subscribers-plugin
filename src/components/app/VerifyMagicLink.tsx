@@ -40,6 +40,7 @@ export type VerifyMagicLinkClasses = {
 /** Interface for the Unsubscribe's render function prop. */
 export interface IUnsubscribeRenderProps {
   children?: React.ReactNode
+  handleRequestAnother?: () => void
   isError: boolean
   isLoading: boolean
   result: string
@@ -81,6 +82,7 @@ export const VerifyMagicLink = ({
   // taking advantage of scope to access styles and classNames
   const defaultRender = ({
     children,
+    handleRequestAnother,
     isError = false,
     isLoading = true,
     result = '',
@@ -203,34 +205,45 @@ export const VerifyMagicLink = ({
     }
   }, [callVerify, serverURL, email, handleMagicLinkVerified, refreshSubscriber, subscriber, token])
 
-  const handleRequestAnother = async () => {
-    if (verifyUrl) {
-      const emailResult = await fetch('/api/emailToken', {
-        body: JSON.stringify({
-          email,
-          verifyUrl: verifyUrl?.href,
-        }),
-        method: 'POST',
-      })
-      if (emailResult.ok) {
-        const resultJson = await emailResult.json()
-        setResult('An email has been sent containing your magic link.')
-        setIsError(false)
-        if (handleMagicLinkRequested) {
-          handleMagicLinkRequested(resultJson)
+  const handleRequestAnother = () => {
+    const doAsync = async () => {
+      if (verifyUrl) {
+        const emailResult = await fetch('/api/emailToken', {
+          body: JSON.stringify({
+            email,
+            verifyUrl: verifyUrl?.href,
+          }),
+          method: 'POST',
+        })
+        if (emailResult.ok) {
+          const resultJson = await emailResult.json()
+          setResult('An email has been sent containing your magic link.')
+          setIsError(false)
+          if (handleMagicLinkRequested) {
+            handleMagicLinkRequested(resultJson)
+          }
+        } else {
+          // const resultText = await emailResult.text()
+          setResult('An error occured. Please try again.')
+          setIsError(true)
         }
-      } else {
-        // const resultText = await emailResult.text()
-        setResult('An error occured. Please try again.')
-        setIsError(true)
       }
     }
+    void doAsync()
   }
 
   return (
     <>
       {(!email || !token) && <RequestMagicLink classNames={classNames} />}
-      {email && token && render({ children, isError, isLoading: !result, result: result || '' })}
+      {email &&
+        token &&
+        render({
+          children,
+          handleRequestAnother,
+          isError,
+          isLoading: !result,
+          result: result || '',
+        })}
     </>
   )
 }
