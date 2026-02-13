@@ -1,9 +1,8 @@
 import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest, TypedUser } from 'payload'
 
-import crypto from 'crypto'
-
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
 import { getHmacHash, getTokenAndHash } from '../helpers/token.js'
+import { isAbsoluteURL } from '../helpers/utilities.js'
 
 export type RequestMagicLinkResponse =
   | {
@@ -55,13 +54,9 @@ function createEndpointRequestMagicLink({
     // Make a URL object from verifyUrl
     let verifyUrlObj: undefined | URL
     try {
-      function isAbsolute(url: string): boolean {
-        // Checks if it starts with "//" or contains "://" after the first character
-        return url.indexOf('://') > 0 || url.indexOf('//') === 0
-      }
       verifyUrlObj = !verifyUrl
         ? undefined
-        : typeof verifyUrl == 'string' && isAbsolute(verifyUrl)
+        : typeof verifyUrl == 'string' && isAbsoluteURL(verifyUrl)
           ? new URL(verifyUrl)
           : // : config.serverURL
             //   ? new URL(verifyUrl, verifyUrl)

@@ -16,6 +16,7 @@ import createEndpointUnsubscribe from './endpoints/unsubscribe.js'
 import createEndpointVerifyMagicLink from './endpoints/verifyMagicLink.js'
 import { getTestEmail } from './helpers/testData.js'
 import { getTokenAndHash } from './helpers/token.js'
+import { isAbsoluteURL } from './helpers/utilities.js'
 
 export type PayloadSubscribersConfig = {
   /**
@@ -45,6 +46,10 @@ export type PayloadSubscribersConfig = {
    * The route or full URL for unsubscribe links
    */
   unsubscribeUrl?: string
+  /**
+   * The route or full URL for verify links
+   */
+  verifyUrl?: string
 }
 
 export const payloadSubscribersPlugin =
@@ -56,17 +61,21 @@ export const payloadSubscribersPlugin =
 
     config.collections.push(OptInChannels)
 
-    // Get a URL object from the unsubscribeUrl option
-    function isAbsolute(url: string): boolean {
-      // Checks if it starts with "//" or contains "://" after the first character
-      return url.indexOf('://') > 0 || url.indexOf('//') === 0
-    }
     const unsubscribeUrl = !pluginOptions.unsubscribeUrl
       ? undefined
-      : isAbsolute(pluginOptions.unsubscribeUrl)
+      : isAbsoluteURL(pluginOptions.unsubscribeUrl)
         ? new URL(pluginOptions.unsubscribeUrl)
         : config.serverURL
           ? new URL(pluginOptions.unsubscribeUrl, config.serverURL)
+          : undefined
+
+    // Get a URL object from the verifyUrl option
+    const verifyUrl = !pluginOptions.verifyUrl
+      ? undefined
+      : isAbsoluteURL(pluginOptions.verifyUrl)
+        ? new URL(pluginOptions.verifyUrl)
+        : config.serverURL
+          ? new URL(pluginOptions.verifyUrl, config.serverURL)
           : undefined
 
     let subscribersCollection = pluginOptions.subscribersCollectionSlug

@@ -9,6 +9,7 @@ import type { SubscribeResponse } from '../../endpoints/subscribe.js'
 export { SubscribeResponse }
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
+import { isAbsoluteURL } from '../../helpers/utilities.js'
 import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
@@ -151,13 +152,9 @@ export const Subscribe = ({
   }
 
   // Get a URL object from the verifyUrl option
-  function isAbsolute(url: string): boolean {
-    // Checks if it starts with "//" or contains "://" after the first character
-    return url.indexOf('://') > 0 || url.indexOf('//') === 0
-  }
   verifyUrl = !verifyUrl
     ? undefined
-    : typeof verifyUrl == 'string' && isAbsolute(verifyUrl)
+    : typeof verifyUrl == 'string' && isAbsoluteURL(verifyUrl)
       ? new URL(verifyUrl)
       : window.location
         ? new URL(verifyUrl, window.location.protocol + window.location.host)

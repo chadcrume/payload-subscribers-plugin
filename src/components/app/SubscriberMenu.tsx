@@ -3,6 +3,7 @@
 import type { Subscriber } from '../../copied/payload-types.js'
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
+import { isAbsoluteURL } from '../../helpers/utilities.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -45,13 +46,9 @@ export const SubscriberMenu = ({
   subscribeUrl,
 }: ISubscriberMenu) => {
   // Get a URL object from the subscribeUrl option
-  function isAbsolute(url: string): boolean {
-    // Checks if it starts with "//" or contains "://" after the first character
-    return url.indexOf('://') > 0 || url.indexOf('//') === 0
-  }
   subscribeUrl = !subscribeUrl
     ? undefined
-    : typeof subscribeUrl == 'string' && isAbsolute(subscribeUrl)
+    : typeof subscribeUrl == 'string' && isAbsoluteURL(subscribeUrl)
       ? new URL(subscribeUrl)
       : window.location
         ? new URL(subscribeUrl, window.location.protocol + window.location.host)

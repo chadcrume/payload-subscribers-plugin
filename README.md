@@ -191,9 +191,22 @@ The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ---
 
-### 🔵 Provides several NextJS client components ready for use in a frontend app
+### 🔵 Client hooks
 
-- All App Components are client components that consume hooks, server components, server functions. Including the useSubscriber context, and so the must be used within the children descendent tree of the SubscriberProvider provider.
+#### **useRequestOrSubscribe**
+#### **useRequestMagicLink**
+#### **useVerifyMagicLink**
+#### **useSubscribe**
+#### **useSubscriberMenu**
+#### **useUnsubscribe**
+
+---
+
+### 🔵 Client components
+
+The plugin provides several NextJS client components ready for use in a frontend app
+
+- All App Components are client components that consume hooks, server components, server functions. Including the useSubscriber context, and so they must be used within the children descendent tree of the SubscriberProvider provider.
 
 - All App Components accept a **classNames** prop to specify CSS class names to add to the different parts of the component
 
@@ -339,6 +352,7 @@ Component that verifies a magic link using expected url parameters.
   render={
     ({
       children,
+      handleRequestAnother,
       isError = false,
       isLoading = true,
       result = '',
@@ -355,7 +369,7 @@ Component that verifies a magic link using expected url parameters.
           </p>
         )}
         <div>
-          {result && isError && (
+          {isError && (
             <button
               name={'request'}
               onClick={handleRequestAnother}
@@ -364,7 +378,7 @@ Component that verifies a magic link using expected url parameters.
               {'Request another magic link'}
             </button>
           )}
-          {result && children}
+          {children}
         </div>
       </div>
     )
@@ -378,7 +392,6 @@ Component that verifies a magic link using expected url parameters.
     </button>
   </a>
 </VerifyMagicLink>
-
 ```
 
 #### **Subscribe**

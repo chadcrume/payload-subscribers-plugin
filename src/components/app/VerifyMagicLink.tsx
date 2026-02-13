@@ -3,11 +3,12 @@
 import { useSearchParams } from 'next/navigation.js'
 import { useCallback, useEffect, useState } from 'react'
 
-import type { RequestMagicLinkResponse } from '../..//endpoints/requestMagicLink.js'
+import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
 
 export { VerifyMagicLinkResponse }
 import { RequestMagicLink, useSubscriber } from '../../exports/ui.js'
+import { isAbsoluteURL } from '../../helpers/utilities.js'
 import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
@@ -132,13 +133,9 @@ export const VerifyMagicLink = ({
   }
 
   // Get a URL object from the verifyUrl option
-  function isAbsolute(url: string): boolean {
-    // Checks if it starts with "//" or contains "://" after the first character
-    return url.indexOf('://') > 0 || url.indexOf('//') === 0
-  }
   verifyUrl = !verifyUrl
     ? undefined
-    : typeof verifyUrl == 'string' && isAbsolute(verifyUrl)
+    : typeof verifyUrl == 'string' && isAbsoluteURL(verifyUrl)
       ? new URL(verifyUrl)
       : window.location
         ? new URL(verifyUrl, window.location.protocol + window.location.host)
