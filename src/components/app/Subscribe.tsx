@@ -3,7 +3,7 @@
 import { PayloadSDK } from '@payloadcms/sdk'
 import { type ChangeEvent, useEffect, useState } from 'react'
 
-import type { Config, OptInChannel } from '../../copied/payload-types.js'
+import type { Config, OptInChannel, Subscriber } from '../../copied/payload-types.js'
 import type { SubscribeResponse } from '../../endpoints/subscribe.js'
 
 export { SubscribeResponse }
@@ -19,6 +19,7 @@ export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
+  render?: (props: ISubscribeRenderProps) => React.ReactNode
   verifyUrl?: string | URL
 }
 
@@ -34,6 +35,16 @@ export type SubscribeClasses = {
   section?: string
 }
 
+/** Interface for the Unsubscribe's render function prop. */
+export interface ISubscribeRenderProps {
+  email: string
+  handleOptInChannelsSelected: (result: OptInChannel[]) => void
+  handleSubscriptionsUpdate: () => Promise<void>
+  selectedChannelIDs: string[]
+  setEmail: (value: string) => void
+  subscriber: null | Subscriber
+}
+
 type statusValues = 'default' | 'error' | 'sent' | 'updated'
 
 /**
@@ -42,6 +53,7 @@ type statusValues = 'default' | 'error' | 'sent' | 'updated'
  * verification email. Calls refreshSubscriber and handleSubscribe on success.
  *
  * @param props - See ISubscribe
+ * @param props.render - (optional) A function to override the default component rendering
  * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
  */
 export const Subscribe = ({
@@ -56,11 +68,100 @@ export const Subscribe = ({
     section: '',
   },
   handleSubscribe,
+  render,
   verifyUrl,
 }: ISubscribe) => {
-  if (typeof verifyUrl == 'string') {
-    verifyUrl = new URL(verifyUrl)
+  // Set up a default render function, used if there's not one in the props,
+  // taking advantage of scope to access styles and classNames
+  const defaultRender = ({
+    email,
+    handleOptInChannelsSelected,
+    handleSubscriptionsUpdate,
+    selectedChannelIDs,
+    setEmail,
+    subscriber,
+  }: ISubscribeRenderProps): React.ReactNode => (
+    <div
+      className={mergeClassNames([
+        'subscribers-subscribe subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
+      <h2>Subscribe</h2>
+      <div className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}>
+        {subscriber?.status == 'unsubscribed' && <p>You are unsubscribed</p>}
+        <SelectOptInChannels
+          handleOptInChannelsSelected={handleOptInChannelsSelected}
+          selectedOptInChannelIDs={selectedChannelIDs}
+        />
+      </div>
+      <form
+        className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}
+        method="POST"
+        onSubmit={async (e) => {
+          e.preventDefault()
+          await handleSubscriptionsUpdate()
+        }}
+      >
+        <div
+          className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}
+        >
+          {!subscriber && (
+            <input
+              aria-label="enter your email"
+              className={mergeClassNames([
+                'subscribers-emailInput',
+                styles.emailInput,
+                classNames.emailInput,
+              ])}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              placeholder="enter your email"
+              type="email"
+              value={email}
+            />
+          )}
+          <button
+            className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+            type="submit"
+          >
+            {!subscriber && <>Subscribe</>}
+            {subscriber && subscriber?.status != 'unsubscribed' && <>Save choices</>}
+            {subscriber?.status == 'unsubscribed' && <>Subscribe and save choices</>}
+          </button>
+        </div>
+      </form>
+      {!!result && (
+        <p
+          className={mergeClassNames([
+            'subscribers-message',
+            styles.message,
+            classNames.message,
+            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
+          ])}
+        >
+          {result}
+        </p>
+      )}
+    </div>
+  )
+
+  if (!render) {
+    render = defaultRender
   }
+
+  // Get a URL object from the verifyUrl option
+  function isAbsolute(url: string): boolean {
+    // Checks if it starts with "//" or contains "://" after the first character
+    return url.indexOf('://') > 0 || url.indexOf('//') === 0
+  }
+  verifyUrl = !verifyUrl
+    ? undefined
+    : typeof verifyUrl == 'string' && isAbsolute(verifyUrl)
+      ? new URL(verifyUrl)
+      : window.location
+        ? new URL(verifyUrl, window.location.protocol + window.location.host)
+        : undefined
 
   const { refreshSubscriber, subscriber } = useSubscriber()
 
@@ -95,7 +196,7 @@ export const Subscribe = ({
     setSelectedChannelIDs(result.map((channel) => channel.id))
   }
 
-  const handleSubmit = async () => {
+  const handleSubscriptionsUpdate = async () => {
     const subscribeResult = await sdk.request({
       json: {
         email,
@@ -151,69 +252,12 @@ export const Subscribe = ({
     }
   }
 
-  return (
-    <div
-      className={mergeClassNames([
-        'subscribers-subscribe subscribers-container',
-        styles.container,
-        classNames.container,
-      ])}
-    >
-      <h2>Subscribe</h2>
-      <div className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}>
-        {subscriber?.status == 'unsubscribed' && <p>You are unsubscribed</p>}
-        <SelectOptInChannels
-          handleOptInChannelsSelected={handleOptInChannelsSelected}
-          selectedOptInChannelIDs={selectedChannelIDs}
-        />
-      </div>
-      <form
-        className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}
-        method="POST"
-        onSubmit={async (e) => {
-          e.preventDefault()
-          await handleSubmit()
-        }}
-      >
-        <div
-          className={mergeClassNames(['subscribers-section', styles.section, classNames.section])}
-        >
-          {!subscriber && (
-            <input
-              aria-label="enter your email"
-              className={mergeClassNames([
-                'subscribers-emailInput',
-                styles.emailInput,
-                classNames.emailInput,
-              ])}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              placeholder="enter your email"
-              type="email"
-              value={email}
-            />
-          )}
-          <button
-            className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-            type="submit"
-          >
-            {!subscriber && <>Subscribe</>}
-            {subscriber && subscriber?.status != 'unsubscribed' && <>Save choices</>}
-            {subscriber?.status == 'unsubscribed' && <>Subscribe and save choices</>}
-          </button>
-        </div>
-      </form>
-      {!!result && (
-        <p
-          className={mergeClassNames([
-            'subscribers-message',
-            styles.message,
-            classNames.message,
-            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
-          ])}
-        >
-          {result}
-        </p>
-      )}
-    </div>
-  )
+  return render({
+    email,
+    handleOptInChannelsSelected,
+    handleSubscriptionsUpdate,
+    selectedChannelIDs,
+    setEmail,
+    subscriber,
+  })
 }
