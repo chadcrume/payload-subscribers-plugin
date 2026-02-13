@@ -1,9 +1,7 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { type ChangeEvent, type SubmitEvent, useEffect, useState } from 'react'
 
-import type { Config } from '../../copied/payload-types.js'
 import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
@@ -105,7 +103,7 @@ export const RequestMagicLink = ({
         const { emailResult, error } = emailTokenResponseJson
         if (error) {
           setStatus('error')
-          setResult(`An error occured. Please try again. \n ${error}`)
+          setResult(`An error occured. Please try again. \n ${error?.error ? error.error : error}`)
         } else if (emailResult) {
           setStatus('sent')
           setResult('An email has been sent containing your magic link.')
@@ -114,9 +112,17 @@ export const RequestMagicLink = ({
           setResult(`An error occured. Please try again. \nResult unknown`)
         }
       } else {
-        const emailTokenResponseText = await emailTokenResponse.text()
-        setStatus('error')
-        setResult(`An error occured. Please try again. \n${emailTokenResponseText}`)
+        try {
+          const emailTokenResponseJson = await emailTokenResponse.json()
+          setStatus('error')
+          setResult(
+            `An error occured. Please try again. \n${emailTokenResponseJson?.error ? emailTokenResponseJson.error : emailTokenResponseJson}`,
+          )
+        } catch (error) {
+          const emailTokenResponseText = await emailTokenResponse.text()
+          setStatus('error')
+          setResult(`An error occured. Please try again. 2 \n${emailTokenResponseText}`)
+        }
       }
     }
   }

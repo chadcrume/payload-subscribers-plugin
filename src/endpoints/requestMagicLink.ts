@@ -45,7 +45,7 @@ function createEndpointRequestMagicLink({
     if (!email || !verifyUrl) {
       return Response.json(
         {
-          error: 'Bad data — email and verifyUrl required',
+          error: 'Email and verifyUrl required',
           now: new Date().toISOString(),
         } as RequestMagicLinkResponse,
         { status: 400 },
@@ -69,7 +69,7 @@ function createEndpointRequestMagicLink({
     } catch (e) {
       return Response.json(
         {
-          error: 'Bad data — unable to use verifyUrl' + JSON.stringify(e),
+          error: 'Unable to use verifyUrl' + JSON.stringify(e),
           now: new Date().toISOString(),
         } as RequestMagicLinkResponse,
         { status: 400 },
@@ -78,7 +78,7 @@ function createEndpointRequestMagicLink({
     if (!verifyUrlObj) {
       return Response.json(
         {
-          error: 'Bad data — unable to use verifyUrl',
+          error: 'Unable to use verifyUrl',
           now: new Date().toISOString(),
         } as RequestMagicLinkResponse,
         { status: 400 },
