@@ -1,9 +1,7 @@
 'use client'
 
-import type { VerifyMagicLinkResponse } from 'payload-subscribers-plugin/ui'
-
 import { useSearchParams } from 'next/navigation.js'
-import { useSubscriber, VerifyMagicLink } from 'payload-subscribers-plugin/ui'
+import { VerifyMagicLink } from 'payload-subscribers-plugin/ui'
 
 export function VerifyClient() {
   const searchParams = useSearchParams()
@@ -15,15 +13,12 @@ export function VerifyClient() {
     verifyData = {}
   }
   const forwardURL = verifyData.forwardURL
-  const { refreshSubscriber } = useSubscriber()
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async function handleMagicLinkVerified(result: VerifyMagicLinkResponse) {
+  async function handleMagicLinkVerified(result: string) {
     console.log('handleMagicLinkVerified:', result)
-    refreshSubscriber()
   }
 
-  // Example: Conditionally render something or pass the state to children
   return (
     <main id="main-content">
       <h1>Verify</h1>
@@ -32,11 +27,13 @@ export function VerifyClient() {
         handleMagicLinkVerified={handleMagicLinkVerified}
         verifyData={verifyDataStr}
       >
-        <a href={forwardURL}>
-          <button className={'customCss'} name={'continue'} type="button">
-            Continue
-          </button>
-        </a>
+        {forwardURL && (
+          <a href={forwardURL}>
+            <button className={'customCss'} name={'continue'} type="button">
+              Continue
+            </button>
+          </a>
+        )}
       </VerifyMagicLink>
     </main>
   )

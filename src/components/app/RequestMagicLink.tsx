@@ -5,7 +5,7 @@ import { type ChangeEvent, type SubmitEvent, useEffect, useState } from 'react'
 import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -31,8 +31,6 @@ export type RequestMagicLinkClasses = {
   message?: string
 }
 
-type statusValues = 'default' | 'error' | 'sent'
-
 /**
  * Form component that lets users request a magic-login link by email. Submits to POST /api/emailToken
  * and shows success or error message. Uses SubscriberProvider for pre-filling email when available.
@@ -53,11 +51,11 @@ export const RequestMagicLink = ({
   verifyData,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
-  const { serverURL } = useServerUrl()
+  const { result, sendMagicLink, status } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
 
-  const [status, setStatus] = useState<statusValues>('default')
-
-  const [result, setResult] = useState<string>()
   const [email, setEmail] = useState(subscriber?.email || '')
 
   useEffect(() => {
@@ -67,43 +65,7 @@ export const RequestMagicLink = ({
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const emailTokenResponse = await fetch(`${serverURL ? serverURL : ''}/api/emailToken`, {
-      body: JSON.stringify({
-        email,
-        verifyData,
-      }),
-      method: 'POST',
-    })
-    if (emailTokenResponse.ok) {
-      const emailTokenResponseJson: RequestMagicLinkResponse = await emailTokenResponse.json()
-      if (handleMagicLinkRequested) {
-        handleMagicLinkRequested(emailTokenResponseJson)
-      }
-      // @ts-expect-error One or the other exists
-      const { emailResult, error } = emailTokenResponseJson
-      if (error) {
-        setStatus('error')
-        setResult(`An error occured. Please try again. \n ${error?.error ? error.error : error}`)
-      } else if (emailResult) {
-        setStatus('sent')
-        setResult('An email has been sent containing your magic link.')
-      } else {
-        setStatus('error')
-        setResult(`An error occured. Please try again. \nResult unknown`)
-      }
-    } else {
-      try {
-        const emailTokenResponseJson = await emailTokenResponse.json()
-        setStatus('error')
-        setResult(
-          `An error occured. Please try again. \n${emailTokenResponseJson?.error ? emailTokenResponseJson.error : emailTokenResponseJson}`,
-        )
-      } catch (error) {
-        const emailTokenResponseText = await emailTokenResponse.text()
-        setStatus('error')
-        setResult(`An error occured. Please try again. 2 \n${emailTokenResponseText}`)
-      }
-    }
+    await sendMagicLink(email)
   }
   return (
     <div

@@ -1,15 +1,15 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation.js'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
 
 export { VerifyMagicLinkResponse }
 import { RequestMagicLink, useSubscriber } from '../../exports/ui.js'
-import { isAbsoluteURL } from '../../helpers/utilities.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
+import { useVerifyMagicLink } from '../../hooks/useVerifyMagicLink.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -22,8 +22,8 @@ export interface IVerifyMagicLink {
   children?: React.ReactNode
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
-  handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
-  render?: (props: IUnsubscribeRenderProps) => React.ReactNode
+  handleMagicLinkVerified?: (result: string) => void
+  render?: (props: IVerifyMagicLinkRenderProps) => React.ReactNode
   verifyData?: string
 }
 
@@ -39,7 +39,7 @@ export type VerifyMagicLinkClasses = {
 }
 
 /** Interface for the Unsubscribe's render function prop. */
-export interface IUnsubscribeRenderProps {
+export interface IVerifyMagicLinkRenderProps {
   children?: React.ReactNode
   handleRequestAnother?: () => void
   isError: boolean
@@ -85,7 +85,7 @@ export const VerifyMagicLink = ({
     isError = false,
     isLoading = true,
     result = '',
-  }: IUnsubscribeRenderProps): React.ReactNode => (
+  }: IVerifyMagicLinkRenderProps): React.ReactNode => (
     <div
       className={mergeClassNames([
         'subscribers-verify subscribers-container',
@@ -130,90 +130,63 @@ export const VerifyMagicLink = ({
     render = defaultRender
   }
 
-  const { serverURL } = useServerUrl()
-  const {
-    // refreshSubscriber,
-    subscriber,
-  } = useSubscriber()
-
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const token = searchParams.get('token')
 
-  const [result, setResult] = useState<string>()
-  const [isError, setIsError] = useState<boolean>(false)
-  // const [email, setEmail] = useState('')
+  const { subscriber } = useSubscriber()
 
-  const { refreshSubscriber } = useSubscriber()
-
-  const callVerify = useCallback(async () => {
-    if (!email || !token) {
-      return { error: 'Invalid input' }
-    }
-    try {
-      // I tried using PayloadSDK.request, but when the endpoint
-      // returns a not-okay status, PayloadSDK.request returns its
-      // own "Bad request" error, and doesn't share the endpoint
-      // result data.
-      const verifyEndpointResult = await fetch(`${serverURL ? serverURL : ''}/api/verifyToken`, {
-        body: JSON.stringify({
-          email,
-          token,
-        }),
-        method: 'POST',
-      })
-
-      // return verifyEndpointResult
-      if (verifyEndpointResult && verifyEndpointResult.json) {
-        const resultJson = await verifyEndpointResult.json()
-        return { error: resultJson.error, message: resultJson.message }
-      } else if (verifyEndpointResult && verifyEndpointResult.text) {
-        const resultText = await verifyEndpointResult.text()
-        return { error: resultText }
-      } else {
-        return { error: verifyEndpointResult.status }
-      }
-    } catch (error: unknown) {
-      return { error }
-    }
-  }, [email, serverURL, token])
+  const {
+    isError: verifyIsError,
+    isLoading: verifyIsLoading,
+    result: verifyResult,
+    verify,
+  } = useVerifyMagicLink()
 
   useEffect(() => {
-    async function verify() {
-      const { error, message } = await callVerify()
-      console.log(`Unknown error: (${error})`)
-      setResult(message || `An error occured. Please try again. (${error})`)
-      setIsError(error && !message)
-      // console.info('callVerify not okay', { error, message })
+    async function asyncVerify() {
+      await verify()
     }
     if (!subscriber) {
-      void verify()
+      void asyncVerify()
+    } else {
+      setIsError(false)
+      setResult('Already logged in')
     }
-  }, [callVerify, serverURL, email, handleMagicLinkVerified, refreshSubscriber, subscriber, token])
+  }, [subscriber, verify])
+
+  useEffect(() => {
+    setResult(verifyResult)
+    setIsError(verifyIsError)
+    setIsLoading(verifyIsLoading)
+    if (!verifyIsError && handleMagicLinkVerified) {
+      handleMagicLinkVerified(verifyResult)
+    }
+  }, [handleMagicLinkVerified, verifyResult, verifyIsError, verifyIsLoading])
+
+  const [result, setResult] = useState<string>()
+  const [isError, setIsError] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const {
+    result: requestResult,
+    sendMagicLink,
+    status: requestStatus,
+  } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
+
+  useEffect(() => {
+    setIsError(requestStatus == 'error')
+    setResult(requestResult)
+    setIsLoading(false)
+  }, [requestResult, requestStatus])
 
   const handleRequestAnother = () => {
-    const doAsync = async () => {
-      const emailResult = await fetch('/api/emailToken', {
-        body: JSON.stringify({
-          email,
-          verifyData,
-        }),
-        method: 'POST',
-      })
-      if (emailResult.ok) {
-        const resultJson = await emailResult.json()
-        setResult('An email has been sent containing your magic link.')
-        setIsError(false)
-        if (handleMagicLinkRequested) {
-          handleMagicLinkRequested(resultJson)
-        }
-      } else {
-        // const resultText = await emailResult.text()
-        setResult('An error occured. Please try again.')
-        setIsError(true)
-      }
+    if (email) {
+      void sendMagicLink(email)
     }
-    void doAsync()
   }
 
   return (
@@ -225,7 +198,7 @@ export const VerifyMagicLink = ({
           children,
           handleRequestAnother,
           isError,
-          isLoading: !result,
+          isLoading,
           result: result || '',
         })}
     </>

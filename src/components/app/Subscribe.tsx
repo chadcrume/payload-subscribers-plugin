@@ -1,16 +1,17 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { type ChangeEvent, useEffect, useState } from 'react'
 
-import type { Config, OptInChannel, Subscriber } from '../../copied/payload-types.js'
+import type { OptInChannel, Subscriber } from '../../copied/payload-types.js'
 import type { SubscribeResponse } from '../../endpoints/subscribe.js'
 
 export { SubscribeResponse }
 
-import { useSubscriber } from '../../contexts/SubscriberProvider.js'
-import { isAbsoluteURL } from '../../helpers/utilities.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import type { RequestMagicLinkStatusValue } from '../../hooks/useRequestMagicLink.js'
+import type { UpdateSubscriptionStatusValue } from '../../hooks/useSubscribe.js'
+
+import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
+import { useSubscribe } from '../../hooks/useSubscribe.js'
 import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
@@ -40,13 +41,14 @@ export type SubscribeClasses = {
 export interface ISubscribeRenderProps {
   email: string
   handleOptInChannelsSelected: (result: OptInChannel[]) => void
-  handleSubscriptionsUpdate: () => Promise<void>
+  result?: string
   selectedChannelIDs: string[]
+  sendMagicLink: (email: string) => Promise<void>
   setEmail: (value: string) => void
+  status?: RequestMagicLinkStatusValue | UpdateSubscriptionStatusValue
   subscriber: null | Subscriber
+  updateSubscriptions: (selectedChannelIDs: string[]) => Promise<void>
 }
-
-type statusValues = 'default' | 'error' | 'sent' | 'updated'
 
 /**
  * Subscribe/preferences form for authenticated subscribers. Shows SelectOptInChannels and an email
@@ -72,15 +74,17 @@ export const Subscribe = ({
   render,
   verifyData,
 }: ISubscribe) => {
+  //
   // Set up a default render function, used if there's not one in the props,
   // taking advantage of scope to access styles and classNames
   const defaultRender = ({
-    email,
     handleOptInChannelsSelected,
-    handleSubscriptionsUpdate,
+    result,
     selectedChannelIDs,
-    setEmail,
+    sendMagicLink,
+    status,
     subscriber,
+    updateSubscriptions,
   }: ISubscribeRenderProps): React.ReactNode => (
     <div
       className={mergeClassNames([
@@ -102,7 +106,11 @@ export const Subscribe = ({
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
-          await handleSubscriptionsUpdate()
+          if (subscriber) {
+            await updateSubscriptions(selectedChannelIDs)
+          } else {
+            await sendMagicLink(email)
+          }
         }}
       >
         <div
@@ -151,12 +159,25 @@ export const Subscribe = ({
     render = defaultRender
   }
 
-  const { refreshSubscriber, subscriber } = useSubscriber()
+  const [email, setEmail] = useState<string>('')
 
-  const { serverURL } = useServerUrl()
-
-  const sdk = new PayloadSDK<Config>({
-    baseURL: serverURL || '',
+  const handleMagicLinkRequested = () => {}
+  const {
+    result: requestResult,
+    sendMagicLink,
+    status: requestStatus,
+  } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
+  const {
+    result: subscribeResult,
+    status: subscribeStatus,
+    subscriber,
+    updateSubscriptions,
+  } = useSubscribe({
+    handleSubscribe,
+    verifyData,
   })
 
   const flattenChannels = (channels: (OptInChannel | string)[] | null | undefined) => {
@@ -168,15 +189,11 @@ export const Subscribe = ({
     )
   }
 
-  const [status, setStatus] = useState<statusValues>('default')
-  const [result, setResult] = useState<string>()
-  const [email, setEmail] = useState(subscriber ? subscriber.email : '')
   const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(() =>
     flattenChannels(subscriber?.optIns),
   )
 
   useEffect(() => {
-    setEmail(subscriber?.email || '')
     setSelectedChannelIDs(flattenChannels(subscriber?.optIns))
   }, [subscriber])
 
@@ -184,68 +201,15 @@ export const Subscribe = ({
     setSelectedChannelIDs(result.map((channel) => channel.id))
   }
 
-  const handleSubscriptionsUpdate = async () => {
-    const subscribeResult = await sdk.request({
-      json: {
-        email,
-        optIns: selectedChannelIDs,
-        verifyData,
-      },
-      method: 'POST',
-      path: '/api/subscribe',
-    })
-    if (subscribeResult.ok) {
-      const resultJson: SubscribeResponse = await subscribeResult.json()
-      // // When subscriber optIns are updated...
-      // | {
-      //     email: string
-      //     now: string
-      //     optIns: string[]
-      //   }
-      // // When a verify link is emailed...
-      // | {
-      //     emailResult: any
-      //     now: string
-      //   }
-      // // When any error occurs...
-      // | {
-      //     error: string
-      //     now: string
-      //   }
-      // @ts-expect-error Silly type confusion
-      const { emailResult, error } = resultJson
-      if (error) {
-        setStatus('error')
-        setResult(`An error occured. Please try again. \n ${error}`)
-      } else if (emailResult) {
-        setStatus('sent')
-        setResult('An email has been sent containing your magic link.')
-      } else if (email) {
-        setStatus('updated')
-        setResult(`You're subscriptions have been updated.`)
-      } else {
-        setStatus('error')
-        setResult(`An error occured. Please try again. \nResult unknown`)
-      }
-
-      refreshSubscriber()
-
-      if (handleSubscribe) {
-        handleSubscribe(resultJson)
-      }
-    } else {
-      // const resultText = await subscribeResult.text()
-      setStatus('error')
-      setResult(`An error occured. Please try again. \nResult unknown`)
-    }
-  }
-
   return render({
     email,
     handleOptInChannelsSelected,
-    handleSubscriptionsUpdate,
+    result: requestResult || subscribeResult,
     selectedChannelIDs,
+    sendMagicLink,
     setEmail,
+    status: requestStatus || subscribeStatus,
     subscriber,
+    updateSubscriptions,
   })
 }
