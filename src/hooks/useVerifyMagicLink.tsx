@@ -42,7 +42,6 @@ export const useVerifyMagicLink = () => {
   // const [email, setEmail] = useState('')
 
   const verify = useCallback(async () => {
-    console.log('verify callback')
     if (!email || !token) {
       return { error: 'Invalid input' }
     }

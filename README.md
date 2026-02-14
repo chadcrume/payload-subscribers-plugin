@@ -193,15 +193,32 @@ The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ### 🔵 Client hooks
 
-#### **useRequestOrSubscribe**
-
 #### **useRequestMagicLink**
+
+```typescript
+//
+const { result, sendMagicLink, status } = useRequestMagicLink({
+  handleMagicLinkRequested,
+  verifyData,
+})
+```
 
 #### **useVerifyMagicLink**
 
+```typescript
+//
+const { isError, isLoading, result, verify } = useVerifyMagicLink()
+```
+
 #### **useSubscribe**
 
-#### **useSubscriberMenu**
+```typescript
+//
+const { result, status, subscriber, updateSubscriptions } = useSubscribe({
+  handleSubscribe,
+  verifyData,
+})
+```
 
 #### **useUnsubscribe**
 
