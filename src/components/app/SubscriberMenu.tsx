@@ -11,11 +11,11 @@ import styles from './shared.module.css'
  * Props for the SubscriberMenu component.
  *
  * @property classNames - Optional CSS class overrides for the component elements
- * @property subscribeUrl - If set, shows a "Manage subscriptions" link to this URL (string or URL)
+ * @property subscribeURL - If set, shows a "Manage subscriptions" link to this URL (string or URL)
  */
 export interface ISubscriberMenu {
   classNames?: SubscriberMenuClasses
-  subscribeUrl?: string | URL
+  subscribeURL?: string | URL
 }
 
 /**
@@ -37,8 +37,8 @@ export type SubscriberMenuClasses = {
  *
  * @param props - Component props (see ISubscriberMenu)
  * @param props.classNames - Optional class overrides for container, group, and button
- * @param props.subscribeUrl - If set, shows a "Manage subscriptions" link to this URL
- * @returns Container with welcome text, subscribe link (if subscribeUrl), and Log out button, or null
+ * @param props.subscribeURL - If set, shows a "Manage subscriptions" link to this URL
+ * @returns Container with welcome text, subscribe link (if subscribeURL), and Log out button, or null
  */
 export const SubscriberMenu = ({
   classNames = {
@@ -46,15 +46,15 @@ export const SubscriberMenu = ({
     container: '',
     group: '',
   },
-  subscribeUrl,
+  subscribeURL,
 }: ISubscriberMenu) => {
-  // Get a URL object from the subscribeUrl option
-  subscribeUrl = !subscribeUrl
+  // Get a URL object from the subscribeURL option
+  subscribeURL = !subscribeURL
     ? undefined
-    : typeof subscribeUrl == 'string' && isAbsoluteURL(subscribeUrl)
-      ? new URL(subscribeUrl)
+    : typeof subscribeURL == 'string' && isAbsoluteURL(subscribeURL)
+      ? new URL(subscribeURL)
       : window.location
-        ? new URL(subscribeUrl, window.location.protocol + window.location.host)
+        ? new URL(subscribeURL, window.location.protocol + window.location.host)
         : undefined
 
   const { logOut, subscriber } = useSubscriber()
@@ -71,9 +71,9 @@ export const SubscriberMenu = ({
       {subscriber && (
         <div className={mergeClassNames(['subscribers-group', styles.group, classNames.group])}>
           <div className="subscribers-welcome">Welcome, {subscriber?.email}</div>
-          {subscribeUrl && (
+          {subscribeURL && (
             <div className="subscribers-subs-link">
-              <a href={subscribeUrl.href}>Manage subscriptions</a>
+              <a href={subscribeURL.href}>Manage subscriptions</a>
             </div>
           )}
           <div className="subscribers-logout">

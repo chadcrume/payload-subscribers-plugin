@@ -585,7 +585,7 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
     button: 'customCssClassNames',
     container: 'customCssClassNames',
   }}
-  subscribeUrl={new URL('/subscribe', serverURL)}
+  subscribeURL={new URL('/subscribe', serverURL)}
  />
 
 ```
@@ -596,7 +596,7 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
   <div class="subscribers-group">
     <div class="subscribers-welcome">Welcome, {subscriber email}</div>
     <div class="subscribers-subs-link">
-      <a href="{subscribeUrl}">Manage subscriptions</a>
+      <a href="{subscribeURL}">Manage subscriptions</a>
     </div>
     <div class="subscribers-logout">
       <button class="subscribers-button" type="button">Log out</button>
