@@ -17,7 +17,15 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-/** Props for the VerifyMagicLink component. */
+/**
+ * Props for the VerifyMagicLink component.
+ *
+ * @property children - Optional React nodes rendered after the verify action (e.g. when error)
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleMagicLinkRequested - Callback when a new magic link is requested
+ * @property handleMagicLinkVerified - Callback when the magic link is verified
+ * @property verifyData - Optional data for verification (e.g. email/token from URL)
+ */
 export interface IVerifyMagicLink {
   children?: React.ReactNode
   classNames?: VerifyMagicLinkClasses
@@ -26,7 +34,17 @@ export interface IVerifyMagicLink {
   verifyData?: string
 }
 
-/** Optional CSS class overrides for VerifyMagicLink elements. */
+/**
+ * Optional CSS class overrides for VerifyMagicLink elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for result message text
+ */
 export type VerifyMagicLinkClasses = {
   button?: string
   container?: string
@@ -40,14 +58,15 @@ export type VerifyMagicLinkClasses = {
 /**
  * Handles the verify step of magic-link flow. When URL has email and token query params, calls
  * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
- * "Request another magic link" via renderButton and optional callbacks.
+ * "Request another magic link" and optional callbacks.
  *
- * @param props - IVerifyMagicLink
- * @param props.children - (optional) Child ReactNodes to be rendered after verify action
- * @param props.classNames - (optional) Optional additions to the structured CSS elements
- * @param props.handleMagicLinkRequested - (optional) An event handler called after a new magic link is requested
- * @param props.handleMagicLinkVerified - (optional) An event handler called after magic link is verified
- * @returns Shows loading status, error status, result message, and component children. Shows RequestMagicLink when no token/email.
+ * @param props - Component props (see IVerifyMagicLink)
+ * @param props.children - Optional React nodes rendered after the verify action (e.g. when error)
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleMagicLinkRequested - Callback when a new magic link is requested
+ * @param props.handleMagicLinkVerified - Callback when the magic link is verified
+ * @param props.verifyData - Optional data for verification (e.g. email/token from URL)
+ * @returns Loading status, error/result message, and children. Shows RequestMagicLink when no token/email.
  */
 export const VerifyMagicLink = ({
   children,

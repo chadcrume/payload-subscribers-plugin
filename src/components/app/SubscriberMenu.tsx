@@ -7,13 +7,24 @@ import { isAbsoluteURL } from '../../helpers/utilities.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
-/** Props for the VerifyMagicLink component. */
+/**
+ * Props for the SubscriberMenu component.
+ *
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property subscribeUrl - If set, shows a "Manage subscriptions" link to this URL (string or URL)
+ */
 export interface ISubscriberMenu {
   classNames?: SubscriberMenuClasses
   subscribeUrl?: string | URL
 }
 
-/** Optional CSS class overrides for SubscriberMenu elements. */
+/**
+ * Optional CSS class overrides for SubscriberMenu elements.
+ *
+ * @property button - Class for the logout button
+ * @property container - Class for the main container
+ * @property group - Class for the inner group (welcome, link, button)
+ */
 export type SubscriberMenuClasses = {
   button?: string
   container?: string
@@ -24,6 +35,7 @@ export type SubscriberMenuClasses = {
  * Displays subscriber UI when authenticated: welcome message, optional "Manage subscriptions" link,
  * and a logout button. Renders nothing when no subscriber is in context.
  *
+ * @param props - Component props (see ISubscriberMenu)
  * @param props.classNames - Optional class overrides for container, group, and button
  * @param props.subscribeUrl - If set, shows a "Manage subscriptions" link to this URL
  * @returns Container with welcome text, subscribe link (if subscribeUrl), and Log out button, or null

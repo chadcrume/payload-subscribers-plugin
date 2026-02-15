@@ -15,14 +15,30 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-/** Props for the Unsubscribe component. */
+/**
+ * Props for the Unsubscribe component.
+ *
+ * @property children - Optional React nodes rendered after unsubscribe is attempted
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleUnsubscribe - Callback when unsubscribe is attempted (success or error)
+ */
 export interface IUnsubscribe {
   children?: React.ReactNode
   classNames?: UnsubscribeClasses
   handleUnsubscribe?: (result: UnsubscribeResponse) => void
 }
 
-/** Optional CSS class overrides for Unsubscribe elements. */
+/**
+ * Optional CSS class overrides for Unsubscribe elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for result message text
+ */
 export type UnsubscribeClasses = {
   button?: string
   container?: string
@@ -34,16 +50,14 @@ export type UnsubscribeClasses = {
 }
 
 /**
- * Handles the unsubscribe action, to be used with unsubscribe URLs in emails, etc.
- * Uses the URL params for email and hash to call /api/unsubscribe to complete the unsubscribe.
- * Allows
- * Displays children provided after unsubscribe is attempted.
+ * Handles the unsubscribe action, for use with unsubscribe URLs in emails, etc.
+ * Uses URL params email and hash to call POST /api/unsubscribe. Displays children after attempt.
  *
- * @param props - See IUnsubscribe
- * @param props.children - (optional) Child ReactNodes to be rendered after unsubscribe attempted, successfully or with error
- * @param props.classNames - (optional) Optional additions to the structured CSS elements
- * @param props.handleUnsubscribe - (optional) An event handler called after unsubscribe is attempted
- * @returns Shows loading status, error status, result message, and component children
+ * @param props - Component props (see IUnsubscribe)
+ * @param props.children - Optional React nodes rendered after unsubscribe is attempted
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleUnsubscribe - Callback when unsubscribe is attempted (success or error)
+ * @returns Loading status, result message, and children
  */
 export const Unsubscribe = ({
   children,

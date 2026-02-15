@@ -17,7 +17,14 @@ import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
 
-/** Props for the Subscribe component. */
+/**
+ * Props for the Subscribe component.
+ *
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleSubscribe - Callback when subscription/opt-ins are updated
+ * @property props - Optional passthrough props (reserved for future use)
+ * @property verifyData - Optional data for verification (e.g. passed from magic-link URL)
+ */
 export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
@@ -25,7 +32,18 @@ export interface ISubscribe {
   verifyData?: string
 }
 
-/** Optional CSS class overrides for Subscribe elements. */
+/**
+ * Optional CSS class overrides for Subscribe elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for status message text
+ * @property section - Class for section wrappers
+ */
 export type SubscribeClasses = {
   button?: string
   container?: string
@@ -42,7 +60,10 @@ export type SubscribeClasses = {
  * input when not yet authenticated. Submits to POST /api/subscribe to update opt-ins or trigger
  * verification email. Calls refreshSubscriber and handleSubscribe on success.
  *
- * @param props - See ISubscribe
+ * @param props - Component props (see ISubscribe)
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleSubscribe - Callback when subscription/opt-ins are updated
+ * @param props.verifyData - Optional data for verification (e.g. passed from magic-link URL)
  * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
  */
 export const Subscribe = ({
