@@ -124,7 +124,7 @@ describe('Plugin integration tests', () => {
     payload.logger.info(`customSubscribersCollectionsSlug = ${customSubscribersCollectionsSlug}`)
     const response = await createEndpointRequestMagicLink({
       subscribersCollectionSlug: customSubscribersCollectionsSlug,
-      verifyUrl: new URL('/verify', serverURL),
+      verifyURL: new URL('/verify', serverURL),
     }).handler(payloadRequest)
 
     payload.logger.info(`called ${serverURL}/api/emailToken`)

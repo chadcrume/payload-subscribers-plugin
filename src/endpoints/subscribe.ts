@@ -31,17 +31,17 @@ export type SubscribeResponse =
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
  * @param options.unsubscribeURL - (optional) The URL to use for unsubscribe links
- * @param options.verifyUrl - (required) The URL to use for verify links
+ * @param options.verifyURL - (required) The URL to use for verify links
  * @returns Payload Endpoint config for POST /subscribe
  */
 function createEndpointSubscribe({
   subscribersCollectionSlug = defaultCollectionSlug,
   unsubscribeURL,
-  verifyUrl,
+  verifyURL,
 }: {
   subscribersCollectionSlug: CollectionSlug
   unsubscribeURL?: URL
-  verifyUrl: URL
+  verifyURL: URL
 }): Endpoint {
   /**
    * Handler for POST /subscribe. Accepts email and optIns. Creates pending
@@ -132,7 +132,7 @@ function createEndpointSubscribe({
       unsubscribeHash,
       unsubscribeURL,
       verifyData,
-      verifyUrl,
+      verifyURL,
     }: {
       email: string
       linkText: string
@@ -142,9 +142,9 @@ function createEndpointSubscribe({
       unsubscribeHash?: string
       unsubscribeURL?: URL
       verifyData?: string
-      verifyUrl: URL
+      verifyURL: URL
     }) => {
-      const magicLink = `${verifyUrl.href}${verifyUrl?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}${verifyData ? `&verifyData=${encodeURIComponent(verifyData)}` : ``}`
+      const magicLink = `${verifyURL.href}${verifyURL?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}${verifyData ? `&verifyData=${encodeURIComponent(verifyData)}` : ``}`
       const unsubscribeLink = unsubscribeURL
         ? `${unsubscribeURL.href}${unsubscribeURL.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash || '')}`
         : undefined
@@ -281,7 +281,7 @@ ${
         unsubscribeHash,
         unsubscribeURL,
         verifyData,
-        verifyUrl,
+        verifyURL,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -339,7 +339,7 @@ ${
         unsubscribeHash,
         unsubscribeURL,
         verifyData,
-        verifyUrl,
+        verifyURL,
       })
       if (!emailResult) {
         req.payload.logger.error(
@@ -394,7 +394,7 @@ ${
         unsubscribeHash,
         unsubscribeURL,
         verifyData,
-        verifyUrl,
+        verifyURL,
       })
       if (!emailResult) {
         req.payload.logger.error(

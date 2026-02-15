@@ -55,7 +55,7 @@ export default buildConfig({
       unsubscribeURL?: string
 
       // Provide your verify route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
-      verifyUrl?: string
+      verifyURL?: string
 }),
   ],
 })
@@ -485,7 +485,7 @@ Component that verifies a magic link using expected url parameters.
     verifyData={`forwardURL=${window.location.href}`}
   >
     // Provide children to render after link is verified. Optional
-    // Since you provide the verifyUrl to any of the plugin components, you can include a forwardUrl
+    // Since you provide the verifyURL to any of the plugin components, you can include a forwardUrl
     // as a search param, which your route can then use here.
     <a href={forwardUrl}>
       <button className={'customCss'} name={'continue'} type="button">

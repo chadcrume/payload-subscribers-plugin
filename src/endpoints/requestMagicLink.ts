@@ -20,20 +20,20 @@ export type RequestMagicLinkResponse =
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
  * @param options.unsubscribeURL - (optional) The URL to use for unsubscribe links
- * @param options.verifyUrl - (required) The URL to use for verify links
+ * @param options.verifyURL - (required) The URL to use for verify links
  * @returns Payload Endpoint config for POST /emailToken
  */
 function createEndpointRequestMagicLink({
   subscribersCollectionSlug = defaultCollectionSlug,
   unsubscribeURL,
-  verifyUrl,
+  verifyURL,
 }: {
   subscribersCollectionSlug: CollectionSlug
   unsubscribeURL?: URL
-  verifyUrl: URL
+  verifyURL: URL
 }): Endpoint {
-  // verifyUrl required
-  if (!verifyUrl || !verifyUrl.href) {
+  // verifyURL required
+  if (!verifyURL || !verifyURL.href) {
     throw new Error('A verify URL is required')
   }
   /**
@@ -109,7 +109,7 @@ function createEndpointRequestMagicLink({
     const { hashToken: unsubscribeHash } = getHmacHash(email)
 
     // Send email
-    const magicLink = `${verifyUrl?.href}${verifyUrl?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&verifyData=${encodeURIComponent(verifyData)}`
+    const magicLink = `${verifyURL?.href}${verifyURL?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&verifyData=${encodeURIComponent(verifyData)}`
     const unsubscribeLink = !unsubscribeURL
       ? undefined
       : `${unsubscribeURL?.href}${unsubscribeURL?.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash)}`

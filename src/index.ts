@@ -49,15 +49,15 @@ export type PayloadSubscribersConfig = {
   /**
    * The route or full URL for verify links
    */
-  verifyUrl?: string
+  verifyURL?: string
 }
 
 export const payloadSubscribersPlugin =
   (pluginOptions: PayloadSubscribersConfig) =>
   (config: Config): Config => {
-    if (!config.serverURL && !(pluginOptions.unsubscribeURL && pluginOptions.verifyUrl)) {
+    if (!config.serverURL && !(pluginOptions.unsubscribeURL && pluginOptions.verifyURL)) {
       throw new Error(
-        'payloadSubscribersPlugin requires config.serverURL OR valid values for all URL options: unsubscribeURL, verifyUrl',
+        'payloadSubscribersPlugin requires config.serverURL OR valid values for all URL options: unsubscribeURL, verifyURL',
       )
     }
 
@@ -73,12 +73,12 @@ export const payloadSubscribersPlugin =
         ? new URL(pluginOptions.unsubscribeURL)
         : new URL(pluginOptions.unsubscribeURL, config.serverURL)
 
-    // Get a URL object from the verifyUrl option
-    const verifyUrl = !pluginOptions.verifyUrl
+    // Get a URL object from the verifyURL option
+    const verifyURL = !pluginOptions.verifyURL
       ? new URL('/verify', config.serverURL)
-      : isAbsoluteURL(pluginOptions.verifyUrl)
-        ? new URL(pluginOptions.verifyUrl)
-        : new URL(pluginOptions.verifyUrl, config.serverURL)
+      : isAbsoluteURL(pluginOptions.verifyURL)
+        ? new URL(pluginOptions.verifyURL)
+        : new URL(pluginOptions.verifyURL, config.serverURL)
 
     let subscribersCollection = pluginOptions.subscribersCollectionSlug
       ? config.collections.find(
@@ -160,12 +160,12 @@ export const payloadSubscribersPlugin =
       createEndpointRequestMagicLink({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
         unsubscribeURL,
-        verifyUrl,
+        verifyURL,
       }),
       createEndpointSubscribe({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
         unsubscribeURL,
-        verifyUrl,
+        verifyURL,
       }),
       createEndpointSubscriberAuth({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
