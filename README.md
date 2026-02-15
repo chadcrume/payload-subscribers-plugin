@@ -51,9 +51,12 @@ export default buildConfig({
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
       tokenExpiration: 60 * 60,
 
-      // Provide your unsubscribe route. This route should include the Unsubscribe component.
+      // Provide your unsubscribe route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
       unsubscribeUrl?: string
-    }),
+
+      // Provide your verify route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
+      verifyUrl?: string
+}),
   ],
 })
 ```
