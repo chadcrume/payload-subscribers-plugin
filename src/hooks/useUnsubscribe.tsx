@@ -39,7 +39,7 @@ export interface IUseUnsubscribe {
  */
 export const useUnsubscribe = ({ handleUnsubscribe }: IUseUnsubscribeOptions): IUseUnsubscribe => {
   const { serverURL } = useServerUrl()
-  const { refreshSubscriber, subscriber } = useSubscriber()
+  const { subscriber } = useSubscriber()
 
   const [result, setResult] = useState<string>('')
   const [isError, setIsError] = useState<boolean>(false)
@@ -97,14 +97,11 @@ export const useUnsubscribe = ({ handleUnsubscribe }: IUseUnsubscribeOptions): I
       setIsError(error && !message)
       setIsLoading(false)
 
-      if (!isError) {
-        refreshSubscriber()
-      }
       if (handleUnsubscribe) {
         handleUnsubscribe(resultJson)
       }
     },
-    [serverURL, handleUnsubscribe, isError, refreshSubscriber, subscriber],
+    [serverURL, handleUnsubscribe, subscriber],
   )
 
   return { isError, isLoading, result, unsubscribe }
