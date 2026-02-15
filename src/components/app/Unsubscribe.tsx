@@ -1,13 +1,13 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation.js'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import type { UnsubscribeResponse } from '../../endpoints/unsubscribe.js'
 
 export { UnsubscribeResponse }
 import { useSubscriber } from '../../exports/ui.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import { useUnsubscribe } from '../../hooks/useUnsubscribe.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -82,7 +82,7 @@ export const Unsubscribe = ({
     return (
       <div
         className={mergeClassNames([
-          'subscribers-verify subscribers-container',
+          'subscribers-callUnsubscribe subscribers-container',
           styles.container,
           classNames.container,
         ])}
@@ -119,70 +119,20 @@ export const Unsubscribe = ({
     render = defaultRender
   }
 
-  const { serverURL } = useServerUrl()
-  const {
-    // refreshSubscriber,
-    subscriber,
-  } = useSubscriber()
+  const { isError, isLoading, result, unsubscribe } = useUnsubscribe({ handleUnsubscribe })
 
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const hash = searchParams.get('hash')
 
-  const [result, setResult] = useState<string>()
-  const [isError, setIsError] = useState<boolean>(false)
-  // const [email, setEmail] = useState('')
-
-  const { refreshSubscriber } = useSubscriber()
-
-  const callUnsubscribe = useCallback(async () => {
-    if (!email || !hash) {
-      return { error: 'Invalid input' }
-    }
-    let resultJson
-    try {
-      const unsubscribeEndpointResult = await fetch(
-        `${serverURL ? serverURL : ''}/api/unsubscribe`,
-        {
-          body: JSON.stringify({
-            email,
-            unsubscribeToken: hash,
-          }),
-          method: 'POST',
-        },
-      )
-
-      // return unsubscribeEndpointResult
-      if (unsubscribeEndpointResult && unsubscribeEndpointResult.json) {
-        resultJson = await unsubscribeEndpointResult.json()
-        resultJson = { error: resultJson.error, message: resultJson.message, now: resultJson.now }
-      } else if (unsubscribeEndpointResult && unsubscribeEndpointResult.text) {
-        const resultText = await unsubscribeEndpointResult.text()
-        resultJson = { error: resultText, now: new Date().toISOString() }
-      } else {
-        resultJson = { error: unsubscribeEndpointResult.status, now: new Date().toISOString() }
-      }
-    } catch (error: any) {
-      resultJson = { error, now: new Date().toISOString() }
-    }
-    if (handleUnsubscribe) {
-      handleUnsubscribe(resultJson)
-    }
-    return resultJson
-  }, [email, serverURL, handleUnsubscribe, hash])
-
   useEffect(() => {
-    async function verify() {
-      const { error, message } = await callUnsubscribe()
-      console.log(`Unknown error: (${error})`)
-      setResult(message || `An error occured. Please try again. (${error})`)
-      setIsError(error && !message)
-      // console.info('callUnsubscribe not okay', { error, message })
+    async function callUnsubscribe() {
+      if (email && hash) {
+        await unsubscribe({ email, hash })
+      }
     }
-    if (!subscriber) {
-      void verify()
-    }
-  }, [callUnsubscribe, serverURL, email, refreshSubscriber, subscriber, hash])
+    void callUnsubscribe()
+  }, [email, hash, unsubscribe])
 
-  return render({ children, isError, isLoading: !result, result: result || '' })
+  return render({ children, isError, isLoading, result })
 }

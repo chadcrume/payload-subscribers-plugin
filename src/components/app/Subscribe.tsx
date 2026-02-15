@@ -12,6 +12,7 @@ import type { UpdateSubscriptionStatusValue } from '../../hooks/useSubscribe.js'
 
 import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
 import { useSubscribe } from '../../hooks/useSubscribe.js'
+import { useUnsubscribe } from '../../hooks/useUnsubscribe.js'
 import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
@@ -74,6 +75,7 @@ export const Subscribe = ({
   render,
   verifyData,
 }: ISubscribe) => {
+  const { unsubscribe } = useUnsubscribe({ handleUnsubscribe: () => {} })
   //
   // Set up a default render function, used if there's not one in the props,
   // taking advantage of scope to access styles and classNames
@@ -138,6 +140,17 @@ export const Subscribe = ({
             {subscriber && subscriber?.status != 'unsubscribed' && <>Save choices</>}
             {subscriber?.status == 'unsubscribed' && <>Subscribe and save choices</>}
           </button>
+          {subscriber && subscriber?.status != 'unsubscribed' && (
+            <button
+              className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+              onClick={async () => {
+                await unsubscribe()
+              }}
+              type="button"
+            >
+              Unsubscribe from all
+            </button>
+          )}
         </div>
       </form>
       {!!result && (
