@@ -193,34 +193,116 @@ The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ### 🔵 Client hooks
 
+Use these hooks inside components that are descendants of **SubscriberProvider**. They call the plugin endpoints and expose state and callbacks for building custom UI.
+
 #### **useRequestMagicLink**
 
+Requests a magic-login link by email (POST /api/emailToken). Exposes `sendMagicLink`, plus `result` and `status` for rendering messages and loading state.
+
 ```typescript
-//
-const { result, sendMagicLink, status } = useRequestMagicLink({
-  handleMagicLinkRequested,
-  verifyData,
-})
+import { useRequestMagicLink } from 'payload-subscribers-plugin/hooks'
+
+function MySignInForm() {
+  const { result, sendMagicLink, status } = useRequestMagicLink({
+    handleMagicLinkRequested: (response) => console.log('Link sent', response),
+    verifyData: `forwardURL=${typeof window !== 'undefined' ? window.location.href : ''}`,
+  })
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const email = new FormData(e.currentTarget).get('email') as string
+    void sendMagicLink(email)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="email" type="email" required />
+      <button type="submit" disabled={status === 'sending'}>
+        {status === 'sending' ? 'Sending…' : 'Request magic link'}
+      </button>
+      {result && <p className={status === 'error' ? 'error' : ''}>{result}</p>}
+    </form>
+  )
+}
 ```
 
 #### **useVerifyMagicLink**
 
+Handles the verify step of the magic-link flow: reads `email` and `token` from URL search params, calls POST /api/verifyToken, and refreshes the subscriber on success. Takes no options.
+
 ```typescript
-//
-const { isError, isLoading, result, verify } = useVerifyMagicLink()
+import { useEffect } from 'react'
+import { useVerifyMagicLink } from 'payload-subscribers-plugin/hooks'
+
+function VerifyPage() {
+  const { isError, isLoading, result, verify } = useVerifyMagicLink()
+
+  useEffect(() => {
+    void verify()
+  }, [verify])
+
+  if (isLoading) return <p>Verifying…</p>
+  return <p className={isError ? 'error' : ''}>{result || 'Done.'}</p>
+}
 ```
 
 #### **useSubscribe**
 
+Updates the current subscriber’s opt-in channels (POST /api/subscribe). Exposes `updateSubscriptions`, plus `subscriber`, `result`, and `status`. Use with **SubscriberProvider** so `subscriber` and refresh are available.
+
 ```typescript
-//
-const { result, status, subscriber, updateSubscriptions } = useSubscribe({
-  handleSubscribe,
-  verifyData,
-})
+import { useSubscribe } from 'payload-subscribers-plugin/hooks'
+
+function MyPreferencesForm() {
+  const { result, status, subscriber, updateSubscriptions } = useSubscribe({
+    handleSubscribe: (response) => console.log('Updated', response),
+    verifyData: `forwardURL=${typeof window !== 'undefined' ? window.location.href : ''}`,
+  })
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    const channelIds = ['channel-id-1', 'channel-id-2'] // from your form state
+    void updateSubscriptions(channelIds)
+  }
+
+  return (
+    <form onSubmit={handleSave}>
+      {/* your channel checkboxes, etc. */}
+      <button type="submit" disabled={status === 'updating'}>
+        {status === 'updating' ? 'Saving…' : 'Save choices'}
+      </button>
+      {result && <p>{result}</p>}
+    </form>
+  )
+}
 ```
 
 #### **useUnsubscribe**
+
+Calls POST /api/unsubscribe with email and token (from the hook args or from subscriber context). For use on unsubscribe pages linked from emails.
+
+```typescript
+import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useUnsubscribe } from 'payload-subscribers-plugin/hooks'
+
+function UnsubscribePage() {
+  const searchParams = useSearchParams()
+  const { isError, isLoading, result, unsubscribe } = useUnsubscribe({
+    handleUnsubscribe: (response) => console.log('Unsubscribed', response),
+  })
+
+  // With email/hash from URL (e.g. from email link)
+  useEffect(() => {
+    const email = searchParams.get('email')
+    const hash = searchParams.get('hash')
+    if (email && hash) void unsubscribe({ email, hash })
+  }, [searchParams, unsubscribe])
+
+  if (isLoading) return <p>Unsubscribing…</p>
+  return <p className={isError ? 'error' : ''}>{result}</p>
+}
+```
 
 ---
 
