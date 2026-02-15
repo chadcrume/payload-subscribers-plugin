@@ -9,14 +9,23 @@ import { useServerUrl } from '../react-hooks/useServerUrl.js'
 export { RequestMagicLinkResponse }
 
 /**
- * Options for the RequestMagicLink component.
+ * Options for the useRequestMagicLink hook.
+ *
+ * @property handleMagicLinkRequested - Callback when a magic link is successfully requested
+ * @property verifyData - Optional data sent with the request (e.g. for verification redirect)
  */
 export interface IUseRequestMagicLinkOptions {
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   verifyData?: string
 }
 
-/** Interface for useSubscribe props. */
+/**
+ * Return value of useRequestMagicLink.
+ *
+ * @property result - Success or error message from the last request
+ * @property sendMagicLink - Sends a magic link email for the given address
+ * @property status - Current status: 'default' | 'sending' | 'sent' | 'error'
+ */
 export interface IUseRequestMagicLink {
   result?: string
   sendMagicLink: (email: string) => Promise<void>
@@ -26,11 +35,13 @@ export interface IUseRequestMagicLink {
 export type RequestMagicLinkStatusValue = 'default' | 'error' | 'sending' | 'sent'
 
 /**
- * Form component that lets users request a magic-login link by email. Submits to POST /api/emailToken
- * and shows success or error message. Uses SubscriberProvider for pre-filling email when available.
+ * Hook to request a magic-login link by email. Calls POST /api/emailToken and exposes
+ * sendMagicLink, plus result message and status for UI.
  *
- * @param props - See IUseRequestMagicLinkOptions
- * @returns Form UI with email input and "Request magic link" button
+ * @param options - Hook options (see IUseRequestMagicLinkOptions)
+ * @param options.handleMagicLinkRequested - Callback when a magic link is successfully requested
+ * @param options.verifyData - Optional data sent with the request (e.g. for verification redirect)
+ * @returns sendMagicLink function, result message, and status (see IUseRequestMagicLink)
  */
 export const useRequestMagicLink = ({
   handleMagicLinkRequested,

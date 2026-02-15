@@ -8,18 +8,34 @@ export { UnsubscribeResponse }
 import { useSubscriber } from '../contexts/SubscriberProvider.js'
 import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
-/** Props for the UseUnsubscribe hook. */
+/**
+ * Options for the useUnsubscribe hook.
+ *
+ * @property handleUnsubscribe - Callback when unsubscribe is attempted (success or error)
+ */
 export interface IUseUnsubscribeOptions {
   handleUnsubscribe?: (result: UnsubscribeResponse) => void
 }
 
-/** Props for the unsubscribe function. */
+/**
+ * Arguments for the unsubscribe function when calling it with email/hash explicitly.
+ *
+ * @property email - Subscriber email
+ * @property hash - Unsubscribe token (from email link)
+ */
 export interface IUnsubscribeProps {
   email: string
   hash: string
 }
 
-/** Interface for the useUnsubscribe hook's return properties. */
+/**
+ * Return value of useUnsubscribe.
+ *
+ * @property isError - True if the last unsubscribe attempt failed
+ * @property isLoading - True while an unsubscribe request is in progress
+ * @property result - Result message from the last attempt
+ * @property unsubscribe - Calls POST /api/unsubscribe; optional props or uses subscriber from context
+ */
 export interface IUseUnsubscribe {
   isError: boolean
   isLoading: boolean
@@ -28,14 +44,12 @@ export interface IUseUnsubscribe {
 }
 
 /**
- * Handles the unsubscribe action, to be used with unsubscribe URLs in emails, etc.
- * Uses the URL params for email and hash to call /api/unsubscribe to complete the unsubscribe.
- * Allows
- * Displays children provided after unsubscribe is attempted.
+ * Hook to perform unsubscribe. Calls POST /api/unsubscribe with email and token (from args or
+ * subscriber context). For use with unsubscribe URLs in emails, etc.
  *
- * @param props - See IUseUnsubscribeOptions
- * @param props.handleUnsubscribe - (optional) An event handler called after unsubscribe is attempted
- * @returns The unsubscribe function along with stateful properites for isLoading, isError, result string.
+ * @param options - Hook options (see IUseUnsubscribeOptions)
+ * @param options.handleUnsubscribe - Callback when unsubscribe is attempted (success or error)
+ * @returns unsubscribe function plus isLoading, isError, and result (see IUseUnsubscribe)
  */
 export const useUnsubscribe = ({ handleUnsubscribe }: IUseUnsubscribeOptions): IUseUnsubscribe => {
   const { serverURL } = useServerUrl()

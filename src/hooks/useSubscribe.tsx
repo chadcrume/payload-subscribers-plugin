@@ -9,13 +9,25 @@ export { SubscribeResponse }
 
 import { useSubscriber } from '../contexts/SubscriberProvider.js'
 
-/** Options for the useSubscribe hook. */
+/**
+ * Options for the useSubscribe hook.
+ *
+ * @property handleSubscribe - Callback when subscription is updated or magic link is sent
+ * @property verifyData - Optional data sent with subscribe requests (e.g. for verification)
+ */
 export interface IUseSubscribeOptions {
   handleSubscribe?: (result: SubscribeResponse) => void
   verifyData?: string
 }
 
-/** Interface for useSubscribe props. */
+/**
+ * Return value of useSubscribe.
+ *
+ * @property result - Success or error message from the last update
+ * @property status - Current status: 'default' | 'updating' | 'updated' | 'sent' | 'error'
+ * @property subscriber - Current subscriber from context, or null
+ * @property updateSubscriptions - Updates opt-in channels for the current subscriber
+ */
 export interface IUseSubscribe {
   result?: string
   status?: UpdateSubscriptionStatusValue
@@ -26,14 +38,13 @@ export interface IUseSubscribe {
 export type UpdateSubscriptionStatusValue = 'default' | 'error' | 'sent' | 'updated' | 'updating'
 
 /**
- * Subscribe/preferences form for authenticated subscribers. Shows SelectOptInChannels and an email
- * input when not yet authenticated. Submits to POST /api/subscribe to update opt-ins or trigger
- * verification email. Calls refreshSubscriber and handleSubscribe on success.
+ * Hook to update subscriber opt-in channels. Calls POST /api/subscribe, refreshes subscriber
+ * from context on success, and optionally invokes handleSubscribe.
  *
- * @param props - See IUseSubscribeOptions
- * @param props.handleSubscribe - (optional) ...
- * @param props.verifyData - (optional) ...
- * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
+ * @param options - Hook options (see IUseSubscribeOptions)
+ * @param options.handleSubscribe - Callback when subscription is updated or magic link is sent
+ * @param options.verifyData - Optional data sent with subscribe requests (e.g. for verification)
+ * @returns updateSubscriptions, subscriber, result message, and status (see IUseSubscribe)
  */
 export const useSubscribe = ({
   handleSubscribe,

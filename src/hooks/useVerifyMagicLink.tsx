@@ -9,7 +9,14 @@ export { VerifyMagicLinkResponse }
 import { useSubscriber } from '../contexts/SubscriberProvider.js'
 import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
-/** Interface for the properties provided by useVerifyMagicLink. */
+/**
+ * Return value of useVerifyMagicLink.
+ *
+ * @property isError - True if the last verify attempt failed
+ * @property isLoading - True until verify has been run and has a result
+ * @property result - Result message from the last verify attempt
+ * @property verify - Calls POST /api/verifyToken with email and token from URL search params
+ */
 export interface IUseVerifyMagicLink {
   isError: boolean
   isLoading: boolean
@@ -18,13 +25,11 @@ export interface IUseVerifyMagicLink {
 }
 
 /**
- * Handles the verify step of magic-link flow. When URL has email and token query params, calls
- * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
- * "Request another magic link" via renderButton and optional callbacks.
+ * Hook for the verify step of the magic-link flow. Reads email and token from URL search params,
+ * calls POST /api/verifyToken to verify and log in, and refreshes subscriber on success.
+ * Takes no parameters.
  *
- * @param props - IUseVerifyMagicLinkOptions
- * @param props.handleMagicLinkRequested - (optional) An event handler called after a new magic link is requested
- * @returns The verify function along with stateful properites for isLoading, isError, result string.
+ * @returns verify function plus isLoading, isError, and result (see IUseVerifyMagicLink)
  */
 export const useVerifyMagicLink = () => {
   const { serverURL } = useServerUrl()
