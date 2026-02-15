@@ -9,7 +9,7 @@ export { VerifyMagicLinkResponse }
 import { useSubscriber } from '../contexts/SubscriberProvider.js'
 import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
-/** Interface for the Unsubscribe's render function prop. */
+/** Interface for the properties provided by useVerifyMagicLink. */
 export interface IUseVerifyMagicLink {
   isError: boolean
   isLoading: boolean
@@ -24,9 +24,7 @@ export interface IUseVerifyMagicLink {
  *
  * @param props - IUseVerifyMagicLinkOptions
  * @param props.handleMagicLinkRequested - (optional) An event handler called after a new magic link is requested
- * @param props.render - (optional) A function to override the default component rendering
- * @returns The results of the **render** prop function — or a default layout — including loading status,
- *          error status, result message, and component children. Returns RequestMagicLink when no token/email.
+ * @returns The verify function along with stateful properites for isLoading, isError, result string.
  */
 export const useVerifyMagicLink = () => {
   const { serverURL } = useServerUrl()

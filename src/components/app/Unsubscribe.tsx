@@ -20,7 +20,6 @@ export interface IUnsubscribe {
   children?: React.ReactNode
   classNames?: UnsubscribeClasses
   handleUnsubscribe?: (result: UnsubscribeResponse) => void
-  render?: (props: IUnsubscribeRenderProps) => React.ReactNode
 }
 
 /** Optional CSS class overrides for Unsubscribe elements. */
@@ -34,14 +33,6 @@ export type UnsubscribeClasses = {
   message?: string
 }
 
-/** Interface for the Unsubscribe's render function prop. */
-export interface IUnsubscribeRenderProps {
-  children?: React.ReactNode
-  isError: boolean
-  isLoading: boolean
-  result: string
-}
-
 /**
  * Handles the unsubscribe action, to be used with unsubscribe URLs in emails, etc.
  * Uses the URL params for email and hash to call /api/unsubscribe to complete the unsubscribe.
@@ -49,12 +40,10 @@ export interface IUnsubscribeRenderProps {
  * Displays children provided after unsubscribe is attempted.
  *
  * @param props - See IUnsubscribe
- * @param props.children - (optional) Child ReadNodes to be rendered in the render function
+ * @param props.children - (optional) Child ReactNodes to be rendered after unsubscribe attempted, successfully or with error
  * @param props.classNames - (optional) Optional additions to the structured CSS elements
  * @param props.handleUnsubscribe - (optional) An event handler called after unsubscribe is attempted
- * @param props.render - (optional) A function to override the default component rendering
- * @returns The results of the **render** prop function — or a default layout — including loading status,
- *          error status, result message, and component children
+ * @returns Shows loading status, error status, result message, and component children
  */
 export const Unsubscribe = ({
   children,
@@ -68,57 +57,7 @@ export const Unsubscribe = ({
     message: '',
   },
   handleUnsubscribe,
-  render,
 }: IUnsubscribe) => {
-  //
-  // Set up a default render function, used if there's not one in the props,
-  // taking advantage of scope to access styles and classNames
-  const defaultRender = ({
-    children,
-    isError = false,
-    isLoading = true,
-    result = '',
-  }: IUnsubscribeRenderProps): React.ReactNode => {
-    return (
-      <div
-        className={mergeClassNames([
-          'subscribers-callUnsubscribe subscribers-container',
-          styles.container,
-          classNames.container,
-        ])}
-      >
-        {isLoading && (
-          <p
-            className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}
-          >
-            unsubscribing...
-          </p>
-        )}
-        {!isLoading && (
-          <>
-            <p
-              className={mergeClassNames([
-                'subscribers-message',
-                styles.message,
-                classNames.message,
-                isError ? ['subscribers-error', styles.error, classNames.error] : [],
-              ])}
-            >
-              {result}
-            </p>
-            <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-              {children}
-            </div>
-          </>
-        )}
-      </div>
-    )
-  }
-
-  if (!render) {
-    render = defaultRender
-  }
-
   const { isError, isLoading, result, unsubscribe } = useUnsubscribe({ handleUnsubscribe })
 
   const searchParams = useSearchParams()
@@ -134,5 +73,36 @@ export const Unsubscribe = ({
     void callUnsubscribe()
   }, [email, hash, unsubscribe])
 
-  return render({ children, isError, isLoading, result })
+  return (
+    <div
+      className={mergeClassNames([
+        'subscribers-callUnsubscribe subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
+      {isLoading && (
+        <p className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}>
+          unsubscribing...
+        </p>
+      )}
+      {!isLoading && (
+        <>
+          <p
+            className={mergeClassNames([
+              'subscribers-message',
+              styles.message,
+              classNames.message,
+              isError ? ['subscribers-error', styles.error, classNames.error] : [],
+            ])}
+          >
+            {result}
+          </p>
+          <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+            {children}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }

@@ -58,7 +58,6 @@ export function RequestOrSubscribe({
 }: IRequestOrSubscribe) {
   const { subscriber } = useSubscriber()
 
-  // Example: Conditionally render something or pass the state to children
   return (
     <>
       {subscriber ? (

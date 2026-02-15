@@ -10,7 +10,6 @@ import styles from './shared.module.css'
 /** Props for the VerifyMagicLink component. */
 export interface ISubscriberMenu {
   classNames?: SubscriberMenuClasses
-  render?: (props: ISubscriberMenuRenderProps) => React.ReactNode
   subscribeUrl?: string | URL
 }
 
@@ -21,18 +20,11 @@ export type SubscriberMenuClasses = {
   group?: string
 }
 
-/** Interface for the Unsubscribe's render function prop. */
-export interface ISubscriberMenuRenderProps {
-  logOut: () => void
-  subscriber: null | Subscriber
-}
-
 /**
  * Displays subscriber UI when authenticated: welcome message, optional "Manage subscriptions" link,
  * and a logout button. Renders nothing when no subscriber is in context.
  *
  * @param props.classNames - Optional class overrides for container, group, and button
- * @param props.render - (optional) A function to override the default component rendering
  * @param props.subscribeUrl - If set, shows a "Manage subscriptions" link to this URL
  * @returns Container with welcome text, subscribe link (if subscribeUrl), and Log out button, or null
  */
@@ -42,7 +34,6 @@ export const SubscriberMenu = ({
     container: '',
     group: '',
   },
-  render,
   subscribeUrl,
 }: ISubscriberMenu) => {
   // Get a URL object from the subscribeUrl option
@@ -56,9 +47,7 @@ export const SubscriberMenu = ({
 
   const { logOut, subscriber } = useSubscriber()
 
-  // Set up a default render function, used if there's not one in the props,
-  // taking advantage of scope to access styles and classNames
-  const defaultRender = ({ logOut, subscriber }: ISubscriberMenuRenderProps): React.ReactNode => (
+  return (
     <div
       className={mergeClassNames([
         'subscribers-menu subscribers-container',
@@ -91,10 +80,4 @@ export const SubscriberMenu = ({
       )}
     </div>
   )
-
-  if (!render) {
-    render = defaultRender
-  }
-
-  return render({ logOut, subscriber })
 }

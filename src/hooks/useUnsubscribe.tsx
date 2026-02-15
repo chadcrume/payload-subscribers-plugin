@@ -35,8 +35,7 @@ export interface IUseUnsubscribe {
  *
  * @param props - See IUseUnsubscribeOptions
  * @param props.handleUnsubscribe - (optional) An event handler called after unsubscribe is attempted
- * @returns The results of the **render** prop function — or a default layout — including loading status,
- *          error status, result message, and component children
+ * @returns The unsubscribe function along with stateful properites for isLoading, isError, result string.
  */
 export const useUnsubscribe = ({ handleUnsubscribe }: IUseUnsubscribeOptions): IUseUnsubscribe => {
   const { serverURL } = useServerUrl()

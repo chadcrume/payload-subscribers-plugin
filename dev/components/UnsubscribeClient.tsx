@@ -10,7 +10,6 @@ export function UnsubscribeClient() {
     console.log('handleUnsubscribe:', result)
   }
 
-  // Example: Conditionally render something or pass the state to children
   return (
     <main id="main-content">
       <h1>Unsubscribe</h1>

@@ -365,55 +365,6 @@ Component that verifies a magic link using expected url parameters.
 </div>
 ```
 
-```typescript
-// VerifyMagicLink with custom render layout
-
-<VerifyMagicLink
-  render={
-    ({
-      children,
-      handleRequestAnother,
-      isError = false,
-      isLoading = true,
-      result = '',
-    }) => (
-      <div>
-        {isLoading && (
-          <p>
-            verifying...
-          </p>
-        )}
-        {!isLoading && (
-          <p>
-            {result}
-          </p>
-        )}
-        <div>
-          {isError && (
-            <button
-              name={'request'}
-              onClick={handleRequestAnother}
-              type="button"
-            >
-              {'Request another magic link'}
-            </button>
-          )}
-          {children}
-        </div>
-      </div>
-    )
-  }
->
-// <!-- children are passed to your render function above,
-//      but you could just embed them directly in it          -->
-  <a href={'/subscribe'}>
-    <button name={'resubscribe'} type="button">
-      Resubscribe
-    </button>
-  </a>
-</VerifyMagicLink>
-```
-
 #### **Subscribe**
 
 Allows a subscriber to select from among all active optInChannels.
@@ -512,46 +463,12 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
 </div>
 ```
 
-```typescript
-// SubscriberMenu with custom render layout
-
-<SubscriberMenu
-  render={
-    ({ logOut, subscriber }) => (
-      <div>
-        {subscriber && (
-          <div>
-            <div>Welcome, {subscriber?.email}</div>
-            {subscribeUrl && (
-              <div>
-                <a href={subscribeUrl.href}>Manage subscriptions</a>
-              </div>
-            )}
-            <div>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  logOut()
-                }}
-                type="button"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
-/>
-```
-
 #### **Unsubscribe**
 
 A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeUrl** plugin option.
 
 ```typescript
-// Unsubscribe with built-in render layout
+// Unsubscribe with a custom "resubscribe" button
 
 <Unsubscribe
   classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
@@ -576,50 +493,6 @@ A component that uses URL parameters to execute the /api/unsubscribe end point. 
   <p class="subscribers-message">{result}</p>
   <div class="subscribers-form">{children}</div>
 </div>
-```
-
-```typescript
-// Unsubscribe with custom render layout
-
-<Unsubscribe
-  render={
-    ({
-      children,
-      isError = false,
-      isLoading = true,
-      result = '',
-    }) => {
-      return (
-              <div>
-              {isLoading && (
-                <p>
-                  unsubscribing...
-                </p>
-              )}
-              {!isLoading && (
-                <>
-                  <p className={isError ? 'error' : ''}>
-                    {result}
-                  </p>
-                  <div>
-                    {children}
-                  </div>
-                </>
-              )}
-            </div>
-      )
-    }
-  }
->
-// <!-- children are passed to your render function above,
-//      but you could just embed them directly in it          -->
-  <a href={'/subscribe'}>
-    <button name={'resubscribe'} type="button">
-      Resubscribe
-    </button>
-  </a>
-</Unsubscribe>
-
 ```
 
 ## Contributing

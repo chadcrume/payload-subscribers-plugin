@@ -23,7 +23,6 @@ export interface IVerifyMagicLink {
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleMagicLinkVerified?: (result: string) => void
-  render?: (props: IVerifyMagicLinkRenderProps) => React.ReactNode
   verifyData?: string
 }
 
@@ -38,28 +37,17 @@ export type VerifyMagicLinkClasses = {
   message?: string
 }
 
-/** Interface for the Unsubscribe's render function prop. */
-export interface IVerifyMagicLinkRenderProps {
-  children?: React.ReactNode
-  handleRequestAnother?: () => void
-  isError: boolean
-  isLoading: boolean
-  result: string
-}
-
 /**
  * Handles the verify step of magic-link flow. When URL has email and token query params, calls
  * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
  * "Request another magic link" via renderButton and optional callbacks.
  *
  * @param props - IVerifyMagicLink
- * @param props.children - (optional) Child ReadNodes to be rendered in the render function
+ * @param props.children - (optional) Child ReactNodes to be rendered after verify action
  * @param props.classNames - (optional) Optional additions to the structured CSS elements
  * @param props.handleMagicLinkRequested - (optional) An event handler called after a new magic link is requested
  * @param props.handleMagicLinkVerified - (optional) An event handler called after magic link is verified
- * @param props.render - (optional) A function to override the default component rendering
- * @returns The results of the **render** prop function — or a default layout — including loading status,
- *          error status, result message, and component children. Returns RequestMagicLink when no token/email.
+ * @returns Shows loading status, error status, result message, and component children. Shows RequestMagicLink when no token/email.
  */
 export const VerifyMagicLink = ({
   children,
@@ -74,62 +62,8 @@ export const VerifyMagicLink = ({
   },
   handleMagicLinkRequested,
   handleMagicLinkVerified,
-  render,
   verifyData,
 }: IVerifyMagicLink) => {
-  // Set up a default render function, used if there's not one in the props,
-  // taking advantage of scope to access styles and classNames
-  const defaultRender = ({
-    children,
-    handleRequestAnother,
-    isError = false,
-    isLoading = true,
-    result = '',
-  }: IVerifyMagicLinkRenderProps): React.ReactNode => (
-    <div
-      className={mergeClassNames([
-        'subscribers-verify subscribers-container',
-        styles.container,
-        classNames.container,
-      ])}
-    >
-      {isLoading && (
-        <p className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}>
-          verifying...
-        </p>
-      )}
-      {!isLoading && (
-        <p
-          className={mergeClassNames([
-            'subscribers-message',
-            styles.message,
-            classNames.message,
-            isError ? ['subscribers-error', styles.error, classNames.error] : [],
-          ])}
-        >
-          {result}
-        </p>
-      )}
-      <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-        {result && isError && (
-          <button
-            className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-            name={'request'}
-            onClick={handleRequestAnother}
-            type="button"
-          >
-            {'Request another magic link'}
-          </button>
-        )}
-        {result && children}
-      </div>
-    </div>
-  )
-
-  if (!render) {
-    render = defaultRender
-  }
-
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const token = searchParams.get('token')
@@ -192,15 +126,56 @@ export const VerifyMagicLink = ({
   return (
     <>
       {(!email || !token) && <RequestMagicLink classNames={classNames} />}
-      {email &&
-        token &&
-        render({
-          children,
-          handleRequestAnother,
-          isError,
-          isLoading,
-          result: result || '',
-        })}
+      {email && token && (
+        <div
+          className={mergeClassNames([
+            'subscribers-verify subscribers-container',
+            styles.container,
+            classNames.container,
+          ])}
+        >
+          {isLoading && (
+            <p
+              className={mergeClassNames([
+                'subscribers-loading',
+                styles.loading,
+                classNames.loading,
+              ])}
+            >
+              verifying...
+            </p>
+          )}
+          {!isLoading && result && (
+            <p
+              className={mergeClassNames([
+                'subscribers-message',
+                styles.message,
+                classNames.message,
+                isError ? ['subscribers-error', styles.error, classNames.error] : [],
+              ])}
+            >
+              {result}
+            </p>
+          )}
+          <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+            {result && isError && (
+              <button
+                className={mergeClassNames([
+                  'subscribers-button',
+                  styles.button,
+                  classNames.button,
+                ])}
+                name={'request'}
+                onClick={handleRequestAnother}
+                type="button"
+              >
+                {'Request another magic link'}
+              </button>
+            )}
+            {result && children}
+          </div>
+        </div>
+      )}
     </>
   )
 }

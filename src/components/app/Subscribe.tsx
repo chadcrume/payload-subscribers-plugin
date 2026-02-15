@@ -22,7 +22,6 @@ export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
-  render?: (props: ISubscribeRenderProps) => React.ReactNode
   verifyData?: string
 }
 
@@ -38,26 +37,12 @@ export type SubscribeClasses = {
   section?: string
 }
 
-/** Interface for the Unsubscribe's render function prop. */
-export interface ISubscribeRenderProps {
-  email: string
-  handleOptInChannelsSelected: (result: OptInChannel[]) => void
-  result?: string
-  selectedChannelIDs: string[]
-  sendMagicLink: (email: string) => Promise<void>
-  setEmail: (value: string) => void
-  status?: RequestMagicLinkStatusValue | UpdateSubscriptionStatusValue
-  subscriber: null | Subscriber
-  updateSubscriptions: (selectedChannelIDs: string[]) => Promise<void>
-}
-
 /**
  * Subscribe/preferences form for authenticated subscribers. Shows SelectOptInChannels and an email
  * input when not yet authenticated. Submits to POST /api/subscribe to update opt-ins or trigger
  * verification email. Calls refreshSubscriber and handleSubscribe on success.
  *
  * @param props - See ISubscribe
- * @param props.render - (optional) A function to override the default component rendering
  * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
  */
 export const Subscribe = ({
@@ -72,22 +57,53 @@ export const Subscribe = ({
     section: '',
   },
   handleSubscribe,
-  render,
   verifyData,
 }: ISubscribe) => {
   const { unsubscribe } = useUnsubscribe({ handleUnsubscribe: () => {} })
-  //
-  // Set up a default render function, used if there's not one in the props,
-  // taking advantage of scope to access styles and classNames
-  const defaultRender = ({
-    handleOptInChannelsSelected,
-    result,
-    selectedChannelIDs,
+
+  const [email, setEmail] = useState<string>('')
+
+  const handleMagicLinkRequested = () => {}
+  const {
+    result: requestResult,
     sendMagicLink,
-    status,
+    status: requestStatus,
+  } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
+  const {
+    result: subscribeResult,
+    status: subscribeStatus,
     subscriber,
     updateSubscriptions,
-  }: ISubscribeRenderProps): React.ReactNode => (
+  } = useSubscribe({
+    handleSubscribe,
+    verifyData,
+  })
+
+  const flattenChannels = (channels: (OptInChannel | string)[] | null | undefined) => {
+    if (!channels) {
+      return []
+    }
+    return channels.map((channel: OptInChannel | string) =>
+      typeof channel == 'string' ? channel : channel.id,
+    )
+  }
+
+  const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(() =>
+    flattenChannels(subscriber?.optIns),
+  )
+
+  useEffect(() => {
+    setSelectedChannelIDs(flattenChannels(subscriber?.optIns))
+  }, [subscriber])
+
+  const handleOptInChannelsSelected = (result: OptInChannel[]) => {
+    setSelectedChannelIDs(result.map((channel) => channel.id))
+  }
+
+  return (
     <div
       className={mergeClassNames([
         'subscribers-subscribe subscribers-container',
@@ -153,76 +169,20 @@ export const Subscribe = ({
           )}
         </div>
       </form>
-      {!!result && (
+      {(!!requestResult || !!subscribeResult) && (
         <p
           className={mergeClassNames([
             'subscribers-message',
             styles.message,
             classNames.message,
-            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
+            requestStatus == 'error' || subscribeStatus == 'error'
+              ? ['subscribers-error', styles.error, classNames.error]
+              : [],
           ])}
         >
-          {result}
+          {requestResult || subscribeResult}
         </p>
       )}
     </div>
   )
-
-  if (!render) {
-    render = defaultRender
-  }
-
-  const [email, setEmail] = useState<string>('')
-
-  const handleMagicLinkRequested = () => {}
-  const {
-    result: requestResult,
-    sendMagicLink,
-    status: requestStatus,
-  } = useRequestMagicLink({
-    handleMagicLinkRequested,
-    verifyData,
-  })
-  const {
-    result: subscribeResult,
-    status: subscribeStatus,
-    subscriber,
-    updateSubscriptions,
-  } = useSubscribe({
-    handleSubscribe,
-    verifyData,
-  })
-
-  const flattenChannels = (channels: (OptInChannel | string)[] | null | undefined) => {
-    if (!channels) {
-      return []
-    }
-    return channels.map((channel: OptInChannel | string) =>
-      typeof channel == 'string' ? channel : channel.id,
-    )
-  }
-
-  const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(() =>
-    flattenChannels(subscriber?.optIns),
-  )
-
-  useEffect(() => {
-    setSelectedChannelIDs(flattenChannels(subscriber?.optIns))
-  }, [subscriber])
-
-  const handleOptInChannelsSelected = (result: OptInChannel[]) => {
-    setSelectedChannelIDs(result.map((channel) => channel.id))
-  }
-
-  return render({
-    email,
-    handleOptInChannelsSelected,
-    result: requestResult || subscribeResult,
-    selectedChannelIDs,
-    sendMagicLink,
-    setEmail,
-    status: requestStatus || subscribeStatus,
-    subscriber,
-    updateSubscriptions,
-  })
 }
