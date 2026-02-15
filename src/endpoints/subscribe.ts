@@ -30,17 +30,17 @@ export type SubscribeResponse =
  *
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
- * @param options.unsubscribeUrl - (optional) The URL to use for unsubscribe links
+ * @param options.unsubscribeURL - (optional) The URL to use for unsubscribe links
  * @param options.verifyUrl - (required) The URL to use for verify links
  * @returns Payload Endpoint config for POST /subscribe
  */
 function createEndpointSubscribe({
   subscribersCollectionSlug = defaultCollectionSlug,
-  unsubscribeUrl,
+  unsubscribeURL,
   verifyUrl,
 }: {
   subscribersCollectionSlug: CollectionSlug
-  unsubscribeUrl?: URL
+  unsubscribeURL?: URL
   verifyUrl: URL
 }): Endpoint {
   /**
@@ -130,7 +130,7 @@ function createEndpointSubscribe({
       subject,
       token,
       unsubscribeHash,
-      unsubscribeUrl,
+      unsubscribeURL,
       verifyData,
       verifyUrl,
     }: {
@@ -140,13 +140,13 @@ function createEndpointSubscribe({
       subject: string
       token: string
       unsubscribeHash?: string
-      unsubscribeUrl?: URL
+      unsubscribeURL?: URL
       verifyData?: string
       verifyUrl: URL
     }) => {
       const magicLink = `${verifyUrl.href}${verifyUrl?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}${verifyData ? `&verifyData=${encodeURIComponent(verifyData)}` : ``}`
-      const unsubscribeLink = unsubscribeUrl
-        ? `${unsubscribeUrl.href}${unsubscribeUrl.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash || '')}`
+      const unsubscribeLink = unsubscribeURL
+        ? `${unsubscribeURL.href}${unsubscribeURL.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash || '')}`
         : undefined
       const html = `
 ${message}<p><a href="${magicLink}">${linkText}</a></p>
@@ -279,7 +279,7 @@ ${
         subject: data.subject || 'Please verify your subscription',
         token,
         unsubscribeHash,
-        unsubscribeUrl,
+        unsubscribeURL,
         verifyData,
         verifyUrl,
       })
@@ -337,7 +337,7 @@ ${
         subject: data.subject || 'Please verify your subscription',
         token,
         unsubscribeHash,
-        unsubscribeUrl,
+        unsubscribeURL,
         verifyData,
         verifyUrl,
       })
@@ -392,7 +392,7 @@ ${
         subject: data.subject || 'Please verify your subscription',
         token,
         unsubscribeHash,
-        unsubscribeUrl,
+        unsubscribeURL,
         verifyData,
         verifyUrl,
       })

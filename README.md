@@ -52,7 +52,7 @@ export default buildConfig({
       tokenExpiration: 60 * 60,
 
       // Provide your unsubscribe route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
-      unsubscribeUrl?: string
+      unsubscribeURL?: string
 
       // Provide your verify route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
       verifyUrl?: string
@@ -607,7 +607,7 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
 
 #### **Unsubscribe**
 
-A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeUrl** plugin option.
+A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeURL** plugin option.
 
 ```typescript
 // Unsubscribe with a custom "resubscribe" button

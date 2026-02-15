@@ -45,7 +45,7 @@ export type PayloadSubscribersConfig = {
   /**
    * The route or full URL for unsubscribe links
    */
-  unsubscribeUrl?: string
+  unsubscribeURL?: string
   /**
    * The route or full URL for verify links
    */
@@ -55,9 +55,9 @@ export type PayloadSubscribersConfig = {
 export const payloadSubscribersPlugin =
   (pluginOptions: PayloadSubscribersConfig) =>
   (config: Config): Config => {
-    if (!config.serverURL && !(pluginOptions.unsubscribeUrl && pluginOptions.verifyUrl)) {
+    if (!config.serverURL && !(pluginOptions.unsubscribeURL && pluginOptions.verifyUrl)) {
       throw new Error(
-        'payloadSubscribersPlugin requires config.serverURL OR valid values for all URL options: unsubscribeUrl, verifyUrl',
+        'payloadSubscribersPlugin requires config.serverURL OR valid values for all URL options: unsubscribeURL, verifyUrl',
       )
     }
 
@@ -67,11 +67,11 @@ export const payloadSubscribersPlugin =
 
     config.collections.push(OptInChannels)
 
-    const unsubscribeUrl = !pluginOptions.unsubscribeUrl
+    const unsubscribeURL = !pluginOptions.unsubscribeURL
       ? new URL('/unsubscribe', config.serverURL)
-      : isAbsoluteURL(pluginOptions.unsubscribeUrl)
-        ? new URL(pluginOptions.unsubscribeUrl)
-        : new URL(pluginOptions.unsubscribeUrl, config.serverURL)
+      : isAbsoluteURL(pluginOptions.unsubscribeURL)
+        ? new URL(pluginOptions.unsubscribeURL)
+        : new URL(pluginOptions.unsubscribeURL, config.serverURL)
 
     // Get a URL object from the verifyUrl option
     const verifyUrl = !pluginOptions.verifyUrl
@@ -159,12 +159,12 @@ export const payloadSubscribersPlugin =
       }),
       createEndpointRequestMagicLink({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
-        unsubscribeUrl,
+        unsubscribeURL,
         verifyUrl,
       }),
       createEndpointSubscribe({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
-        unsubscribeUrl,
+        unsubscribeURL,
         verifyUrl,
       }),
       createEndpointSubscriberAuth({

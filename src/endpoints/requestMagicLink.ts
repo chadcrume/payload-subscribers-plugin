@@ -19,17 +19,17 @@ export type RequestMagicLinkResponse =
  *
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
- * @param options.unsubscribeUrl - (optional) The URL to use for unsubscribe links
+ * @param options.unsubscribeURL - (optional) The URL to use for unsubscribe links
  * @param options.verifyUrl - (required) The URL to use for verify links
  * @returns Payload Endpoint config for POST /emailToken
  */
 function createEndpointRequestMagicLink({
   subscribersCollectionSlug = defaultCollectionSlug,
-  unsubscribeUrl,
+  unsubscribeURL,
   verifyUrl,
 }: {
   subscribersCollectionSlug: CollectionSlug
-  unsubscribeUrl?: URL
+  unsubscribeURL?: URL
   verifyUrl: URL
 }): Endpoint {
   // verifyUrl required
@@ -110,9 +110,9 @@ function createEndpointRequestMagicLink({
 
     // Send email
     const magicLink = `${verifyUrl?.href}${verifyUrl?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&verifyData=${encodeURIComponent(verifyData)}`
-    const unsubscribeLink = !unsubscribeUrl
+    const unsubscribeLink = !unsubscribeURL
       ? undefined
-      : `${unsubscribeUrl?.href}${unsubscribeUrl?.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash)}`
+      : `${unsubscribeURL?.href}${unsubscribeURL?.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash)}`
     const subject = data.subject || 'Your Magic Login Link'
     const message = `
   ${data.message || '<p>You requested a magic link to log in. Click the button below</p>'}
