@@ -101,7 +101,7 @@ export function SubscriberProvider({ children }: ProviderProps) {
 
   useEffect(() => {
     void refreshSubscriber()
-  }, [refreshSubscriber]) // Empty dependency array for mount/unmount
+  }, [refreshSubscriber])
 
   // Memoize the value to prevent unnecessary re-renders in consumers
   const contextValue: SubscriberContextType = useMemo(

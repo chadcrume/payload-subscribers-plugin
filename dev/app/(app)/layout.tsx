@@ -27,7 +27,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <HomeChecker>
             <SubscriberMenu
               classNames={{ button: 'customCss', container: 'customCss' }}
-              subscribeUrl={serverURL + '/subscribe'}
+              subscribeURL={serverURL + '/subscribe'}
             />
           </HomeChecker>
           {children}

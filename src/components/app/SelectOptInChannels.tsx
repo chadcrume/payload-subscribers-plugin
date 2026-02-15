@@ -10,7 +10,14 @@ import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
-/** Props for the SelectOptInChannels component. */
+/**
+ * Props for the SelectOptInChannels component.
+ *
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleOptInChannelsSelected - Callback with the list of selected opt-in channels
+ * @property props - Optional passthrough props (reserved for future use)
+ * @property selectedOptInChannelIDs - Optional channel IDs to pre-select
+ */
 export interface ISelectOptInChannels {
   classNames?: SelectOptInChannelsClasses
   handleOptInChannelsSelected?: (result: OptInChannel[]) => void
@@ -18,7 +25,20 @@ export interface ISelectOptInChannels {
   selectedOptInChannelIDs?: string[]
 }
 
-/** Optional CSS class overrides for SelectOptInChannels elements. */
+/**
+ * Optional CSS class overrides for SelectOptInChannels elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for message text
+ * @property optInCheckbox - Class for each checkbox input
+ * @property optInCheckboxItem - Class for each checkbox row/item
+ * @property optInCheckboxLabel - Class for checkbox labels
+ * @property optionsGroup - Class for the group wrapping all checkboxes
+ */
 export type SelectOptInChannelsClasses = {
   button?: string
   container?: string
@@ -36,7 +56,10 @@ export type SelectOptInChannelsClasses = {
  * Fetches active opt-in channels from GET /api/optinchannels and renders a list of checkboxes.
  * Reports selected channels via handleOptInChannelsSelected. Supports pre-selection via selectedOptInChannelIDs.
  *
- * @param props - See ISelectOptInChannels
+ * @param props - Component props (see ISelectOptInChannels)
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleOptInChannelsSelected - Callback with the list of selected opt-in channels
+ * @param props.selectedOptInChannelIDs - Optional channel IDs to pre-select
  * @returns Section titled "Opt-in Channels" with checkboxes and loading/error state
  */
 export const SelectOptInChannels = ({

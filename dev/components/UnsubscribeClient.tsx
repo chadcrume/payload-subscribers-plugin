@@ -2,21 +2,14 @@
 
 import type { UnsubscribeResponse } from 'payload-subscribers-plugin/ui'
 
-import { useSearchParams } from 'next/navigation.js'
-import { Unsubscribe, useSubscriber } from 'payload-subscribers-plugin/ui'
+import { Unsubscribe } from 'payload-subscribers-plugin/ui'
 
 export function UnsubscribeClient() {
-  const searchParams = useSearchParams()
-  const forwardUrl = searchParams.get('forwardUrl') || ''
-  const { refreshSubscriber } = useSubscriber()
-
   // eslint-disable-next-line @typescript-eslint/require-await
   async function handleUnsubscribe(result: UnsubscribeResponse) {
     console.log('handleUnsubscribe:', result)
-    refreshSubscriber()
   }
 
-  // Example: Conditionally render something or pass the state to children
   return (
     <main id="main-content">
       <h1>Unsubscribe</h1>

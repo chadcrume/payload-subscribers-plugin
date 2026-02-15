@@ -116,7 +116,7 @@ describe('Plugin integration tests', () => {
     const testEmail = getTestEmail()
 
     const request = new Request(`${serverURL}/api/emailToken`, {
-      body: JSON.stringify({ email: testEmail, verifyUrl: '/verify' }),
+      body: JSON.stringify({ email: testEmail }),
       method: 'POST',
     })
     const payloadRequest = await createPayloadRequest({ config, request })
@@ -124,13 +124,16 @@ describe('Plugin integration tests', () => {
     payload.logger.info(`customSubscribersCollectionsSlug = ${customSubscribersCollectionsSlug}`)
     const response = await createEndpointRequestMagicLink({
       subscribersCollectionSlug: customSubscribersCollectionsSlug,
+      verifyURL: new URL('/verify', serverURL),
     }).handler(payloadRequest)
 
     payload.logger.info(`called ${serverURL}/api/emailToken`)
 
+    const resJson = await response.json()
+    payload.logger.info(`resJson ${JSON.stringify(resJson, undefined, 2)}`)
+
     expect(response.status).toBe(200)
 
-    const resJson = await response.json()
     expect(resJson.emailResult).toBeDefined()
     //   .toStrictEqual({
     //     message: `Test email to: '${testEmail}', Subject: 'Your Magic Login Link', Html: '
@@ -202,7 +205,7 @@ describe('Plugin integration tests', () => {
     const user = userResult[0]
 
     const verifyRequest = new Request(`${serverURL}/api/verifyToken`, {
-      body: JSON.stringify({ email: user.email, token: testToken, verifyUrl: '/verify' }),
+      body: JSON.stringify({ email: user.email, token: testToken }),
       method: 'POST',
     })
     const verifyPayloadRequest = await createPayloadRequest({ config, request: verifyRequest })

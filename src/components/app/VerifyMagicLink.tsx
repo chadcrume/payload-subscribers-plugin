@@ -1,16 +1,15 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { useSearchParams } from 'next/navigation.js'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import type { RequestMagicLinkResponse } from '../..//endpoints/requestMagicLink.js'
-import type { Config } from '../../copied/payload-types.js'
+import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
 
 export { VerifyMagicLinkResponse }
 import { RequestMagicLink, useSubscriber } from '../../exports/ui.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
+import { useVerifyMagicLink } from '../../hooks/useVerifyMagicLink.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -18,17 +17,34 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-/** Props for the VerifyMagicLink component. */
+/**
+ * Props for the VerifyMagicLink component.
+ *
+ * @property children - Optional React nodes rendered after the verify action (e.g. when error)
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleMagicLinkRequested - Callback when a new magic link is requested
+ * @property handleMagicLinkVerified - Callback when the magic link is verified
+ * @property verifyData - Optional data for verification (e.g. email/token from URL)
+ */
 export interface IVerifyMagicLink {
   children?: React.ReactNode
   classNames?: VerifyMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
-  handleMagicLinkVerified?: (result: VerifyMagicLinkResponse) => void
-  renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
-  verifyUrl?: string | URL
+  handleMagicLinkVerified?: (result: string) => void
+  verifyData?: string
 }
 
-/** Optional CSS class overrides for VerifyMagicLink elements. */
+/**
+ * Optional CSS class overrides for VerifyMagicLink elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for result message text
+ */
 export type VerifyMagicLinkClasses = {
   button?: string
   container?: string
@@ -42,10 +58,15 @@ export type VerifyMagicLinkClasses = {
 /**
  * Handles the verify step of magic-link flow. When URL has email and token query params, calls
  * POST /api/verifyToken to verify and log in; otherwise shows RequestMagicLink. Supports
- * "Request another magic link" via renderButton and optional callbacks.
+ * "Request another magic link" and optional callbacks.
  *
- * @param props - See IVerifyMagicLink
- * @returns RequestMagicLink when no token/email; otherwise verifying state, result message, and optional button/children
+ * @param props - Component props (see IVerifyMagicLink)
+ * @param props.children - Optional React nodes rendered after the verify action (e.g. when error)
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleMagicLinkRequested - Callback when a new magic link is requested
+ * @param props.handleMagicLinkVerified - Callback when the magic link is verified
+ * @param props.verifyData - Optional data for verification (e.g. email/token from URL)
+ * @returns Loading status, error/result message, and children. Shows RequestMagicLink when no token/email.
  */
 export const VerifyMagicLink = ({
   children,
@@ -60,106 +81,64 @@ export const VerifyMagicLink = ({
   },
   handleMagicLinkRequested,
   handleMagicLinkVerified,
-  renderButton = ({ name, onClick, text }) => (
-    <button
-      className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-      name={name}
-      onClick={onClick}
-      type="button"
-    >
-      {text}
-    </button>
-  ),
-  verifyUrl,
+  verifyData,
 }: IVerifyMagicLink) => {
-  if (typeof verifyUrl == 'string') {
-    verifyUrl = new URL(verifyUrl)
-  }
-  const { serverURL } = useServerUrl()
-  const {
-    // refreshSubscriber,
-    subscriber,
-  } = useSubscriber()
-
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const token = searchParams.get('token')
 
-  const [result, setResult] = useState<string>()
-  const [isError, setIsError] = useState<boolean>(false)
-  // const [email, setEmail] = useState('')
+  const { subscriber } = useSubscriber()
 
-  const { refreshSubscriber } = useSubscriber()
-
-  const callVerify = useCallback(async () => {
-    if (!email || !token) {
-      return { error: 'Invalid input' }
-    }
-    try {
-      // I tried using PayloadSDK.request, but when the endpoint
-      // returns a not-okay status, PayloadSDK.request returns its
-      // own "Bad request" error, and doesn't share the endpoint
-      // result data.
-      const verifyEndpointResult = await fetch(`${serverURL ? serverURL : ''}/api/verifyToken`, {
-        body: JSON.stringify({
-          email,
-          token,
-        }),
-        method: 'POST',
-      })
-
-      // return verifyEndpointResult
-      if (verifyEndpointResult && verifyEndpointResult.json) {
-        const resultJson = await verifyEndpointResult.json()
-        return { error: resultJson.error, message: resultJson.message }
-      } else if (verifyEndpointResult && verifyEndpointResult.text) {
-        const resultText = await verifyEndpointResult.text()
-        return { error: resultText }
-      } else {
-        return { error: verifyEndpointResult.status }
-      }
-    } catch (error: unknown) {
-      return { error }
-    }
-  }, [email, serverURL, token])
+  const {
+    isError: verifyIsError,
+    isLoading: verifyIsLoading,
+    result: verifyResult,
+    verify,
+  } = useVerifyMagicLink()
 
   useEffect(() => {
-    async function verify() {
-      const { error, message } = await callVerify()
-      console.log(`Unknown error: (${error})`)
-      setResult(message || `An error occured. Please try again. (${error})`)
-      setIsError(error && !message)
-      // console.info('callVerify not okay', { error, message })
+    async function asyncVerify() {
+      await verify()
     }
     if (!subscriber) {
-      void verify()
-    }
-  }, [callVerify, serverURL, email, handleMagicLinkVerified, refreshSubscriber, subscriber, token])
-
-  const handleRequestAnother = async () => {
-    const sdk = new PayloadSDK<Config>({
-      baseURL: serverURL || '',
-    })
-
-    const emailResult = await sdk.request({
-      json: {
-        email,
-        verifyUrl: verifyUrl?.href,
-      },
-      method: 'POST',
-      path: '/api/emailToken',
-    })
-    if (emailResult.ok) {
-      const resultJson = await emailResult.json()
-      setResult('An email has been sent containing your magic link.')
-      setIsError(false)
-      if (handleMagicLinkRequested) {
-        handleMagicLinkRequested(resultJson)
-      }
+      void asyncVerify()
     } else {
-      // const resultText = await emailResult.text()
-      setResult('An error occured. Please try again.')
-      setIsError(true)
+      setIsError(false)
+      setResult('Already logged in')
+    }
+  }, [subscriber, verify])
+
+  useEffect(() => {
+    setResult(verifyResult)
+    setIsError(verifyIsError)
+    setIsLoading(verifyIsLoading)
+    if (!verifyIsError && handleMagicLinkVerified) {
+      handleMagicLinkVerified(verifyResult)
+    }
+  }, [handleMagicLinkVerified, verifyResult, verifyIsError, verifyIsLoading])
+
+  const [result, setResult] = useState<string>()
+  const [isError, setIsError] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const {
+    result: requestResult,
+    sendMagicLink,
+    status: requestStatus,
+  } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
+
+  useEffect(() => {
+    setIsError(requestStatus == 'error')
+    setResult(requestResult)
+    setIsLoading(false)
+  }, [requestResult, requestStatus])
+
+  const handleRequestAnother = () => {
+    if (email) {
+      void sendMagicLink(email)
     }
   }
 
@@ -174,7 +153,7 @@ export const VerifyMagicLink = ({
             classNames.container,
           ])}
         >
-          {!result && (
+          {isLoading && (
             <p
               className={mergeClassNames([
                 'subscribers-loading',
@@ -185,7 +164,7 @@ export const VerifyMagicLink = ({
               verifying...
             </p>
           )}
-          {result && (
+          {!isLoading && result && (
             <p
               className={mergeClassNames([
                 'subscribers-message',
@@ -198,14 +177,20 @@ export const VerifyMagicLink = ({
             </p>
           )}
           <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-            {result &&
-              isError &&
-              renderButton &&
-              renderButton({
-                name: 'request',
-                onClick: handleRequestAnother,
-                text: 'Request another magic link',
-              })}
+            {result && isError && (
+              <button
+                className={mergeClassNames([
+                  'subscribers-button',
+                  styles.button,
+                  classNames.button,
+                ])}
+                name={'request'}
+                onClick={handleRequestAnother}
+                type="button"
+              >
+                {'Request another magic link'}
+              </button>
+            )}
             {result && children}
           </div>
         </div>

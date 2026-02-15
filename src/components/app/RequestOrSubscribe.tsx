@@ -12,15 +12,31 @@ export type { RequestMagicLinkResponse, SubscribeResponse }
 
 /**
  * Props for the RequestOrSubscribe component.
+ *
+ * @property classNames - Optional CSS class overrides for the component and its children
+ * @property handleMagicLinkRequested - Callback when a magic link is requested (no subscriber yet)
+ * @property handleSubscribe - Callback when subscription/opt-ins are updated (subscriber present)
+ * @property verifyData - Optional data passed to child components (e.g. for magic-link verification)
  */
 export interface IRequestOrSubscribe {
   classNames?: RequestOrSubscribeClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleSubscribe?: (result: SubscribeResponse) => void
-  verifyUrl?: string | URL
+  verifyData?: string
 }
 
-/** Optional CSS class overrides for RequestOrSubscribe and its child components. */
+/**
+ * Optional CSS class overrides for RequestOrSubscribe and its child components.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for forms
+ * @property loading - Class for loading state
+ * @property message - Class for message text
+ * @property section - Class for section wrappers
+ */
 export type RequestOrSubscribeClasses = {
   button?: string
   container?: string
@@ -36,10 +52,11 @@ export type RequestOrSubscribeClasses = {
  * Composite component that shows Subscribe when a subscriber is authenticated, otherwise
  * RequestMagicLink. Used as a single entry point for "sign in or manage subscriptions."
  *
+ * @param props - Component props (see IRequestOrSubscribe)
  * @param props.classNames - Optional class overrides passed to child components
  * @param props.handleMagicLinkRequested - Callback when a magic link is requested (no subscriber yet)
  * @param props.handleSubscribe - Callback when subscription/opt-ins are updated (subscriber present)
- * @param props.verifyUrl - Base URL for verify links in emails
+ * @param props.verifyData - Optional data passed to child components (e.g. for magic-link verification)
  * @returns Either Subscribe or RequestMagicLink based on subscriber context
  */
 export function RequestOrSubscribe({
@@ -55,28 +72,23 @@ export function RequestOrSubscribe({
   },
   handleMagicLinkRequested,
   handleSubscribe,
-  verifyUrl,
+  verifyData,
 }: IRequestOrSubscribe) {
-  if (typeof verifyUrl == 'string') {
-    verifyUrl = new URL(verifyUrl)
-  }
-
   const { subscriber } = useSubscriber()
 
-  // Example: Conditionally render something or pass the state to children
   return (
     <>
       {subscriber ? (
         <Subscribe
           classNames={classNames}
           handleSubscribe={handleSubscribe}
-          verifyUrl={verifyUrl}
+          verifyData={verifyData}
         />
       ) : (
         <RequestMagicLink
           classNames={classNames}
           handleMagicLinkRequested={handleMagicLinkRequested}
-          verifyUrl={verifyUrl}
+          verifyData={verifyData}
         />
       )}
       {/* <div>subscriber = {JSON.stringify(subscriber)}</div> */}

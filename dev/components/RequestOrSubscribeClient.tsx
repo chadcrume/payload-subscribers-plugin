@@ -14,23 +14,20 @@ export const RequestOrSubscribeClient = ({
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   handleSubscribe?: (result: SubscribeResponse) => void
 }) => {
-  const [verifyUrl, setVerifyUrl] = useState<URL>()
+  const [verifyData, setVerifyData] = useState<{ forwardURL?: string }>()
+
   useEffect(() => {
-    setVerifyUrl(
-      new URL(
-        `/verify?forwardUrl=${encodeURIComponent(
-          window.location.pathname + '?now=' + new Date().toISOString(),
-        )}`,
-        window.location.protocol + window.location.host,
-      ),
-    )
+    setVerifyData({
+      forwardURL: window.location.href,
+    })
   }, [])
+
   return (
     <RequestOrSubscribe
       classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
       handleMagicLinkRequested={handleMagicLinkRequested}
       handleSubscribe={handleSubscribe}
-      verifyUrl={verifyUrl}
+      verifyData={verifyData ? JSON.stringify(verifyData) : undefined}
     />
   )
 }

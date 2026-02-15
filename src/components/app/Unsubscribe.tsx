@@ -1,13 +1,13 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation.js'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import type { UnsubscribeResponse } from '../../endpoints/unsubscribe.js'
 
 export { UnsubscribeResponse }
 import { useSubscriber } from '../../exports/ui.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import { useUnsubscribe } from '../../hooks/useUnsubscribe.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -15,15 +15,30 @@ import styles from './shared.module.css'
 //   config: configPromise,
 // })
 
-/** Props for the Unsubscribe component. */
+/**
+ * Props for the Unsubscribe component.
+ *
+ * @property children - Optional React nodes rendered after unsubscribe is attempted
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleUnsubscribe - Callback when unsubscribe is attempted (success or error)
+ */
 export interface IUnsubscribe {
   children?: React.ReactNode
   classNames?: UnsubscribeClasses
   handleUnsubscribe?: (result: UnsubscribeResponse) => void
-  renderButton?: (props: { name?: string; onClick?: () => any; text?: string }) => React.ReactNode
 }
 
-/** Optional CSS class overrides for Unsubscribe elements. */
+/**
+ * Optional CSS class overrides for Unsubscribe elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for result message text
+ */
 export type UnsubscribeClasses = {
   button?: string
   container?: string
@@ -35,11 +50,14 @@ export type UnsubscribeClasses = {
 }
 
 /**
- * Handles the verify step of magic-link flow. When URL has email and hash query params, calls
- * POST /api/unsubscribe to complete the unsubscribe. Displays children provided after unsubscribe is attempted.
+ * Handles the unsubscribe action, for use with unsubscribe URLs in emails, etc.
+ * Uses URL params email and hash to call POST /api/unsubscribe. Displays children after attempt.
  *
- * @param props - See IUnsubscribe
- * @returns Result message, and optional button/children
+ * @param props - Component props (see IUnsubscribe)
+ * @param props.children - Optional React nodes rendered after unsubscribe is attempted
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleUnsubscribe - Callback when unsubscribe is attempted (success or error)
+ * @returns Loading status, result message, and children
  */
 export const Unsubscribe = ({
   children,
@@ -53,99 +71,37 @@ export const Unsubscribe = ({
     message: '',
   },
   handleUnsubscribe,
-  renderButton = ({ name, onClick, text }) => (
-    <button
-      className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
-      name={name}
-      onClick={onClick}
-      type="button"
-    >
-      {text}
-    </button>
-  ),
 }: IUnsubscribe) => {
-  const { serverURL } = useServerUrl()
-  const {
-    // refreshSubscriber,
-    subscriber,
-  } = useSubscriber()
+  const { isError, isLoading, result, unsubscribe } = useUnsubscribe({ handleUnsubscribe })
 
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const hash = searchParams.get('hash')
 
-  const [result, setResult] = useState<string>()
-  const [isError, setIsError] = useState<boolean>(false)
-  // const [email, setEmail] = useState('')
-
-  const { refreshSubscriber } = useSubscriber()
-
-  const callUnsubscribe = useCallback(async () => {
-    if (!email || !hash) {
-      return { error: 'Invalid input' }
-    }
-    let resultJson
-    try {
-      const unsubscribeEndpointResult = await fetch(
-        `${serverURL ? serverURL : ''}/api/unsubscribe`,
-        {
-          body: JSON.stringify({
-            email,
-            unsubscribeToken: hash,
-          }),
-          method: 'POST',
-        },
-      )
-
-      // return unsubscribeEndpointResult
-      if (unsubscribeEndpointResult && unsubscribeEndpointResult.json) {
-        resultJson = await unsubscribeEndpointResult.json()
-        resultJson = { error: resultJson.error, message: resultJson.message, now: resultJson.now }
-      } else if (unsubscribeEndpointResult && unsubscribeEndpointResult.text) {
-        const resultText = await unsubscribeEndpointResult.text()
-        resultJson = { error: resultText, now: new Date().toISOString() }
-      } else {
-        resultJson = { error: unsubscribeEndpointResult.status, now: new Date().toISOString() }
-      }
-    } catch (error: any) {
-      resultJson = { error, now: new Date().toISOString() }
-    }
-    if (handleUnsubscribe) {
-      handleUnsubscribe(resultJson)
-    }
-    return resultJson
-  }, [email, serverURL, hash])
-
   useEffect(() => {
-    async function verify() {
-      const { error, message } = await callUnsubscribe()
-      console.log(`Unknown error: (${error})`)
-      setResult(message || `An error occured. Please try again. (${error})`)
-      setIsError(error && !message)
-      // console.info('callUnsubscribe not okay', { error, message })
+    async function callUnsubscribe() {
+      if (email && hash) {
+        await unsubscribe({ email, hash })
+      }
     }
-    if (!subscriber) {
-      void verify()
-    }
-  }, [callUnsubscribe, serverURL, email, refreshSubscriber, subscriber, hash])
+    void callUnsubscribe()
+  }, [email, hash, unsubscribe])
 
   return (
-    <>
-      <div
-        className={mergeClassNames([
-          'subscribers-verify subscribers-container',
-          styles.container,
-          classNames.container,
-        ])}
-      >
-        {!result && (
-          <p
-            className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}
-          >
-            unsubscribing...
-          </p>
-        )}
-        {result && (
+    <div
+      className={mergeClassNames([
+        'subscribers-callUnsubscribe subscribers-container',
+        styles.container,
+        classNames.container,
+      ])}
+    >
+      {isLoading && (
+        <p className={mergeClassNames(['subscribers-loading', styles.loading, classNames.loading])}>
+          unsubscribing...
+        </p>
+      )}
+      {!isLoading && (
+        <>
           <p
             className={mergeClassNames([
               'subscribers-message',
@@ -156,19 +112,11 @@ export const Unsubscribe = ({
           >
             {result}
           </p>
-        )}
-        <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
-          {/* {result &&
-              isError &&
-              renderButton &&
-              renderButton({
-                name: 'request',
-                onClick: handleRequestAnother,
-                text: 'Request another magic link',
-              })} */}
-          {result && children}
-        </div>
-      </div>
-    </>
+          <div className={mergeClassNames(['subscribers-form', styles.form, classNames.form])}>
+            {children}
+          </div>
+        </>
+      )}
+    </div>
   )
 }

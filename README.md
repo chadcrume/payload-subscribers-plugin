@@ -50,10 +50,13 @@ export default buildConfig({
 
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
       tokenExpiration: 60 * 60,
-      
-      // Provide your unsubscribe route. This route should include the Unsubscribe component.
-      unsubscribeUrl?: string
-    }),
+
+      // Provide your unsubscribe route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
+      unsubscribeURL?: string
+
+      // Provide your verify route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
+      verifyURL?: string
+}),
   ],
 })
 ```
@@ -127,7 +130,7 @@ You can specify collections in the plugin options which will be amended to inclu
 
 #### **tokenExpiration**
 
-### 🟢 Collections
+### 🔵 Collections
 
 #### **optInChannels**
 
@@ -153,7 +156,7 @@ Seeded when plugin inits.
 
 ---
 
-### 🔵 Fields
+### 🔴 Fields
 
 #### **OptedInChannels**
 
@@ -163,7 +166,7 @@ This is the same field used by the plugin **collections** to amended a relationT
 
 ---
 
-### 🔴 Payload endpoints
+### 🟢 Payload endpoints
 
 #### **requestMagicLink**
 
@@ -181,19 +184,193 @@ Returns all active optInChannels data.
 
 Takes an email and list of optInChannel IDs, verifies them, and if the authenticated subscriber matches the email will update the channels that subscriber is opted into.
 
-#### TO DO: unsubscribe
+#### **unsubscribe**
 
-The **subscribe** endpoint will remove all optIns. But need a way to set the subscriber status to "unsubscribed"
-
----
-
-### 🟢 SubscriberProvider provider with useSubscriber context
+The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ---
 
-### 🔵 Provides several NextJS client components ready for use in a frontend app
+### 🔵 SubscriberProvider provider with useSubscriber context
 
-- All App Components are client components that consume hooks, server components, server functions. Including the useSubscriber context, and so the must be used within the children descendent tree of the SubscriberProvider provider.
+**SubscriberProvider** fetches and holds the current subscriber auth state (via POST /api/subscriberAuth) and exposes it to the tree. Any component that uses **useSubscriber()**, or the plugin’s client components (RequestOrSubscribe, RequestMagicLink, Subscribe, etc.), or the plugin's client hooks (useRequestMagicLink, useSubscribe, etc.) must be a descendant of this provider.
+
+The context value includes:
+
+- **subscriber** — The current authenticated subscriber (or `null` if not logged in).
+- **isLoaded** — `true` once the initial auth check has completed.
+- **permissions** — Permissions returned from the auth endpoint (if any).
+- **refreshSubscriber** — Call to refetch the current subscriber (e.g. after verifying a magic link or updating preferences).
+- **logOut** — Calls POST /api/logout and clears subscriber state.
+
+Wrap your app (or the part that uses subscriber features) with **SubscriberProvider**, then use **useSubscriber** in child components:
+
+```typescript
+// layout.tsx (or root layout)
+
+import { SubscriberProvider } from 'payload-subscribers-plugin/ui'
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <SubscriberProvider>
+          {children}
+        </SubscriberProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+```typescript
+// Any descendant component
+
+import { useSubscriber } from 'payload-subscribers-plugin/ui'
+
+function MyComponent() {
+  const { isLoaded, logOut, refreshSubscriber, subscriber } = useSubscriber()
+
+  if (!isLoaded) return <p>Loading…</p>
+  if (!subscriber) return <p>Not signed in.</p>
+
+  return (
+    <div>
+      <p>Signed in as {subscriber.email}</p>
+      <button type="button" onClick={() => void refreshSubscriber()}>
+        Refresh
+      </button>
+      <button type="button" onClick={() => void logOut()}>
+        Log out
+      </button>
+    </div>
+  )
+}
+```
+
+**Note:** `useSubscriber` throws if used outside a `SubscriberProvider`. Ensure the provider is mounted above any component that calls it.
+
+---
+
+### 🔴 Client hooks
+
+Use these hooks inside components that are descendants of **SubscriberProvider**. They call the plugin endpoints and expose state and callbacks for building custom UI.
+
+#### **useRequestMagicLink**
+
+Requests a magic-login link by email (POST /api/emailToken). Exposes `sendMagicLink`, plus `result` and `status` for rendering messages and loading state.
+
+```typescript
+import { useRequestMagicLink } from 'payload-subscribers-plugin/hooks'
+
+function MySignInForm() {
+  const { result, sendMagicLink, status } = useRequestMagicLink({
+    handleMagicLinkRequested: (response) => console.log('Link sent', response),
+    verifyData: `forwardURL=${typeof window !== 'undefined' ? window.location.href : ''}`,
+  })
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const email = new FormData(e.currentTarget).get('email') as string
+    void sendMagicLink(email)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="email" type="email" required />
+      <button type="submit" disabled={status === 'sending'}>
+        {status === 'sending' ? 'Sending…' : 'Request magic link'}
+      </button>
+      {result && <p className={status === 'error' ? 'error' : ''}>{result}</p>}
+    </form>
+  )
+}
+```
+
+#### **useVerifyMagicLink**
+
+Handles the verify step of the magic-link flow: reads `email` and `token` from URL search params, calls POST /api/verifyToken, and refreshes the subscriber on success. Takes no options.
+
+```typescript
+import { useEffect } from 'react'
+import { useVerifyMagicLink } from 'payload-subscribers-plugin/hooks'
+
+function VerifyPage() {
+  const { isError, isLoading, result, verify } = useVerifyMagicLink()
+
+  useEffect(() => {
+    void verify()
+  }, [verify])
+
+  if (isLoading) return <p>Verifying…</p>
+  return <p className={isError ? 'error' : ''}>{result || 'Done.'}</p>
+}
+```
+
+#### **useSubscribe**
+
+Updates the current subscriber’s opt-in channels (POST /api/subscribe). Exposes `updateSubscriptions`, plus `subscriber`, `result`, and `status`. Use with **SubscriberProvider** so `subscriber` and refresh are available.
+
+```typescript
+import { useSubscribe } from 'payload-subscribers-plugin/hooks'
+
+function MyPreferencesForm() {
+  const { result, status, subscriber, updateSubscriptions } = useSubscribe({
+    handleSubscribe: (response) => console.log('Updated', response),
+    verifyData: `forwardURL=${typeof window !== 'undefined' ? window.location.href : ''}`,
+  })
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    const channelIds = ['channel-id-1', 'channel-id-2'] // from your form state
+    void updateSubscriptions(channelIds)
+  }
+
+  return (
+    <form onSubmit={handleSave}>
+      {/* your channel checkboxes, etc. */}
+      <button type="submit" disabled={status === 'updating'}>
+        {status === 'updating' ? 'Saving…' : 'Save choices'}
+      </button>
+      {result && <p>{result}</p>}
+    </form>
+  )
+}
+```
+
+#### **useUnsubscribe**
+
+Calls POST /api/unsubscribe with email and token (from the hook args or from subscriber context). For use on unsubscribe pages linked from emails.
+
+```typescript
+import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useUnsubscribe } from 'payload-subscribers-plugin/hooks'
+
+function UnsubscribePage() {
+  const searchParams = useSearchParams()
+  const { isError, isLoading, result, unsubscribe } = useUnsubscribe({
+    handleUnsubscribe: (response) => console.log('Unsubscribed', response),
+  })
+
+  // With email/hash from URL (e.g. from email link)
+  useEffect(() => {
+    const email = searchParams.get('email')
+    const hash = searchParams.get('hash')
+    if (email && hash) void unsubscribe({ email, hash })
+  }, [searchParams, unsubscribe])
+
+  if (isLoading) return <p>Unsubscribing…</p>
+  return <p className={isError ? 'error' : ''}>{result}</p>
+}
+```
+
+---
+
+### 🟢 Client components
+
+The plugin provides several NextJS client components ready for use in a frontend app
+
+- All App Components are client components that consume hooks, server components, server functions. Including the useSubscriber context, and so they must be used within the children descendent tree of the SubscriberProvider provider.
 
 - All App Components accept a **classNames** prop to specify CSS class names to add to the different parts of the component
 
@@ -223,14 +400,14 @@ Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherw
     handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
     // Called after a subscribers opt-ins have been updated. Optional
     handleSubscribe={async (result: SubscribeResponse) => {}}
-    // Provided your own button component. Optional
+    // Provide your own button component. Optional
     renderButton={({ name, onClick, text }) =>
       <button name={name} onClick={onClick} type="button">
         {text}
       </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on any verify link sent by either Request or Subscribe components
+    verifyData={`forwardURL=${window.location.href}`}
   />
 ```
 
@@ -261,8 +438,8 @@ Form to input email address and get a magic link email sent.
         {text}
       </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on any verify link sent
+    verifyData={`forwardURL=${window.location.href}`}
   />
 ```
 
@@ -304,13 +481,11 @@ Component that verifies a magic link using expected url parameters.
           {text}
         </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    // Used when this VerifyMagicLink component provides an option to request another link
-    // when verifying the current one fails.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on "request another" link sent
+    verifyData={`forwardURL=${window.location.href}`}
   >
     // Provide children to render after link is verified. Optional
-    // Since you provide the verifyUrl to any of the plugin components, you can include a forwardUrl
+    // Since you provide the verifyURL to any of the plugin components, you can include a forwardUrl
     // as a search param, which your route can then use here.
     <a href={forwardUrl}>
       <button className={'customCss'} name={'continue'} type="button">
@@ -361,8 +536,8 @@ Allows a subscriber to select from among all active optInChannels.
         {text}
       </button>
     }
-    // Provide the URL to your route that has the VerifyMagicLink component on it.
-    verifyUrl={verifyUrl}
+    // Provide a payload of data to put on any verify link sent
+    verifyData={`forwardURL=${window.location.href}`}
   />
 ```
 
@@ -410,7 +585,7 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
     button: 'customCssClassNames',
     container: 'customCssClassNames',
   }}
-  subscribeUrl={new URL('/subscribe', serverURL)}
+  subscribeURL={new URL('/subscribe', serverURL)}
  />
 
 ```
@@ -421,12 +596,44 @@ A simple user menu, most useful for testing. Seen in the screenshots above. Incl
   <div class="subscribers-group">
     <div class="subscribers-welcome">Welcome, {subscriber email}</div>
     <div class="subscribers-subs-link">
-      <a href="{subscribeUrl}">Manage subscriptions</a>
+      <a href="{subscribeURL}">Manage subscriptions</a>
     </div>
     <div class="subscribers-logout">
       <button class="subscribers-button" type="button">Log out</button>
     </div>
   </div>
+</div>
+```
+
+#### **Unsubscribe**
+
+A component that uses URL parameters to execute the /api/unsubscribe end point. Should be used on your own route, as specified in the **unsubscribeURL** plugin option.
+
+```typescript
+// Unsubscribe with a custom "resubscribe" button
+
+<Unsubscribe
+  classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+  handleUnsubscribe={handleUnsubscribe}
+>
+// <!-- children are rendered after unsubscribe is successful -->
+  <a href={'/subscribe'}>
+    <button name={'resubscribe'} type="button">
+      Resubscribe
+    </button>
+  </a>
+</Unsubscribe>
+
+```
+
+```html
+<!-- The HTML scaffolding of the built-in render layout, with global CSS classes you can use -->
+<div class="subscribers-container">
+  <!-- While loading -->
+  <p class="subscribers-loading">unsubscribing...</p>
+  <!-- After loading -->
+  <p class="subscribers-message">{result}</p>
+  <div class="subscribers-form">{children}</div>
 </div>
 ```
 

@@ -1,28 +1,49 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { type ChangeEvent, useEffect, useState } from 'react'
 
-import type { Config, OptInChannel } from '../../copied/payload-types.js'
+import type { OptInChannel, Subscriber } from '../../copied/payload-types.js'
 import type { SubscribeResponse } from '../../endpoints/subscribe.js'
 
 export { SubscribeResponse }
 
-import { useSubscriber } from '../../contexts/SubscriberProvider.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import type { RequestMagicLinkStatusValue } from '../../hooks/useRequestMagicLink.js'
+import type { UpdateSubscriptionStatusValue } from '../../hooks/useSubscribe.js'
+
+import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
+import { useSubscribe } from '../../hooks/useSubscribe.js'
+import { useUnsubscribe } from '../../hooks/useUnsubscribe.js'
 import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
 
-/** Props for the Subscribe component. */
+/**
+ * Props for the Subscribe component.
+ *
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleSubscribe - Callback when subscription/opt-ins are updated
+ * @property props - Optional passthrough props (reserved for future use)
+ * @property verifyData - Optional data for verification (e.g. passed from magic-link URL)
+ */
 export interface ISubscribe {
   classNames?: SubscribeClasses
   handleSubscribe?: (result: SubscribeResponse) => void
   props?: any
-  verifyUrl?: string | URL
+  verifyData?: string
 }
 
-/** Optional CSS class overrides for Subscribe elements. */
+/**
+ * Optional CSS class overrides for Subscribe elements.
+ *
+ * @property button - Class for buttons
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property loading - Class for loading state
+ * @property message - Class for status message text
+ * @property section - Class for section wrappers
+ */
 export type SubscribeClasses = {
   button?: string
   container?: string
@@ -34,14 +55,15 @@ export type SubscribeClasses = {
   section?: string
 }
 
-type statusValues = 'default' | 'error' | 'sent' | 'updated'
-
 /**
  * Subscribe/preferences form for authenticated subscribers. Shows SelectOptInChannels and an email
  * input when not yet authenticated. Submits to POST /api/subscribe to update opt-ins or trigger
  * verification email. Calls refreshSubscriber and handleSubscribe on success.
  *
- * @param props - See ISubscribe
+ * @param props - Component props (see ISubscribe)
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleSubscribe - Callback when subscription/opt-ins are updated
+ * @param props.verifyData - Optional data for verification (e.g. passed from magic-link URL)
  * @returns Form with channel checkboxes, optional email field, "Save choices" button, and status message
  */
 export const Subscribe = ({
@@ -56,18 +78,29 @@ export const Subscribe = ({
     section: '',
   },
   handleSubscribe,
-  verifyUrl,
+  verifyData,
 }: ISubscribe) => {
-  if (typeof verifyUrl == 'string') {
-    verifyUrl = new URL(verifyUrl)
-  }
+  const { unsubscribe } = useUnsubscribe({ handleUnsubscribe: () => {} })
 
-  const { refreshSubscriber, subscriber } = useSubscriber()
+  const [email, setEmail] = useState<string>('')
 
-  const { serverURL } = useServerUrl()
-
-  const sdk = new PayloadSDK<Config>({
-    baseURL: serverURL || '',
+  const handleMagicLinkRequested = () => {}
+  const {
+    result: requestResult,
+    sendMagicLink,
+    status: requestStatus,
+  } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
+  const {
+    result: subscribeResult,
+    status: subscribeStatus,
+    subscriber,
+    updateSubscriptions,
+  } = useSubscribe({
+    handleSubscribe,
+    verifyData,
   })
 
   const flattenChannels = (channels: (OptInChannel | string)[] | null | undefined) => {
@@ -79,76 +112,16 @@ export const Subscribe = ({
     )
   }
 
-  const [status, setStatus] = useState<statusValues>('default')
-  const [result, setResult] = useState<string>()
-  const [email, setEmail] = useState(subscriber ? subscriber.email : '')
   const [selectedChannelIDs, setSelectedChannelIDs] = useState<string[]>(() =>
     flattenChannels(subscriber?.optIns),
   )
 
   useEffect(() => {
-    setEmail(subscriber?.email || '')
     setSelectedChannelIDs(flattenChannels(subscriber?.optIns))
   }, [subscriber])
 
   const handleOptInChannelsSelected = (result: OptInChannel[]) => {
     setSelectedChannelIDs(result.map((channel) => channel.id))
-  }
-
-  const handleSubmit = async () => {
-    const subscribeResult = await sdk.request({
-      json: {
-        email,
-        optIns: selectedChannelIDs,
-        verifyUrl: verifyUrl?.href,
-      },
-      method: 'POST',
-      path: '/api/subscribe',
-    })
-    if (subscribeResult.ok) {
-      const resultJson: SubscribeResponse = await subscribeResult.json()
-      // // When subscriber optIns are updated...
-      // | {
-      //     email: string
-      //     now: string
-      //     optIns: string[]
-      //   }
-      // // When a verify link is emailed...
-      // | {
-      //     emailResult: any
-      //     now: string
-      //   }
-      // // When any error occurs...
-      // | {
-      //     error: string
-      //     now: string
-      //   }
-      // @ts-expect-error Silly type confusion
-      const { emailResult, error } = resultJson
-      if (error) {
-        setStatus('error')
-        setResult(`An error occured. Please try again. \n ${error}`)
-      } else if (emailResult) {
-        setStatus('sent')
-        setResult('An email has been sent containing your magic link.')
-      } else if (email) {
-        setStatus('updated')
-        setResult(`You're subscriptions have been updated.`)
-      } else {
-        setStatus('error')
-        setResult(`An error occured. Please try again. \nResult unknown`)
-      }
-
-      refreshSubscriber()
-
-      if (handleSubscribe) {
-        handleSubscribe(resultJson)
-      }
-    } else {
-      // const resultText = await subscribeResult.text()
-      setStatus('error')
-      setResult(`An error occured. Please try again. \nResult unknown`)
-    }
   }
 
   return (
@@ -172,7 +145,11 @@ export const Subscribe = ({
         method="POST"
         onSubmit={async (e) => {
           e.preventDefault()
-          await handleSubmit()
+          if (subscriber) {
+            await updateSubscriptions(selectedChannelIDs)
+          } else {
+            await sendMagicLink(email)
+          }
         }}
       >
         <div
@@ -200,18 +177,31 @@ export const Subscribe = ({
             {subscriber && subscriber?.status != 'unsubscribed' && <>Save choices</>}
             {subscriber?.status == 'unsubscribed' && <>Subscribe and save choices</>}
           </button>
+          {subscriber && subscriber?.status != 'unsubscribed' && (
+            <button
+              className={mergeClassNames(['subscribers-button', styles.button, classNames.button])}
+              onClick={async () => {
+                await unsubscribe()
+              }}
+              type="button"
+            >
+              Unsubscribe from all
+            </button>
+          )}
         </div>
       </form>
-      {!!result && (
+      {(!!requestResult || !!subscribeResult) && (
         <p
           className={mergeClassNames([
             'subscribers-message',
             styles.message,
             classNames.message,
-            status == 'error' ? ['subscribers-error', styles.error, classNames.error] : [],
+            requestStatus == 'error' || subscribeStatus == 'error'
+              ? ['subscribers-error', styles.error, classNames.error]
+              : [],
           ])}
         >
-          {result}
+          {requestResult || subscribeResult}
         </p>
       )}
     </div>

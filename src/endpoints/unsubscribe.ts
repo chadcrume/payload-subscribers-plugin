@@ -31,10 +31,10 @@ function createEndpointUnsubscribe({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   /**
-   * Handler for POST /unsubscribe. Accepts email, optIns, and verifyUrl. Creates pending
-   * subscribers and sends verify emails, or updates opt-ins for authenticated subscribers.
+   * Handler for POST /unsubscribe. Accepts email and unsubscribeToken. Updates subscriber's status
+   * to 'unsubscribed'.
    *
-   * @param req - Payload request; body: `email`, `optIns` (channel IDs), `verifyUrl`
+   * @param req - Payload request. Expects body to be a json object { email, unsubscribeToken }
    * @returns 200 with `emailResult`/`now`, or `email`/`optIns`/`now` when opt-ins updated; 400 with `error`/`now` on failure
    */
   const unsubscribeHandler: PayloadHandler = async (req) => {
@@ -45,24 +45,26 @@ function createEndpointUnsubscribe({
     //
     // VALIDATE INPUT
     //
-    // Require unsubscribeToken
-    if (!unsubscribeToken) {
+    // Require token and email OR authed user
+    if (!unsubscribeToken && (!req.user || req.user?.email != email)) {
       const result = { error: 'Bad data', now: new Date().toISOString() } as UnsubscribeResponse
       req.payload.logger.error(
-        `unsubscribe: No unsubscribeToken — ${JSON.stringify(result, undefined, 2)}`,
+        `unsubscribe: No unsubscribeToken or authenticated user - ${req.user?.email} — ${JSON.stringify(result, undefined, 2)}`,
       )
       return Response.json(result)
     }
 
     //
     // Verify unsubscribeToken
-    const { hashToken: verifyUnsubscribeToken } = getHmacHash(email)
-    if (unsubscribeToken != verifyUnsubscribeToken) {
-      const result = { error: 'Bad data', now: new Date().toISOString() } as UnsubscribeResponse
-      req.payload.logger.error(
-        `unsubscribe: unsubscribeToken not verified — ${JSON.stringify(result, undefined, 2)}`,
-      )
-      return Response.json(result)
+    if (unsubscribeToken) {
+      const { hashToken: verifyUnsubscribeToken } = getHmacHash(email)
+      if (unsubscribeToken != verifyUnsubscribeToken) {
+        const result = { error: 'Bad data', now: new Date().toISOString() } as UnsubscribeResponse
+        req.payload.logger.error(
+          `unsubscribe: unsubscribeToken not verified — ${JSON.stringify(result, undefined, 2)}`,
+        )
+        return Response.json(result)
+      }
     }
 
     //
@@ -126,9 +128,7 @@ function createEndpointUnsubscribe({
     // Success
     //
     const result = { message: 'Unsubscribed', now: new Date().toISOString() } as UnsubscribeResponse
-    req.payload.logger.error(
-      `unsubscribe: Unhandled scenario — ${JSON.stringify(result, undefined, 2)}`,
-    )
+    req.payload.logger.info(`unsubscribe: successful — ${JSON.stringify(result, undefined, 2)}`)
     return Response.json(result)
   }
 

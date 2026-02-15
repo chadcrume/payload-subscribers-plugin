@@ -1,13 +1,11 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { type ChangeEvent, type SubmitEvent, useEffect, useState } from 'react'
 
-import type { Config } from '../../copied/payload-types.js'
 import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 
 import { useSubscriber } from '../../contexts/SubscriberProvider.js'
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
+import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -15,15 +13,29 @@ export { RequestMagicLinkResponse }
 
 /**
  * Props for the RequestMagicLink component.
+ *
+ * @property classNames - Optional CSS class overrides for the component elements
+ * @property handleMagicLinkRequested - Callback when a magic link is requested
+ * @property props - Optional passthrough props (reserved for future use)
+ * @property verifyData - Optional data for magic-link verification (e.g. passed from URL)
  */
 export interface IRequestMagicLink {
   classNames?: RequestMagicLinkClasses
   handleMagicLinkRequested?: (result: RequestMagicLinkResponse) => void
   props?: any
-  verifyUrl?: string | URL
+  verifyData?: string
 }
 
-/** Optional CSS class overrides for RequestMagicLink elements. */
+/**
+ * Optional CSS class overrides for RequestMagicLink elements.
+ *
+ * @property button - Class for the submit button
+ * @property container - Class for the main container
+ * @property emailInput - Class for the email input field
+ * @property error - Class for error messages
+ * @property form - Class for the form
+ * @property message - Class for success/error message text
+ */
 export type RequestMagicLinkClasses = {
   button?: string
   container?: string
@@ -33,13 +45,14 @@ export type RequestMagicLinkClasses = {
   message?: string
 }
 
-type statusValues = 'default' | 'error' | 'sent'
-
 /**
  * Form component that lets users request a magic-login link by email. Submits to POST /api/emailToken
  * and shows success or error message. Uses SubscriberProvider for pre-filling email when available.
  *
- * @param props - See IRequestMagicLink
+ * @param props - Component props (see IRequestMagicLink)
+ * @param props.classNames - Optional class overrides for the component elements
+ * @param props.handleMagicLinkRequested - Callback when a magic link is requested
+ * @param props.verifyData - Optional data to send to the magic-link verification (e.g. passed from URL)
  * @returns Form UI with email input and "Request magic link" button
  */
 export const RequestMagicLink = ({
@@ -52,23 +65,14 @@ export const RequestMagicLink = ({
     message: '',
   },
   handleMagicLinkRequested,
-  verifyUrl,
+  verifyData,
 }: IRequestMagicLink) => {
   const { subscriber } = useSubscriber()
-  const { serverURL } = useServerUrl()
+  const { result, sendMagicLink, status } = useRequestMagicLink({
+    handleMagicLinkRequested,
+    verifyData,
+  })
 
-  if (!verifyUrl && serverURL) {
-    console.log('verifyUrl DEFAULT')
-    verifyUrl = `${serverURL ? serverURL : ''}/verify`
-  }
-  if (typeof verifyUrl == 'string') {
-    console.log('verifyUrl STRING: ', verifyUrl)
-    verifyUrl = new URL(verifyUrl)
-  }
-
-  const [status, setStatus] = useState<statusValues>('default')
-
-  const [result, setResult] = useState<string>()
   const [email, setEmail] = useState(subscriber?.email || '')
 
   useEffect(() => {
@@ -77,48 +81,8 @@ export const RequestMagicLink = ({
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!verifyUrl) {
-      setStatus('error')
-      setResult(`An error occured. Please try again. \n(No verify URL available.)`)
-    } else {
-      // const emailTokenResponse = await sdk.request({
-      //   json: {
-      //     email,
-      //     verifyUrl: verifyUrl?.href,
-      //   },
-      //   method: 'POST',
-      //   path: '/api/emailToken',
-      // })
-      const emailTokenResponse = await fetch(`${serverURL ? serverURL : ''}/api/emailToken`, {
-        body: JSON.stringify({
-          email,
-          verifyUrl: verifyUrl?.href,
-        }),
-        method: 'POST',
-      })
-      if (emailTokenResponse.ok) {
-        const emailTokenResponseJson: RequestMagicLinkResponse = await emailTokenResponse.json()
-        if (handleMagicLinkRequested) {
-          handleMagicLinkRequested(emailTokenResponseJson)
-        }
-        // @ts-expect-error One or the other exists
-        const { emailResult, error } = emailTokenResponseJson
-        if (error) {
-          setStatus('error')
-          setResult(`An error occured. Please try again. \n ${error}`)
-        } else if (emailResult) {
-          setStatus('sent')
-          setResult('An email has been sent containing your magic link.')
-        } else {
-          setStatus('error')
-          setResult(`An error occured. Please try again. \nResult unknown`)
-        }
-      } else {
-        const emailTokenResponseText = await emailTokenResponse.text()
-        setStatus('error')
-        setResult(`An error occured. Please try again. \n${emailTokenResponseText}`)
-      }
-    }
+
+    await sendMagicLink(email)
   }
   return (
     <div

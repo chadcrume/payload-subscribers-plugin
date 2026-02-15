@@ -76,7 +76,7 @@ const buildConfigWithMemoryDB = async () => {
         },
         disabled: false,
         subscribersCollectionSlug: customSubscribersCollectionsSlug,
-        unsubscribeUrl: '/unsubscribe',
+        unsubscribeURL: '/unsubscribe',
       }),
     ],
     secret: process.env.PAYLOAD_SECRET || 'test-secret_key',

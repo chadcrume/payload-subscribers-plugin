@@ -8,23 +8,21 @@ export const SubscribeClient = ({
 }: {
   handleSubscribe: (result: SubscribeResponse) => void
 }) => {
-  const [verifyUrl, setVerifyUrl] = useState<URL>()
+  const [verifyData, setVerifyData] = useState<{ forwardURL?: string }>()
+
   useEffect(() => {
-    setVerifyUrl(
-      new URL(
-        `/verify?forwardUrl=${encodeURIComponent(
-          window.location.pathname + '?now=' + new Date().toISOString(),
-        )}`,
-        window.location.protocol + window.location.host,
-      ),
-    )
+    setVerifyData({
+      forwardURL: window.location.href,
+    })
   }, [])
 
   return (
-    <Subscribe
-      classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
-      handleSubscribe={handleSubscribe}
-      verifyUrl={verifyUrl}
-    />
+    <>
+      <Subscribe
+        classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+        handleSubscribe={handleSubscribe}
+        verifyData={verifyData ? JSON.stringify(verifyData) : undefined}
+      />
+    </>
   )
 }
