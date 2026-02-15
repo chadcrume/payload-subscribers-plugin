@@ -127,7 +127,7 @@ You can specify collections in the plugin options which will be amended to inclu
 
 #### **tokenExpiration**
 
-### 🟢 Collections
+### 🔵 Collections
 
 #### **optInChannels**
 
@@ -153,7 +153,7 @@ Seeded when plugin inits.
 
 ---
 
-### 🔵 Fields
+### 🔴 Fields
 
 #### **OptedInChannels**
 
@@ -163,7 +163,7 @@ This is the same field used by the plugin **collections** to amended a relationT
 
 ---
 
-### 🔴 Payload endpoints
+### 🟢 Payload endpoints
 
 #### **requestMagicLink**
 
@@ -187,11 +187,11 @@ The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ---
 
-### 🟢 SubscriberProvider provider with useSubscriber context
+### 🔵 SubscriberProvider provider with useSubscriber context
 
 ---
 
-### 🔵 Client hooks
+### 🔴 Client hooks
 
 Use these hooks inside components that are descendants of **SubscriberProvider**. They call the plugin endpoints and expose state and callbacks for building custom UI.
 
@@ -306,7 +306,7 @@ function UnsubscribePage() {
 
 ---
 
-### 🔵 Client components
+### 🟢 Client components
 
 The plugin provides several NextJS client components ready for use in a frontend app
 
