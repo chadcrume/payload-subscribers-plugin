@@ -189,6 +189,63 @@ The **unsubscribe** endpoint sets the subscriber status to "unsubscribed".
 
 ### 🔵 SubscriberProvider provider with useSubscriber context
 
+**SubscriberProvider** fetches and holds the current subscriber auth state (via POST /api/subscriberAuth) and exposes it to the tree. Any component that uses **useSubscriber()**, or the plugin’s client components (RequestOrSubscribe, RequestMagicLink, Subscribe, etc.), or the plugin's client hooks (useRequestMagicLink, useSubscribe, etc.) must be a descendant of this provider.
+
+The context value includes:
+
+- **subscriber** — The current authenticated subscriber (or `null` if not logged in).
+- **isLoaded** — `true` once the initial auth check has completed.
+- **permissions** — Permissions returned from the auth endpoint (if any).
+- **refreshSubscriber** — Call to refetch the current subscriber (e.g. after verifying a magic link or updating preferences).
+- **logOut** — Calls POST /api/logout and clears subscriber state.
+
+Wrap your app (or the part that uses subscriber features) with **SubscriberProvider**, then use **useSubscriber** in child components:
+
+```typescript
+// layout.tsx (or root layout)
+
+import { SubscriberProvider } from 'payload-subscribers-plugin/ui'
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <SubscriberProvider>
+          {children}
+        </SubscriberProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+```typescript
+// Any descendant component
+
+import { useSubscriber } from 'payload-subscribers-plugin/ui'
+
+function MyComponent() {
+  const { isLoaded, logOut, refreshSubscriber, subscriber } = useSubscriber()
+
+  if (!isLoaded) return <p>Loading…</p>
+  if (!subscriber) return <p>Not signed in.</p>
+
+  return (
+    <div>
+      <p>Signed in as {subscriber.email}</p>
+      <button type="button" onClick={() => void refreshSubscriber()}>
+        Refresh
+      </button>
+      <button type="button" onClick={() => void logOut()}>
+        Log out
+      </button>
+    </div>
+  )
+}
+```
+
+**Note:** `useSubscriber` throws if used outside a `SubscriberProvider`. Ensure the provider is mounted above any component that calls it.
+
 ---
 
 ### 🔴 Client hooks
