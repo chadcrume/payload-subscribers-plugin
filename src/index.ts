@@ -68,25 +68,17 @@ export const payloadSubscribersPlugin =
     config.collections.push(OptInChannels)
 
     const unsubscribeUrl = !pluginOptions.unsubscribeUrl
-      ? config.serverURL
-        ? new URL('/unsubscribe', config.serverURL)
-        : undefined
+      ? new URL('/unsubscribe', config.serverURL)
       : isAbsoluteURL(pluginOptions.unsubscribeUrl)
         ? new URL(pluginOptions.unsubscribeUrl)
-        : config.serverURL
-          ? new URL(pluginOptions.unsubscribeUrl, config.serverURL)
-          : undefined
+        : new URL(pluginOptions.unsubscribeUrl, config.serverURL)
 
     // Get a URL object from the verifyUrl option
     const verifyUrl = !pluginOptions.verifyUrl
-      ? config.serverURL
-        ? new URL('/verify', config.serverURL)
-        : undefined
+      ? new URL('/verify', config.serverURL)
       : isAbsoluteURL(pluginOptions.verifyUrl)
         ? new URL(pluginOptions.verifyUrl)
-        : config.serverURL
-          ? new URL(pluginOptions.verifyUrl, config.serverURL)
-          : undefined
+        : new URL(pluginOptions.verifyUrl, config.serverURL)
 
     let subscribersCollection = pluginOptions.subscribersCollectionSlug
       ? config.collections.find(
