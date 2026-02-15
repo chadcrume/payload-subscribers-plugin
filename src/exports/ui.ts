@@ -17,4 +17,9 @@ export { VerifyMagicLink } from '../components/app/VerifyMagicLink.js'
 export type { SubscriberContextType } from '../contexts/SubscriberProvider.js'
 export { SubscriberProvider, useSubscriber } from '../contexts/SubscriberProvider.js'
 
+export { useRequestMagicLink } from '../hooks/useRequestMagicLink.js'
+export { useSubscribe } from '../hooks/useSubscribe.js'
+export { useUnsubscribe } from '../hooks/useUnsubscribe.js'
+export { useVerifyMagicLink } from '../hooks/useVerifyMagicLink.js'
+
 export { getServerUrl } from '../server-functions/serverUrl.js'

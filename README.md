@@ -260,7 +260,7 @@ Use these hooks inside components that are descendants of **SubscriberProvider**
 Requests a magic-login link by email (POST /api/emailToken). Exposes `sendMagicLink`, plus `result` and `status` for rendering messages and loading state.
 
 ```typescript
-import { useRequestMagicLink } from 'payload-subscribers-plugin/hooks'
+import { useRequestMagicLink } from 'payload-subscribers-plugin/ui'
 
 function MySignInForm() {
   const { result, sendMagicLink, status } = useRequestMagicLink({
@@ -292,7 +292,7 @@ Handles the verify step of the magic-link flow: reads `email` and `token` from U
 
 ```typescript
 import { useEffect } from 'react'
-import { useVerifyMagicLink } from 'payload-subscribers-plugin/hooks'
+import { useVerifyMagicLink } from 'payload-subscribers-plugin/ui'
 
 function VerifyPage() {
   const { isError, isLoading, result, verify } = useVerifyMagicLink()
@@ -311,7 +311,7 @@ function VerifyPage() {
 Updates the current subscriber’s opt-in channels (POST /api/subscribe). Exposes `updateSubscriptions`, plus `subscriber`, `result`, and `status`. Use with **SubscriberProvider** so `subscriber` and refresh are available.
 
 ```typescript
-import { useSubscribe } from 'payload-subscribers-plugin/hooks'
+import { useSubscribe } from 'payload-subscribers-plugin/ui'
 
 function MyPreferencesForm() {
   const { result, status, subscriber, updateSubscriptions } = useSubscribe({
@@ -344,7 +344,7 @@ Calls POST /api/unsubscribe with email and token (from the hook args or from sub
 ```typescript
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useUnsubscribe } from 'payload-subscribers-plugin/hooks'
+import { useUnsubscribe } from 'payload-subscribers-plugin/ui'
 
 function UnsubscribePage() {
   const searchParams = useSearchParams()
