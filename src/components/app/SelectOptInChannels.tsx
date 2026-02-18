@@ -1,12 +1,9 @@
 'use client'
 
-import { PayloadSDK } from '@payloadcms/sdk'
 import { useEffect, useState } from 'react'
 
-import type { Config, OptInChannel } from '../../copied/payload-types.js'
-import type { GetOptInChannelsResponse } from '../../endpoints/getOptInChannels.js'
+import type { OptInChannel } from '../../copied/payload-types.js'
 
-import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import styles from './shared.module.css'
 
@@ -20,7 +17,8 @@ import styles from './shared.module.css'
  */
 export interface ISelectOptInChannels {
   classNames?: SelectOptInChannelsClasses
-  handleOptInChannelsSelected?: (result: OptInChannel[]) => void
+  handleOptInChannelsSelected?: (isLoaded: OptInChannel[]) => void
+  optInChannels?: OptInChannel[]
   props?: any
   selectedOptInChannelIDs?: string[]
 }
@@ -76,51 +74,33 @@ export const SelectOptInChannels = ({
     optionsGroup: '',
   },
   handleOptInChannelsSelected,
+  optInChannels,
   selectedOptInChannelIDs,
 }: ISelectOptInChannels) => {
-  const { serverURL } = useServerUrl()
   // const { serverURL } = { serverURL: 'http://localhost:3001' }
   type OptInChannelCheckbox = {
-    isChecked: boolean
+    isChecked?: boolean
   } & OptInChannel
-  const [result, setResult] = useState<any>()
+  const [isLoaded, setIsLoaded] = useState<boolean>(false)
   const [allOptInChannels, setAllOptInChannels] = useState<OptInChannelCheckbox[]>([])
 
   useEffect(() => {
-    async function verify() {
-      const sdk = new PayloadSDK<Config>({
-        baseURL: serverURL || '',
-      })
-
-      console.log('calling optinchannels endpoint')
-      const result = await sdk.request({
-        method: 'GET',
-        path: '/api/optinchannels',
-      })
-      if (result.ok) {
-        const resultJson: GetOptInChannelsResponse = await result.json()
-        setResult(resultJson)
-      } else {
-        const resultText = await result.text()
-        setResult(resultText)
-      }
-    }
-    void verify()
-  }, [serverURL])
-
-  useEffect(() => {
-    const channels = result?.optInChannels?.map((channel: OptInChannel) => ({
+    setIsLoaded(false)
+    const channels = optInChannels?.map((channel: OptInChannel) => ({
       ...channel,
       isChecked: selectedOptInChannelIDs?.includes(channel.id),
     }))
-    setAllOptInChannels(channels)
-  }, [result, selectedOptInChannelIDs])
+    if (channels) {
+      setAllOptInChannels(channels)
+    }
+    setIsLoaded(true)
+  }, [optInChannels, selectedOptInChannelIDs])
 
   return (
     <div className={mergeClassNames([styles.container, classNames.container])}>
       <h3>Opt-in Channels</h3>
-      {!result ? (
-        <p className={mergeClassNames([styles.loading, classNames.loading])}>verifying...</p>
+      {!isLoaded ? (
+        <p className={mergeClassNames([styles.loading, classNames.loading])}>loading...</p>
       ) : (
         <div className={mergeClassNames([styles.optionsGroup, classNames.optionsGroup])}>
           {// Map over the tasks array to render each checkbox

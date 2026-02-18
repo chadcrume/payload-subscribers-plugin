@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import type { Subscriber } from '../copied/payload-types.js'
+import type { OptInChannel, Subscriber } from '../copied/payload-types.js'
 import type { SubscribeResponse } from '../endpoints/subscribe.js'
 
 export { SubscribeResponse }
 
+import type { GetOptInChannelsResponse } from '../endpoints/getOptInChannels.js'
+
 import { useSubscriber } from '../contexts/SubscriberProvider.js'
+import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
 /**
  * Options for the useSubscribe hook.
@@ -29,9 +32,10 @@ export interface IUseSubscribeOptions {
  * @property updateSubscriptions - Updates opt-in channels for the current subscriber
  */
 export interface IUseSubscribe {
+  optInChannels: OptInChannel[]
   result?: string
   status?: UpdateSubscriptionStatusValue
-  subscriber: null | Subscriber
+  subscriber: ({ optIns?: null | OptInChannel[] } & Omit<Subscriber, 'optIns'>) | null
   updateSubscriptions: (selectedChannelIDs: string[]) => Promise<void>
 }
 
@@ -51,6 +55,26 @@ export const useSubscribe = ({
   verifyData,
 }: IUseSubscribeOptions): IUseSubscribe => {
   const { refreshSubscriber, subscriber } = useSubscriber()
+
+  const { serverURL } = useServerUrl()
+  const [optInChannels, setOptInChannels] = useState<OptInChannel[]>([])
+
+  useEffect(() => {
+    async function getOptInChannels() {
+      const result = await fetch(`${serverURL ? serverURL : ''}/api/optinchannels`, {
+        method: 'GET',
+      })
+      if (result.ok) {
+        const resultJson: GetOptInChannelsResponse = await result.json()
+        // @ts-expect-error OR type union not recognized
+        setOptInChannels(resultJson?.optInChannels)
+      } else {
+        const resultText = await result.text()
+        console.log('Error getting opt-in channels: ', [{ resultText }])
+      }
+    }
+    void getOptInChannels()
+  }, [serverURL])
 
   const [status, setStatus] = useState<UpdateSubscriptionStatusValue>('default')
   const [result, setResult] = useState<string>()
@@ -97,6 +121,7 @@ export const useSubscribe = ({
   }
 
   return {
+    optInChannels,
     result,
     status,
     subscriber,

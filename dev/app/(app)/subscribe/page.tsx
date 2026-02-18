@@ -5,7 +5,7 @@ import { SubscribeClient } from '@/components/SubscribeClient.js'
 // eslint-disable-next-line @typescript-eslint/require-await
 async function handleSubscribe(result: SubscribeResponse) {
   'use server'
-  console.log('handleSubscribe:', result)
+  // console.log('handleSubscribe:', result)
 }
 
 const Page = () => {
