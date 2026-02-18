@@ -4,7 +4,7 @@ import { PayloadSDK } from '@payloadcms/sdk'
 import { type ReactNode, useCallback, useEffect } from 'react'
 import { createContext, useContext, useMemo, useState } from 'react'
 
-import type { Config, Subscriber } from '../copied/payload-types.js'
+import type { Config, OptInChannel, Subscriber } from '../copied/payload-types.js'
 
 import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
@@ -14,7 +14,7 @@ export type SubscriberContextType = {
   logOut: () => void
   permissions: any
   refreshSubscriber: () => void
-  subscriber: null | Subscriber
+  subscriber: ({ optIns?: null | OptInChannel[] } & Omit<Subscriber, 'optIns'>) | null
 }
 
 const SubscriberContext = createContext<SubscriberContextType | undefined>(undefined)
@@ -34,7 +34,9 @@ interface ProviderProps {
  */
 export function SubscriberProvider({ children }: ProviderProps) {
   // eslint-disable-next-line
-  const [subscriber, setSubscriber] = useState<null | (Subscriber & { optIns: string[] })>(null)
+  const [subscriber, setSubscriber] = useState<null | (Subscriber & { optIns: OptInChannel[] })>(
+    null,
+  )
 
   const { serverURL } = useServerUrl()
 

@@ -3,6 +3,7 @@
 import { type ChangeEvent, useEffect, useState } from 'react'
 
 import type { OptInChannel, Subscriber } from '../../copied/payload-types.js'
+import type { GetOptInChannelsResponse } from '../../endpoints/getOptInChannels.js'
 import type { SubscribeResponse } from '../../endpoints/subscribe.js'
 
 export { SubscribeResponse }
@@ -13,6 +14,7 @@ import type { UpdateSubscriptionStatusValue } from '../../hooks/useSubscribe.js'
 import { useRequestMagicLink } from '../../hooks/useRequestMagicLink.js'
 import { useSubscribe } from '../../hooks/useSubscribe.js'
 import { useUnsubscribe } from '../../hooks/useUnsubscribe.js'
+import { useServerUrl } from '../../react-hooks/useServerUrl.js'
 import { mergeClassNames } from './helpers.js'
 import { SelectOptInChannels } from './SelectOptInChannels.js'
 import styles from './shared.module.css'
@@ -94,6 +96,7 @@ export const Subscribe = ({
     verifyData,
   })
   const {
+    optInChannels,
     result: subscribeResult,
     status: subscribeStatus,
     subscriber,
@@ -137,6 +140,7 @@ export const Subscribe = ({
         {subscriber?.status == 'unsubscribed' && <p>You are unsubscribed</p>}
         <SelectOptInChannels
           handleOptInChannelsSelected={handleOptInChannelsSelected}
+          optInChannels={optInChannels}
           selectedOptInChannelIDs={selectedChannelIDs}
         />
       </div>

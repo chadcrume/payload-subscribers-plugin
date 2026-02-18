@@ -1,5 +1,6 @@
-import type { OptInChannel } from '../copied/payload-types.js'
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
+
+import type { OptInChannel } from '../copied/payload-types.js'
 
 import { OptInChannels as OptInChannelCollection } from '../collections/OptInChannels.js'
 

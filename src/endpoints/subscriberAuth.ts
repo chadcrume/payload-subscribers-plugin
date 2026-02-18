@@ -1,9 +1,13 @@
 import { headers as nextHeaders } from 'next/headers.js'
 
-import type { Subscriber } from '../copied/payload-types.js'
+import type { OptInChannel, Subscriber } from '../copied/payload-types.js'
+
+import { OptInChannels as OptInChannelCollection } from '../collections/OptInChannels.js'
 
 // If you're using Next.js, you'll have to import headers from next/headers, like so:
 import type { CollectionSlug, Endpoint, PayloadHandler, Permissions } from 'payload'
+
+import type { GetOptInChannelsResponse } from './getOptInChannels.js'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
 
@@ -54,9 +58,30 @@ function createEndpointSubscriberAuth({
       if (user && user.collection == subscribersCollectionSlug) {
         const subscriber: Subscriber = user as Subscriber
         if (subscriber.optIns) {
-          subscriber.optIns = subscriber.optIns.map((channel) =>
+          // subscriber.optIns = subscriber.optIns.map((channel) =>
+          //   typeof channel == 'string' ? channel : channel.id,
+          // )
+          const channelsToGet = subscriber.optIns.map((channel) =>
             typeof channel == 'string' ? channel : channel.id,
           )
+          const findResults = await req.payload.find({
+            collection: OptInChannelCollection.slug as CollectionSlug,
+            depth: 2,
+            where: {
+              id: { in: channelsToGet },
+            },
+          })
+
+          if (!findResults) {
+            req.payload.logger.info(
+              `Error getting optIns data: ${JSON.stringify({
+                error: 'Unknown find result',
+                // now: new Date().toISOString(),
+              } as GetOptInChannelsResponse)}`,
+            )
+          } else {
+            subscriber.optIns = findResults.docs.map((c) => c as OptInChannel)
+          }
         }
         return Response.json({
           now: new Date().toISOString(),
@@ -73,7 +98,7 @@ function createEndpointSubscriberAuth({
           permissions,
           subscriber: null,
         } as SubscriberAuthResponse,
-        { headers, status: 400 },
+        { headers, status: 200 },
       )
     } catch (error: unknown) {
       // req.payload.logger.info(`subscriberAuth error: ${JSON.stringify(error)}`)
