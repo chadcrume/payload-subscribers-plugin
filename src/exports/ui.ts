@@ -23,3 +23,5 @@ export { useUnsubscribe } from '../hooks/useUnsubscribe.js'
 export { useVerifyMagicLink } from '../hooks/useVerifyMagicLink.js'
 
 export { getServerUrl } from '../server-functions/serverUrl.js'
+
+export type { OptInChannel } from 'src/copied/payload-types.js'
