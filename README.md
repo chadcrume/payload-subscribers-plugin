@@ -38,7 +38,7 @@ export default buildConfig({
         posts: true,
       },
 
-      // Easily disable the collection logic.
+      // Easily disable the plugin logic while keep the collections schema changes.
       disabled: false,
 
       // Specify the collection to use as the subscribers collection
@@ -51,11 +51,11 @@ export default buildConfig({
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
       tokenExpiration: 60 * 60,
 
-      // Provide your unsubscribe route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
-      unsubscribeURL?: string
+      // Provide your unsubscribe route. This route should include the Unsubscribe component, or implement your own with the useUnsubscribe hook. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
+      unsubscribeURL?: string,
 
-      // Provide your verify route. This route should include the Unsubscribe component. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
-      verifyURL?: string
+      // Provide your verify route. This route should include the Verify component, or implement your own with the useVerifyMagicLink hook. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
+      verifyURL?: string,
 }),
   ],
 })
@@ -128,7 +128,21 @@ You can specify collections in the plugin options which will be amended to inclu
 
 #### **disabled**
 
+Easily disable the plugin logic while keep the collections schema changes.
+
 #### **tokenExpiration**
+
+Provide a custom expiration for magic link tokens. The default is 30 minutes.
+
+#### unsubscribeURL
+
+Provide your unsubscribe route. This route should include the Unsubscribe component, or implement your own with the useUnsubscribe hook. If not provided, your payload config must have serverURL defined, and the default will be ```serverURL+'/unsubscribe'```
+
+
+#### **verifyURL**
+
+Provide your verify route. This route should include the Verify component, or implement your own with the useVerifyMagicLink hook. If not provided, your payload config must have serverURL defined, and the default will be ```serverURL+'/verify'```
+
 
 ### 🔵 Collections
 

@@ -10,18 +10,18 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./src/index.ts",
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./ui": {
-      "import": "./src/exports/ui.ts",
-      "types": "./src/exports/ui.ts",
-      "default": "./src/exports/ui.ts"
+      "import": "./dist/exports/ui.js",
+      "types": "./dist/exports/ui.d.ts",
+      "default": "./dist/exports/ui.js"
     }
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist/"
   ],
@@ -115,5 +115,5 @@
   },
   "registry": "https://registry.npmjs.org/",
   "dependencies": {},
-  "version": "0.0.13"
+  "version": "0.0.14"
 }
