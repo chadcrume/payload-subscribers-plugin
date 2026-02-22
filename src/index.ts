@@ -52,6 +52,18 @@ export type PayloadSubscribersConfig = {
   verifyURL?: string
 }
 
+/**
+ * Adds the payload-subscribers-plugin to your payload config
+ *
+ * @param pluginOptions - Plugin options
+ * @param pluginOptions.collections - (optional) An array of existing collection slugs to add an optIns relationship field to
+ * @param pluginOptions.disabled - (optional) A convenience option to disable the plugin
+ * @param pluginOptions.subscribersCollectionSlug - (optional) The slug of an existing collection to use for subscribers. If omitted, the plugin will create the 'subscribers' collection
+ * @param pluginOptions.tokenExpiration - (optional) The expiration time for a token, in milliseconds. Defaults to 30 minutes
+ * @param pluginOptions.unsubscribeURL - (optional) The route or full URL for unsubscribe links
+ * @param pluginOptions.verifyURL - (optional) The route or full URL for verify links
+ * @returns Payload config modified to include the plugin
+ */
 export const payloadSubscribersPlugin =
   (pluginOptions: PayloadSubscribersConfig) =>
   (config: Config): Config => {

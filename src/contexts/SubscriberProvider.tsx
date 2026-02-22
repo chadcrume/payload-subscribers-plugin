@@ -56,7 +56,9 @@ export function SubscriberProvider({ children }: ProviderProps) {
 
         if (authResponse.ok) {
           // Call the server function to get the user data
-          const { permissions, subscriber } = await authResponse.json()
+          const authResponseJson = await authResponse.json()
+          // console.log('authResponseJson', JSON.stringify(authResponseJson, undefined, 2))
+          const { permissions, subscriber } = authResponseJson
           // console.log(`subscriber = `, subscriber)
           // console.log(`permissions = `, permissions)
           setPermissions(permissions)

@@ -383,8 +383,6 @@ Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherw
 
 ```typescript
   <RequestOrSubscribe
-    // Provide the URL the user should go to after clicking the link in the email and having it verified
-    afterVerifyUrl={new URL(window.href)}
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
@@ -400,11 +398,6 @@ Shows the [Subscribe](#subscribe) component to authenticated subscribers, otherw
     handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
     // Called after a subscribers opt-ins have been updated. Optional
     handleSubscribe={async (result: SubscribeResponse) => {}}
-    // Provide your own button component. Optional
-    renderButton={({ name, onClick, text }) =>
-      <button name={name} onClick={onClick} type="button">
-        {text}
-      </button>
     }
     // Provide a payload of data to put on any verify link sent by either Request or Subscribe components
     verifyData={`forwardURL=${window.location.href}`}
@@ -419,8 +412,6 @@ Form to input email address and get a magic link email sent.
 
 ```typescript
   <RequestMagicLink
-    // Provide the URL the user should go to after clicking the link in the email and having it verified
-    afterVerifyUrl={new URL(window.href)}
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
@@ -432,12 +423,6 @@ Form to input email address and get a magic link email sent.
     }}
     // Called after a subscribers opt-ins have been updated. Optional
     handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
-    // Provided your own button component. Optional
-    renderButton={({ name, onClick, text }) =>
-      <button name={name} onClick={onClick} type="button">
-        {text}
-      </button>
-    }
     // Provide a payload of data to put on any verify link sent
     verifyData={`forwardURL=${window.location.href}`}
   />
@@ -475,12 +460,6 @@ Component that verifies a magic link using expected url parameters.
     handleMagicLinkRequested={async (result: RequestMagicLinkResponse) => {}}
     // Called after a magic link has been verified. Optional
     handleMagicLinkVerified={async (result: RequestMagicLinkResponse) => {}}
-    // Provided your own button component. Optional
-    renderButton={({ name, onClick, text }) =>
-        <button name={name} onClick={onClick} type="button">
-          {text}
-        </button>
-    }
     // Provide a payload of data to put on "request another" link sent
     verifyData={`forwardURL=${window.location.href}`}
   >
@@ -501,8 +480,8 @@ Component that verifies a magic link using expected url parameters.
   <p class="subscribers-loading">verifying...</p>
   <p class="subscribers-message">{result}</p>
   <div class="subscribers-form">
-    {renderButton({ name: "request", onClick: handleRequestAnother, text:"Request another magic
-    link", })} {children}
+    <!-- Form elements render here, before the component children provided -->
+    {children}
   </div>
 </div>
 ```
@@ -515,8 +494,6 @@ Allows a subscriber to select from among all active optInChannels.
 
 ```typescript
   <Subscribe
-    // Provide the URL the user should go to after clicking the link in the email and having it verified
-    afterVerifyUrl={new URL(window.href)}
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
@@ -530,12 +507,6 @@ Allows a subscriber to select from among all active optInChannels.
     }}
     // Called after a subscribers opt-ins have been updated. Optional
     handleSubscribe={async (result: SubscribeResponse) => {}}
-    // Provided your own button component. Optional
-    renderButton={({ name, onClick, text }) =>
-      <button name={name} onClick={onClick} type="button">
-        {text}
-      </button>
-    }
     // Provide a payload of data to put on any verify link sent
     verifyData={`forwardURL=${window.location.href}`}
   />
