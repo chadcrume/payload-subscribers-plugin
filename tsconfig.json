@@ -24,7 +24,9 @@
         "name": "next"
       }
     ],
-    "paths": {}
+    "paths": {},
+    "declaration": true,
+    "outDir": "dist"
   },
   // "exclude": ["./dev/**/*"],
   "include": ["./src/**/*.ts", "./src/**/*.tsx", "./dev/next-env.d.ts"]

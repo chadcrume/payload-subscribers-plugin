@@ -1,4 +1,4 @@
-import type { BasePayload, CollectionSlug, Config } from 'payload'
+import type { BasePayload, CollectionSlug, Config, Plugin } from 'payload'
 
 import { OptedInChannels } from './collections/fields/OptedInChannels.js'
 import OptInChannels from './collections/OptInChannels.js'
@@ -65,7 +65,7 @@ export type PayloadSubscribersConfig = {
  * @returns Payload config modified to include the plugin
  */
 export const payloadSubscribersPlugin =
-  (pluginOptions: PayloadSubscribersConfig) =>
+  (pluginOptions: PayloadSubscribersConfig): Plugin =>
   (config: Config): Config => {
     if (!config.serverURL && !(pluginOptions.unsubscribeURL && pluginOptions.verifyURL)) {
       throw new Error(
