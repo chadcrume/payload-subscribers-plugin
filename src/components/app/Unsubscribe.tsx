@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation.js'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 
 import type { UnsubscribeResponse } from '../../endpoints/unsubscribe.js'
 
@@ -60,6 +60,28 @@ export type UnsubscribeClasses = {
  * @returns Loading status, result message, and children
  */
 export const Unsubscribe = ({
+  children,
+  classNames = {
+    button: '',
+    container: '',
+    emailInput: '',
+    error: '',
+    form: '',
+    loading: '',
+    message: '',
+  },
+  handleUnsubscribe,
+}: IUnsubscribe) => {
+  return (
+    <Suspense fallback={<div>Unsubscribing...</div>}>
+      <Unsubscribe2 classNames={classNames} handleUnsubscribe={handleUnsubscribe}>
+        {children}
+      </Unsubscribe2>
+    </Suspense>
+  )
+}
+
+export const Unsubscribe2 = ({
   children,
   classNames = {
     button: '',
