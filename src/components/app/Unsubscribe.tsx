@@ -74,14 +74,14 @@ export const Unsubscribe = ({
 }: IUnsubscribe) => {
   return (
     <Suspense fallback={<div>Unsubscribing...</div>}>
-      <Unsubscribe2 classNames={classNames} handleUnsubscribe={handleUnsubscribe}>
+      <UnsubscribeInSuspense classNames={classNames} handleUnsubscribe={handleUnsubscribe}>
         {children}
-      </Unsubscribe2>
+      </UnsubscribeInSuspense>
     </Suspense>
   )
 }
 
-export const Unsubscribe2 = ({
+export const UnsubscribeInSuspense = ({
   children,
   classNames = {
     button: '',
