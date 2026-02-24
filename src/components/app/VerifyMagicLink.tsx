@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation.js'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
 import type { RequestMagicLinkResponse } from '../../endpoints/requestMagicLink.js'
 import type { VerifyMagicLinkResponse } from '../../endpoints/verifyMagicLink.js'
@@ -83,11 +83,38 @@ export const VerifyMagicLink = ({
   handleMagicLinkVerified,
   verifyData,
 }: IVerifyMagicLink) => {
+  return (
+    <Suspense fallback={<div>Verifying...</div>}>
+      <VerifyMagicLinkInSuspense
+        classNames={classNames}
+        handleMagicLinkRequested={handleMagicLinkRequested}
+        handleMagicLinkVerified={handleMagicLinkVerified}
+        verifyData={verifyData}
+      >
+        {children}
+      </VerifyMagicLinkInSuspense>
+    </Suspense>
+  )
+}
+
+export const VerifyMagicLinkInSuspense = ({
+  children,
+  classNames = {
+    button: '',
+    container: '',
+    emailInput: '',
+    error: '',
+    form: '',
+    loading: '',
+    message: '',
+  },
+  handleMagicLinkRequested,
+  handleMagicLinkVerified,
+  verifyData,
+}: IVerifyMagicLink) => {
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const token = searchParams.get('token')
-
-  const { subscriber } = useSubscriber()
 
   const {
     isError: verifyIsError,
@@ -97,16 +124,11 @@ export const VerifyMagicLink = ({
   } = useVerifyMagicLink()
 
   useEffect(() => {
-    async function asyncVerify() {
+    const asyncVerify = async () => {
       await verify()
     }
-    if (!subscriber) {
-      void asyncVerify()
-    } else {
-      setIsError(false)
-      setResult('Already logged in')
-    }
-  }, [subscriber, verify])
+    void asyncVerify()
+  }, [verify])
 
   useEffect(() => {
     setResult(verifyResult)
