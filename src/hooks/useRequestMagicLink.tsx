@@ -70,25 +70,32 @@ export const useRequestMagicLink = ({
       const { emailResult, error } = emailTokenResponseJson
       if (error) {
         setStatus('error')
-        setResult(`An error occured. Please try again. \n ${error?.error ? error.error : error}`)
+        setResult(
+          `An error occured. Please try again. \n ${JSON.stringify(error?.error ? error.error : error, undefined, 2)}`,
+        )
+        console.log('emailToken error result: ', result)
       } else if (emailResult) {
         setStatus('sent')
         setResult('An email has been sent containing your magic link.')
+        console.log('emailToken error result: ', result)
       } else {
         setStatus('error')
         setResult(`An error occured. Please try again. \nResult unknown`)
+        console.log('emailToken error result: ', result)
       }
     } else {
       try {
         const emailTokenResponseJson = await emailTokenResponse.json()
         setStatus('error')
         setResult(
-          `An error occured. Please try again. \n${emailTokenResponseJson?.error ? emailTokenResponseJson.error : emailTokenResponseJson}`,
+          `An error occured. Please try again. \n${JSON.stringify(emailTokenResponseJson?.error ? emailTokenResponseJson.error : emailTokenResponseJson, undefined, 2)}`,
         )
+        console.log('emailToken error result: ', result)
       } catch (ignore) {
         const emailTokenResponseText = await emailTokenResponse.text()
         setStatus('error')
         setResult(`An error occured. Please try again. \n${emailTokenResponseText}`)
+        console.log('emailToken error result: ', result)
       }
     }
   }
