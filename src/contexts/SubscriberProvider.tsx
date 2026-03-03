@@ -45,37 +45,45 @@ export function SubscriberProvider({ children }: ProviderProps) {
 
   const [permissions, setPermissions] = useState<any>()
 
-  const initSubscriber = async () => {
-    console.log('initSubscriber')
+  const initSubscriber = useCallback(async () => {
+    console.log('initSubscriber', serverURL)
     setIsLoaded(false)
-    try {
-      const authResponse = await fetch('/api/subscriberAuth', {
-        // body: JSON.stringify({}),
-        method: 'POST',
-      })
+    if (serverURL) {
+      try {
+        const authResponse = await fetch(`${serverURL}/api/subscriberAuth`, {
+          // body: JSON.stringify({}),
+          method: 'POST',
+        })
 
-      if (authResponse.ok) {
-        // Call the server function to get the user data
-        const authResponseJson = await authResponse.json()
-        // console.log('authResponseJson', JSON.stringify(authResponseJson, undefined, 2))
-        const { permissions, subscriber } = authResponseJson
-        // console.log(`subscriber = `, subscriber)
-        // console.log(`permissions = `, permissions)
-        setPermissions(permissions)
-        setSubscriber(subscriber)
-      } else {
-        setPermissions(null)
-        setSubscriber(null)
+        if (authResponse.ok) {
+          try {
+            const authResponseJson = await authResponse.json()
+            // console.log('authResponseJson', JSON.stringify(authResponseJson, undefined, 2))
+            const { permissions, subscriber } = authResponseJson
+            console.log(`subscriber = `, subscriber)
+            // console.log(`permissions = `, permissions)
+            setPermissions(permissions)
+            setSubscriber(subscriber)
+          } catch (error) {
+            console.log('authResponse error, with json:', error)
+            const authResponseText = await authResponse.text()
+            console.log('authResponse error, text:', authResponseText)
+          }
+        } else {
+          console.log('authResponse not ok', authResponse)
+          setPermissions(null)
+          setSubscriber(null)
+        }
+        setIsLoaded(true)
+      } catch (error: unknown) {
+        console.log(`authResponse error`, error)
       }
-    } catch (error: unknown) {
-      console.log(`authResponse error`, error)
     }
-    setIsLoaded(true)
-  }
+  }, [serverURL])
 
   const refreshSubscriber = useCallback(async () => {
     await initSubscriber()
-  }, [serverURL])
+  }, [initSubscriber])
 
   const logOut = useCallback(async () => {
     setIsLoaded(false)
@@ -107,7 +115,7 @@ export function SubscriberProvider({ children }: ProviderProps) {
 
   useEffect(() => {
     void initSubscriber()
-  }, [])
+  }, [initSubscriber])
 
   // Memoize the value to prevent unnecessary re-renders in consumers
   const contextValue: SubscriberContextType = useMemo(
