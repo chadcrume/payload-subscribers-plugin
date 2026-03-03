@@ -49,7 +49,7 @@ export default buildConfig({
       subscribersCollectionSlug?: CollectionSlug
 
       // Provide a custom expiration for magic link tokens. The default is 30 minutes.
-      tokenExpiration: 60 * 60,
+      tokenExpiration: 30 * 60,
 
       // Provide your unsubscribe route. This route should include the Unsubscribe component, or implement your own with the useUnsubscribe hook. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
       unsubscribeURL?: string,
