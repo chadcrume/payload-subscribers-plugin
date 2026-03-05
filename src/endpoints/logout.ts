@@ -30,14 +30,12 @@ function createEndpointLogout({
   const logoutHandler: PayloadHandler = async (req) => {
     const headers = await nextHeaders()
 
+    const collectionLogoutEndpoint = `${req.payload.config.serverURL}/api/${subscribersCollectionSlug}/logout`
     try {
-      const logoutResult = await fetch(
-        `${req.payload.config.serverURL}/api/${subscribersCollectionSlug}/logout`,
-        {
-          headers,
-          method: 'POST',
-        },
-      )
+      const logoutResult = await fetch(collectionLogoutEndpoint, {
+        headers,
+        method: 'POST',
+      })
 
       const logoutResultData = await logoutResult.json()
 
@@ -79,7 +77,7 @@ function createEndpointLogout({
       // throw new Error(`Logout failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       return Response.json(
         {
-          error: `Logout failed: ${JSON.stringify(error)}`,
+          error: `Logout failed: ${collectionLogoutEndpoint} : ${JSON.stringify(error, undefined, 2)}`,
           now: new Date().toISOString(),
         } as LogoutResponse,
         {
