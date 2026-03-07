@@ -10,7 +10,7 @@ const getServerSideURL = () => {
         : 'http://localhost:3000'
   // console.log(`process.env.NEXT_PUBLIC_DEV_URL: ${process.env.NEXT_PUBLIC_DEV_URL}`)
   // console.log(`serverSideURL: ${serverSideURL}`)
-  return serverSideURL
+  return serverSideURL || ''
 }
 
 // const canUseDOM = !!(
@@ -33,6 +33,7 @@ const getServerSideURL = () => {
 //   return getServerSideURL()
 // }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const getServerUrl = async (): Promise<{ serverURL: string }> => {
   return { serverURL: getServerSideURL() }
 }
