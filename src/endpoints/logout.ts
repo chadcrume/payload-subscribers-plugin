@@ -1,6 +1,7 @@
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
 
-import { headers as nextHeaders } from 'next/headers.js'
+import { cookies as nextCookies } from 'next/headers.js'
+import { NextResponse } from 'next/server.js'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
 
@@ -16,7 +17,9 @@ export type LogoutResponse =
 
 /**
  * Factory that creates the logout endpoint config and handler.
- * Clears the current subscriber session by delegating to Payload's collection logout.
+ * Clears the current subscriber session by deleting Payload's cookie directly.
+ * (Delegating to Payload's collection logout is causing timing issues with the
+ * serverless function to serverless function call.)
  *
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - Collection slug for subscribers (default from Subscribers collection)
@@ -28,61 +31,22 @@ function createEndpointLogout({
   subscribersCollectionSlug: CollectionSlug
 }): Endpoint {
   const logoutHandler: PayloadHandler = async (req) => {
-    const headers = await nextHeaders()
-
     const collectionLogoutEndpoint = `${req.payload.config.serverURL}/api/${subscribersCollectionSlug}/logout`
     try {
-      const logoutResult = await fetch(collectionLogoutEndpoint, {
-        headers,
-        method: 'POST',
-      })
-
-      const logoutResultData = await logoutResult.json()
-
-      if (logoutResult.ok) {
-        return Response.json({
-          message: logoutResultData.message,
-          now: new Date().toISOString(),
-        } as LogoutResponse)
-      }
-
-      if (
-        logoutResult.status == 400 &&
-        logoutResultData.errors?.map((e: { message: string }) => e.message).includes('No User')
-      ) {
-        return Response.json(
-          {
-            error: `Logout failed: 'No User'`,
-            now: new Date().toISOString(),
-          } as LogoutResponse,
-          {
-            status: 400,
-          },
-        )
-      }
-      return Response.json(
-        {
-          error: `Logout failed: ${
-            logoutResultData.errors
-              ? logoutResultData.errors?.map((e: { message: string }) => e.message).join(' // ')
-              : JSON.stringify(logoutResultData)
-          }`,
-          now: new Date().toISOString(),
-        } as LogoutResponse,
-        {
-          status: 400,
-        },
-      )
+      const cookies = await nextCookies()
+      cookies.set('payload-token', '', { expires: new Date(0) })
+      req.payload.logger.info('hi')
+      return NextResponse.json({
+        message: 'Logged out',
+        now: new Date().toISOString(),
+      } as LogoutResponse)
     } catch (error) {
+      req.payload.logger.error(`logoutHandler error: ${JSON.stringify(error, undefined, 2)}`)
+
       // throw new Error(`Logout failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      return Response.json(
-        {
-          error: `Logout failed: ${collectionLogoutEndpoint} : ${JSON.stringify(error, undefined, 2)}`,
-          now: new Date().toISOString(),
-        } as LogoutResponse,
-        {
-          status: 400,
-        },
+      throw new Error(
+        `Logout failed: ${collectionLogoutEndpoint} : ${JSON.stringify(error, undefined, 2)}`,
+        { cause: error },
       )
     }
   }
