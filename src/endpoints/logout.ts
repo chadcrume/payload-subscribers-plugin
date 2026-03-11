@@ -35,7 +35,7 @@ function createEndpointLogout({
     try {
       const cookies = await nextCookies()
       cookies.set('payload-token', '', { expires: new Date(0) })
-      req.payload.logger.info('hi')
+
       return NextResponse.json({
         message: 'Logged out',
         now: new Date().toISOString(),
