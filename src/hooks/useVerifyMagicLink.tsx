@@ -9,6 +9,8 @@ export { VerifyMagicLinkResponse }
 import { useSubscriber } from '../contexts/SubscriberProvider.js'
 import { useServerUrl } from '../react-hooks/useServerUrl.js'
 
+type VerifyStatus = 'default' | 'error' | 'verified' | 'verifying'
+
 /**
  * Return value of useVerifyMagicLink.
  *
@@ -21,6 +23,7 @@ export interface IUseVerifyMagicLink {
   isError: boolean
   isLoading: boolean
   result: string
+  status: VerifyStatus
   verify: () => void
 }
 
@@ -41,10 +44,12 @@ export const useVerifyMagicLink = () => {
   const token = searchParams.get('token')
 
   const [result, setResult] = useState<string>()
+  const [status, setStatus] = useState<VerifyStatus>('default')
   const [isError, setIsError] = useState<boolean>(false)
   // const [email, setEmail] = useState('')
 
   const verify = useCallback(async () => {
+    setStatus('verifying')
     if (!email || !token) {
       return { error: 'Invalid input' }
     }
@@ -63,20 +68,24 @@ export const useVerifyMagicLink = () => {
 
       if (verifyEndpointResult && verifyEndpointResult.json) {
         const resultJson = await verifyEndpointResult.json()
-        setResult(resultJson.error || resultJson.message)
         setIsError(!!resultJson.error)
+        setResult(resultJson.error || resultJson.message)
+        setStatus(resultJson.error ? 'error' : 'verified')
         // return { error: resultJson.error, message: resultJson.message }
       } else if (verifyEndpointResult && verifyEndpointResult.text) {
         const resultText = await verifyEndpointResult.text()
+        setIsError(true)
         setResult(resultText)
-        setIsError(true)
+        setStatus('error')
       } else {
-        setResult(`Error: ${verifyEndpointResult.status}`)
         setIsError(true)
+        setResult(`Error: ${verifyEndpointResult.status}`)
+        setStatus('error')
       }
     } catch (error: unknown) {
-      setResult(`Error: ${error}`)
       setIsError(true)
+      setResult(`Error: ${error}`)
+      setStatus('error')
     }
     if (!isError) {
       refreshSubscriber()
@@ -87,6 +96,7 @@ export const useVerifyMagicLink = () => {
     isError,
     isLoading: !result,
     result: result || '',
+    status,
     verify,
   }
 }
