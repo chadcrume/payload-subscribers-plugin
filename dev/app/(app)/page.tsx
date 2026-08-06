@@ -4,7 +4,7 @@ import type {
   SubscribeResponse,
 } from 'payload-subscribers-plugin/ui'
 
-import { RequestCode } from 'payload-subscribers-plugin/ui'
+import { VerifyCode } from 'payload-subscribers-plugin/ui'
 
 import { RequestOrSubscribeClient } from '@/components/RequestOrSubscribeClient.js'
 
@@ -26,6 +26,12 @@ const handleCodeRequested = async (result: RequestCodeResponse) => {
   console.log('handleCodeRequested', result)
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
+const handleCodeVerified = async (result: string) => {
+  'use server'
+  console.log('handleCodeVerified', result)
+}
+
 const Page = () => {
   return (
     <>
@@ -36,9 +42,10 @@ const Page = () => {
           handleSubscribe={handleSubscribe}
         />
         <h2>Or sign in with a code</h2>
-        <RequestCode
+        <VerifyCode
           classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
           handleCodeRequested={handleCodeRequested}
+          handleCodeVerified={handleCodeVerified}
         />
         <p>
           <a href="/verify-code">Already have a code?</a>

@@ -623,6 +623,10 @@ Self-contained login-code flow: shows [RequestCode](#requestcode) to collect an 
     handleCodeRequested={async (result: RequestCodeResponse, email: string) => {}}
     // Called after the code has been verified. Optional
     handleCodeVerified={async (result: string) => {}}
+    // Skip straight to the code-entry step for a known email (e.g. read from a `?email=`
+    // query param on a route you link to after RequestCode/VerifyCode has already sent a
+    // code). Optional
+    initialEmail={email}
   >
     // Provide children to render after the code is verified. Optional
     <a href={'/'}>

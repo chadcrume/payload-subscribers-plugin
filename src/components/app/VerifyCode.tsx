@@ -16,12 +16,15 @@ import styles from './shared.module.css'
  * @property classNames - Optional CSS class overrides for the component elements
  * @property handleCodeRequested - Callback when a login code is requested
  * @property handleCodeVerified - Callback when the login code is verified
+ * @property initialEmail - Optional email to pre-fill, skipping straight to the code-entry step
+ * (e.g. when arriving from a link that already carried the email in a query param)
  */
 export interface IVerifyCode {
   children?: React.ReactNode
   classNames?: VerifyCodeClasses
   handleCodeRequested?: (result: RequestCodeResponse, email: string) => void
   handleCodeVerified?: (result: string) => void
+  initialEmail?: string
 }
 
 /**
@@ -74,8 +77,9 @@ export const VerifyCode = ({
   },
   handleCodeRequested,
   handleCodeVerified,
+  initialEmail,
 }: IVerifyCode) => {
-  const [email, setEmail] = useState<string>()
+  const [email, setEmail] = useState<string | undefined>(initialEmail)
   const [code, setCode] = useState('')
 
   const { isError, isLoading, result, status, verify } = useVerifyCode()

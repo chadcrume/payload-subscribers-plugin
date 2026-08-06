@@ -1,8 +1,12 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation.js'
 import { VerifyCode } from 'payload-subscribers-plugin/ui'
 
 export function VerifyCodeClient() {
+  const searchParams = useSearchParams()
+  const email = searchParams.get('email') || undefined
+
   // eslint-disable-next-line @typescript-eslint/require-await
   async function handleCodeVerified(result: string) {
     console.log('handleCodeVerified:', result)
@@ -14,6 +18,7 @@ export function VerifyCodeClient() {
       <VerifyCode
         classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
         handleCodeVerified={handleCodeVerified}
+        initialEmail={email}
       >
         <a href="/">
           <button className={'customCss'} name={'continue'} type="button">
