@@ -1,4 +1,10 @@
-import type { RequestMagicLinkResponse, SubscribeResponse } from 'payload-subscribers-plugin/ui'
+import type {
+  RequestCodeResponse,
+  RequestMagicLinkResponse,
+  SubscribeResponse,
+} from 'payload-subscribers-plugin/ui'
+
+import { RequestCode } from 'payload-subscribers-plugin/ui'
 
 import { RequestOrSubscribeClient } from '@/components/RequestOrSubscribeClient.js'
 
@@ -14,6 +20,12 @@ const handleMagicLinkRequested = async (result: RequestMagicLinkResponse) => {
   console.log('handleSubscribe', result)
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
+const handleCodeRequested = async (result: RequestCodeResponse) => {
+  'use server'
+  console.log('handleCodeRequested', result)
+}
+
 const Page = () => {
   return (
     <>
@@ -23,6 +35,14 @@ const Page = () => {
           handleMagicLinkRequested={handleMagicLinkRequested}
           handleSubscribe={handleSubscribe}
         />
+        <h2>Or sign in with a code</h2>
+        <RequestCode
+          classNames={{ button: 'customCss', container: 'customCss', emailInput: 'customCss' }}
+          handleCodeRequested={handleCodeRequested}
+        />
+        <p>
+          <a href="/verify-code">Already have a code?</a>
+        </p>
       </main>
     </>
   )

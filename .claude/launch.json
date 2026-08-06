@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "source ~/.nvm/nvm.sh && nvm use 20.19.0 && pnpm dev:copyfiles && NEXT_PUBLIC_WEBSITE_URL=http://localhost:${PORT:-3000} pnpm exec next dev dev --turbo -p ${PORT:-3000}"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

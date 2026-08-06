@@ -9,10 +9,12 @@ import {
 } from './collections/Subscribers.js'
 import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
 import createEndpointLogout from './endpoints/logout.js'
+import createEndpointRequestCode from './endpoints/requestCode.js'
 import createEndpointRequestMagicLink from './endpoints/requestMagicLink.js'
 import createEndpointSubscribe from './endpoints/subscribe.js'
 import createEndpointSubscriberAuth from './endpoints/subscriberAuth.js'
 import createEndpointUnsubscribe from './endpoints/unsubscribe.js'
+import createEndpointVerifyCode from './endpoints/verifyCode.js'
 import createEndpointVerifyMagicLink from './endpoints/verifyMagicLink.js'
 import { getTestEmail } from './helpers/testData.js'
 import { getTokenAndHash } from './helpers/token.js'
@@ -169,6 +171,10 @@ export const payloadSubscribersPlugin =
       createEndpointLogout({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
       }),
+      createEndpointRequestCode({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+        unsubscribeURL,
+      }),
       createEndpointRequestMagicLink({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
         unsubscribeURL,
@@ -183,6 +189,9 @@ export const payloadSubscribersPlugin =
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
       }),
       createEndpointUnsubscribe({
+        subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
+      }),
+      createEndpointVerifyCode({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
       }),
       createEndpointVerifyMagicLink({

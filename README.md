@@ -6,6 +6,8 @@ This includes ways to allow your subscribers to:
 
 - Sign up or sign in by requesting a magic link email
 - Verify the magic link to authenticate
+- Sign up or sign in by requesting a one-time login code email, as an alternative to the magic link
+- Verify the code to authenticate
 - Opt in or out of "opt-in channels"
 
 You manage the opt-in channels via the Payload admin.
@@ -190,6 +192,16 @@ Takes an email, verifies it, registers it if unknown, constructs a magic link, a
 
 Takes an email and token, verifies the token, and authenticates the user, using Payload's HTTP-only cookies auth.
 
+#### **requestCode**
+
+Takes an email, verifies it, registers it if unknown, generates a short numeric login code, and uses your Payload emailAdapter to sendEmail. An alternative to **requestMagicLink** — the two live side by side, not behind a shared option, so a project can offer either or both.
+
+#### **verifyCode**
+
+Takes an email and code, verifies the code, and authenticates the user, using Payload's HTTP-only cookies auth. The counterpart to **verifyMagicLink** for the code flow.
+
+**Note:** the magic-link and code flows both store their pending secret in the same subscriber fields (`verificationToken`/`verificationTokenExpires`). If your project offers both to the same subscriber, whichever was requested most recently is the one that's valid — requesting a code after a magic link invalidates that link, and vice versa.
+
 #### **getOptInChannels**
 
 Returns all active optInChannels data.
@@ -317,6 +329,64 @@ function VerifyPage() {
 
   if (isLoading) return <p>Verifying…</p>
   return <p className={isError ? 'error' : ''}>{result || 'Done.'}</p>
+}
+```
+
+#### **useRequestCode**
+
+Requests a one-time login code by email (POST /api/emailCode). Exposes `sendCode`, plus `result` and `status` for rendering messages and loading state. An alternative to **useRequestMagicLink**.
+
+```typescript
+import { useRequestCode } from 'payload-subscribers-plugin/ui'
+
+function MyCodeSignInForm() {
+  const { result, sendCode, status } = useRequestCode({
+    handleCodeRequested: (response, email) => console.log('Code sent to', email, response),
+  })
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const email = new FormData(e.currentTarget).get('email') as string
+    void sendCode(email)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="email" type="email" required />
+      <button type="submit" disabled={status === 'sending'}>
+        {status === 'sending' ? 'Sending…' : 'Send login code'}
+      </button>
+      {result && <p className={status === 'error' ? 'error' : ''}>{result}</p>}
+    </form>
+  )
+}
+```
+
+#### **useVerifyCode**
+
+Handles the verify step of the code flow. Unlike **useVerifyMagicLink**, it doesn't read from URL search params — a typed-in code has no URL — so you call `verify(email, code)` explicitly, typically from a form submit. Calls POST /api/verifyCode and refreshes the subscriber on success.
+
+```typescript
+import { useVerifyCode } from 'payload-subscribers-plugin/ui'
+
+function VerifyCodeForm({ email }: { email: string }) {
+  const { isError, isLoading, result, verify } = useVerifyCode()
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const code = new FormData(e.currentTarget).get('code') as string
+    void verify(email, code)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="code" type="text" required />
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Verifying…' : 'Verify code'}
+      </button>
+      {result && <p className={isError ? 'error' : ''}>{result}</p>}
+    </form>
+  )
 }
 ```
 
@@ -498,6 +568,69 @@ Component that verifies a magic link using expected url parameters.
     {children}
   </div>
 </div>
+```
+
+#### **RequestCode**
+
+Form to input email address and get a one-time login code emailed. An alternative to **RequestMagicLink** — you can use either, or both side by side, since they're independent components hitting independent endpoints.
+
+```typescript
+  <RequestCode
+    // Provide your own global class names to add to the component elements. Optional
+    classNames={{
+      button: 'customCssClassNames',
+      container: 'customCssClassNames',
+      emailInput: 'customCssClassNames',
+      error: 'customCssClassNames',
+      form: 'customCssClassNames',
+      message: 'customCssClassNames',
+    }}
+    // Called after a login code email has been sent. Receives the endpoint result and the
+    // email the code was sent to. Optional
+    handleCodeRequested={async (result: RequestCodeResponse, email: string) => {}}
+  />
+```
+
+```html
+<!-- The HTML scaffolding with global CSS classes you can use -->
+<div class="subscribers-request subscribers-container">
+  <p class="subscribers-message subscribers-error">{result}</p>
+  <form class="subscribers-form">
+    <input class="subscribers-emailInput" type="email" />
+    <button class="subscribers-button">Send login code</button>
+  </form>
+</div>
+```
+
+#### **VerifyCode**
+
+Self-contained login-code flow: shows [RequestCode](#requestcode) to collect an email and send the code, then — once an email has been submitted — shows a code-entry form that verifies it and logs the subscriber in. Unlike **VerifyMagicLink**, this isn't driven by URL search params (a typed-in code has no URL), so it manages its own two-step state instead. Mount it on whatever route you like; it doesn't need a dedicated `verifyURL` plugin option.
+
+```typescript
+  <VerifyCode
+    // Provide your own global class names to add to the component elements. Optional
+    classNames={{
+      button: 'customCssClassNames',
+      codeInput: 'customCssClassNames',
+      container: 'customCssClassNames',
+      emailInput: 'customCssClassNames',
+      error: 'customCssClassNames',
+      form: 'customCssClassNames',
+      loading: 'customCssClassNames',
+      message: 'customCssClassNames',
+    }}
+    // Called after a login code email has been sent. Optional
+    handleCodeRequested={async (result: RequestCodeResponse, email: string) => {}}
+    // Called after the code has been verified. Optional
+    handleCodeVerified={async (result: string) => {}}
+  >
+    // Provide children to render after the code is verified. Optional
+    <a href={'/'}>
+      <button className={'customCss'} name={'continue'} type="button">
+        Continue
+      </button>
+    </a>
+  </VerifyCode>
 ```
 
 #### **Subscribe**
