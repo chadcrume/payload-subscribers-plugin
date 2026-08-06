@@ -25,14 +25,17 @@ export type RequestCodeResponse =
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
  * @param options.unsubscribeURL - (optional) The URL to use for unsubscribe links
+ * @param options.verifyCodeURL - (optional) The URL for a "click here to enter it" link included alongside the code, pre-filled with the subscriber's email
  * @returns Payload Endpoint config for POST /emailCode
  */
 function createEndpointRequestCode({
   subscribersCollectionSlug = defaultCollectionSlug,
   unsubscribeURL,
+  verifyCodeURL,
 }: {
   subscribersCollectionSlug: CollectionSlug
   unsubscribeURL?: URL
+  verifyCodeURL?: URL
 }): Endpoint {
   /**
    * Handler for POST /emailCode. Takes an email parameter. Creates/updates a pending
@@ -84,10 +87,16 @@ function createEndpointRequestCode({
     const unsubscribeLink = !unsubscribeURL
       ? undefined
       : `${unsubscribeURL?.href}${unsubscribeURL?.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash)}`
+    // Carries only the email, never the code — clicking it lands on a page ready to type the
+    // code, it doesn't verify anything by itself.
+    const verifyLink = !verifyCodeURL
+      ? undefined
+      : `${verifyCodeURL.href}${verifyCodeURL.search ? '&' : '?'}email=${encodeURIComponent(email)}`
     const subject = data.subject || 'Your Login Code'
     const message = `
   ${data.message || '<p>You requested a login code. Enter the code below to log in</p>'}
   <p style="font-size: 1.5em; font-weight: bold; letter-spacing: 0.2em;">${code}</p>
+  ${verifyLink ? `<p>Or <a href="${verifyLink}">click here to enter it</a></p>` : ``}
   ${unsubscribeLink ? `<p>Click here to <a href="${unsubscribeLink}">unsubscribe</a></p>` : ``}
   `
 

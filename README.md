@@ -56,6 +56,9 @@ export default buildConfig({
       // Provide your unsubscribe route. This route should include the Unsubscribe component, or implement your own with the useUnsubscribe hook. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/unsubscribe'
       unsubscribeURL?: string,
 
+      // Optional. Provide a route for the link included in login-code emails, letting the subscriber click through to a page pre-filled with their email (via a ?email= query param) so they only have to type the code. The link never carries the code itself. This route should include the VerifyCode component (passing its initialEmail prop from that query param), or implement your own with the useVerifyCode hook. If omitted, the code email has no link — just the code — unless your payload config has serverURL defined, in which case the default is serverURL+'/verify-code'
+      verifyCodeURL?: string,
+
       // Provide your verify route. This route should include the Verify component, or implement your own with the useVerifyMagicLink hook. If not provided, your payload config must have serverURL defined, and the default will be serverURL+'/verify'
       verifyURL?: string,
 }),
@@ -141,6 +144,11 @@ Provide a custom expiration for magic link tokens. The default is 30 minutes.
 Provide your unsubscribe route. This route should include the Unsubscribe component, or implement your own with the useUnsubscribe hook. If not provided, your payload config must have serverURL defined, and the default will be ```serverURL+'/unsubscribe'```
 
 
+#### **verifyCodeURL**
+
+Optional. Provide a route for the link included in login-code emails, letting the subscriber click through to a page pre-filled with their email (via a `?email=` query param) so they only have to type the code — the link never carries the code itself, so clicking it doesn't verify or log anyone in by itself. This route should include the [VerifyCode](#verifycode) component (passing its `initialEmail` prop from that query param, as the dev app's `/verify-code` route does), or implement your own with the **useVerifyCode** hook. If omitted, the code email just won't include a link — unless your payload config has serverURL defined, in which case the default is ```serverURL+'/verify-code'```
+
+
 #### **verifyURL**
 
 Provide your verify route. This route should include the Verify component, or implement your own with the useVerifyMagicLink hook. If not provided, your payload config must have serverURL defined, and the default will be ```serverURL+'/verify'```
@@ -195,6 +203,8 @@ Takes an email and token, verifies the token, and authenticates the user, using 
 #### **requestCode**
 
 Takes an email, verifies it, registers it if unknown, generates a short numeric login code, and uses your Payload emailAdapter to sendEmail. An alternative to **requestMagicLink** — the two live side by side, not behind a shared option, so a project can offer either or both.
+
+If the **verifyCodeURL** plugin option is set, the email also includes a secondary "click here to enter it" link carrying only the subscriber's email (never the code) to that route, so they can land on a page ready to type the code instead of retyping their email too. The code itself is always front-and-center in the email; the link is a convenience, not a substitute for it — clicking it doesn't log anyone in.
 
 #### **verifyCode**
 

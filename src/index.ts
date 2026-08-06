@@ -49,6 +49,13 @@ export type PayloadSubscribersConfig = {
    */
   unsubscribeURL?: string
   /**
+   * The route or full URL for a link included in login-code emails, letting the subscriber
+   * click through to a page pre-filled with their email so they only have to type the code.
+   * Optional — if omitted (and config.serverURL is also unset), the code email has no link,
+   * just the code. Defaults to serverURL+'/verify-code' when config.serverURL is set.
+   */
+  verifyCodeURL?: string
+  /**
    * The route or full URL for verify links
    */
   verifyURL?: string
@@ -63,6 +70,7 @@ export type PayloadSubscribersConfig = {
  * @param pluginOptions.subscribersCollectionSlug - (optional) The slug of an existing collection to use for subscribers. If omitted, the plugin will create the 'subscribers' collection
  * @param pluginOptions.tokenExpiration - (optional) The expiration time for a token, in milliseconds. Defaults to 30 minutes
  * @param pluginOptions.unsubscribeURL - (optional) The route or full URL for unsubscribe links
+ * @param pluginOptions.verifyCodeURL - (optional) The route or full URL for a link included in login-code emails
  * @param pluginOptions.verifyURL - (optional) The route or full URL for verify links
  * @returns Payload config modified to include the plugin
  */
@@ -93,6 +101,19 @@ export const payloadSubscribersPlugin =
       : isAbsoluteURL(pluginOptions.verifyURL)
         ? new URL(pluginOptions.verifyURL)
         : new URL(pluginOptions.verifyURL, config.serverURL)
+
+    // Get a URL object from the verifyCodeURL option. Unlike verifyURL, this is fully optional:
+    // a relative verifyCodeURL with no config.serverURL can't be resolved, so it's left undefined
+    // rather than throwing — the code email just won't include a link in that case.
+    const verifyCodeURL = !pluginOptions.verifyCodeURL
+      ? config.serverURL
+        ? new URL('/verify-code', config.serverURL)
+        : undefined
+      : isAbsoluteURL(pluginOptions.verifyCodeURL)
+        ? new URL(pluginOptions.verifyCodeURL)
+        : config.serverURL
+          ? new URL(pluginOptions.verifyCodeURL, config.serverURL)
+          : undefined
 
     let subscribersCollection = pluginOptions.subscribersCollectionSlug
       ? config.collections.find(
@@ -174,6 +195,7 @@ export const payloadSubscribersPlugin =
       createEndpointRequestCode({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
         unsubscribeURL,
+        verifyCodeURL,
       }),
       createEndpointRequestMagicLink({
         subscribersCollectionSlug: subscribersCollection.slug as CollectionSlug,
