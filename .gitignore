@@ -50,3 +50,6 @@ yarn-error.log*
 
 # npm dev
 payload-subscribers-plugin-*.tgz
+
+# local Claude Code dev-server launch config
+.claude/launch.json
