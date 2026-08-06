@@ -616,11 +616,14 @@ Form to input email address and get a one-time login code emailed. An alternativ
 
 Self-contained login-code flow: shows [RequestCode](#requestcode) to collect an email and send the code, then — once an email has been submitted — shows a code-entry form that verifies it and logs the subscriber in. Unlike **VerifyMagicLink**, this isn't driven by URL search params (a typed-in code has no URL), so it manages its own two-step state instead. Mount it on whatever route you like; it doesn't need a dedicated `verifyURL` plugin option.
 
+The code is entered as one box per digit, the common OTP pattern. Typing auto-advances between boxes and Backspace on an empty box moves back, but the subscriber can also paste a full copied code anywhere in the row and every box fills in at once — they don't have to paste one digit at a time.
+
 ```typescript
   <VerifyCode
     // Provide your own global class names to add to the component elements. Optional
     classNames={{
       button: 'customCssClassNames',
+      codeDigit: 'customCssClassNames',
       codeInput: 'customCssClassNames',
       container: 'customCssClassNames',
       emailInput: 'customCssClassNames',
@@ -629,6 +632,8 @@ Self-contained login-code flow: shows [RequestCode](#requestcode) to collect an 
       loading: 'customCssClassNames',
       message: 'customCssClassNames',
     }}
+    // Number of digit boxes to render. Defaults to 6, matching the plugin's default code length. Optional
+    codeLength={6}
     // Called after a login code email has been sent. Optional
     handleCodeRequested={async (result: RequestCodeResponse, email: string) => {}}
     // Called after the code has been verified. Optional

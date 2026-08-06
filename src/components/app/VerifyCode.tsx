@@ -1,10 +1,11 @@
 'use client'
 
-import { type ChangeEvent, type SubmitEvent, useState } from 'react'
+import { type SubmitEvent, useState } from 'react'
 
 import type { RequestCodeResponse } from '../../endpoints/requestCode.js'
 
 import { useVerifyCode } from '../../hooks/useVerifyCode.js'
+import { CodeDigitsInput } from './CodeDigitsInput.js'
 import { mergeClassNames } from './helpers.js'
 import { RequestCode } from './RequestCode.js'
 import styles from './shared.module.css'
@@ -14,6 +15,8 @@ import styles from './shared.module.css'
  *
  * @property children - Optional React nodes rendered after a successful verify
  * @property classNames - Optional CSS class overrides for the component elements
+ * @property codeLength - Number of digit boxes to render for the code. Defaults to 6, matching
+ * the plugin's default login code length
  * @property handleCodeRequested - Callback when a login code is requested
  * @property handleCodeVerified - Callback when the login code is verified
  * @property initialEmail - Optional email to pre-fill, skipping straight to the code-entry step
@@ -22,6 +25,7 @@ import styles from './shared.module.css'
 export interface IVerifyCode {
   children?: React.ReactNode
   classNames?: VerifyCodeClasses
+  codeLength?: number
   handleCodeRequested?: (result: RequestCodeResponse, email: string) => void
   handleCodeVerified?: (result: string) => void
   initialEmail?: string
@@ -31,7 +35,8 @@ export interface IVerifyCode {
  * Optional CSS class overrides for VerifyCode elements.
  *
  * @property button - Class for buttons
- * @property codeInput - Class for the code input field
+ * @property codeDigit - Class for each individual digit box in the code input
+ * @property codeInput - Class for the row containing the code digit boxes
  * @property container - Class for the main container
  * @property emailInput - Class for the email input field (used by the request step)
  * @property error - Class for error messages
@@ -41,6 +46,7 @@ export interface IVerifyCode {
  */
 export type VerifyCodeClasses = {
   button?: string
+  codeDigit?: string
   codeInput?: string
   container?: string
   emailInput?: string
@@ -67,6 +73,7 @@ export const VerifyCode = ({
   children,
   classNames = {
     button: '',
+    codeDigit: '',
     codeInput: '',
     container: '',
     emailInput: '',
@@ -75,6 +82,7 @@ export const VerifyCode = ({
     loading: '',
     message: '',
   },
+  codeLength = 6,
   handleCodeRequested,
   handleCodeVerified,
   initialEmail,
@@ -139,16 +147,13 @@ export const VerifyCode = ({
           method="POST"
           onSubmit={handleSubmit}
         >
-          <input
-            aria-label="enter your login code"
-            className={mergeClassNames([
-              'subscribers-codeInput',
-              styles.emailInput,
-              classNames.codeInput,
-            ])}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
-            placeholder="enter your code"
-            type="text"
+          <CodeDigitsInput
+            classNames={{
+              digit: classNames.codeDigit,
+              digitsContainer: classNames.codeInput,
+            }}
+            length={codeLength}
+            onChange={setCode}
             value={code}
           />
           <button
