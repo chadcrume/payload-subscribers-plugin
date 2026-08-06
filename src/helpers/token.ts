@@ -13,6 +13,17 @@ export const getTokenAndHash = (milliseconds?: number) => {
   return { expiresAt, token, tokenHash }
 }
 
+export const getCodeAndHash = (milliseconds?: number, length = 6) => {
+  let code = ''
+  for (let i = 0; i < length; i++) {
+    code += crypto.randomInt(0, 10).toString()
+  }
+  const { tokenHash } = getHash(code)
+  const expiresAt = milliseconds ? new Date(Date.now() + milliseconds) : undefined
+
+  return { code, expiresAt, tokenHash }
+}
+
 export const getHash = (token: string) => {
   const tokenHash = crypto
     .createHash('sha256')

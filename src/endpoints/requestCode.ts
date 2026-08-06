@@ -2,9 +2,9 @@ import type { CollectionSlug, Endpoint, PayloadHandler, PayloadRequest } from 'p
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
 import { findOrCreatePendingSubscriber } from '../helpers/subscriber.js'
-import { getHmacHash, getTokenAndHash } from '../helpers/token.js'
+import { getCodeAndHash, getHmacHash } from '../helpers/token.js'
 
-export type RequestMagicLinkResponse =
+export type RequestCodeResponse =
   | {
       emailResult: any
       now: string
@@ -15,45 +15,45 @@ export type RequestMagicLinkResponse =
     }
 
 /**
- * Factory that creates the request-magic-link endpoint config and handler.
- * Sends a magic-link email to the given address (creates a pending subscriber if needed).
+ * Factory that creates the request-code endpoint config and handler.
+ * Sends a one-time login code email to the given address (creates a pending subscriber if needed).
+ *
+ * Stores the code hash in the same `verificationToken`/`verificationTokenExpires` fields used by
+ * the magic-link flow. If a project offers both flows, requesting one after the other overwrites
+ * the earlier pending link/code for that subscriber.
  *
  * @param options - Config options for the endpoint
  * @param options.subscribersCollectionSlug - (required) Collection slug for subscribers (default from Subscribers collection)
  * @param options.unsubscribeURL - (optional) The URL to use for unsubscribe links
- * @param options.verifyURL - (required) The URL to use for verify links
- * @returns Payload Endpoint config for POST /emailToken
+ * @param options.verifyCodeURL - (optional) The URL for a "click here to enter it" link included alongside the code, pre-filled with the subscriber's email
+ * @returns Payload Endpoint config for POST /emailCode
  */
-function createEndpointRequestMagicLink({
+function createEndpointRequestCode({
   subscribersCollectionSlug = defaultCollectionSlug,
   unsubscribeURL,
-  verifyURL,
+  verifyCodeURL,
 }: {
   subscribersCollectionSlug: CollectionSlug
   unsubscribeURL?: URL
-  verifyURL: URL
+  verifyCodeURL?: URL
 }): Endpoint {
-  // verifyURL required
-  if (!verifyURL || !verifyURL.href) {
-    throw new Error('A verify URL is required')
-  }
   /**
-   * Handler for POST /emailToken. Takes an email parameter. Creates/updates a pending
-   * subscriber with a verification token, and sends a magic-link email.
+   * Handler for POST /emailCode. Takes an email parameter. Creates/updates a pending
+   * subscriber with a verification code, and emails the code.
    *
-   * @param req - Payload request. Expects body to be a json object { email, verifyData }
+   * @param req - Payload request. Expects body to be a json object { email }
    * @returns 200 with `emailResult` and `now` on success; 400 with `error` and `now` on bad data or email failure
    */
-  const requestMagicLinkHandler: PayloadHandler = async (req: PayloadRequest) => {
+  const requestCodeHandler: PayloadHandler = async (req: PayloadRequest) => {
     const data = req?.json ? await req.json() : {}
-    const { email, verifyData } = data // if by POST data
+    const { email } = data // if by POST data
 
     if (!email) {
       return Response.json(
         {
           error: 'Email required',
           now: new Date().toISOString(),
-        } as RequestMagicLinkResponse,
+        } as RequestCodeResponse,
         { status: 400 },
       )
     }
@@ -65,16 +65,12 @@ function createEndpointRequestMagicLink({
         {
           error: 'Error creating subscriber',
           now: new Date().toISOString(),
-        } as RequestMagicLinkResponse,
+        } as RequestCodeResponse,
         { status: 400 },
       )
     }
 
-    // Update user with verificationToken
-    // const token = crypto.randomBytes(32).toString('hex')
-    // const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
-    // const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
-    const { expiresAt, token, tokenHash } = getTokenAndHash(15 * 60 * 1000)
+    const { code, expiresAt, tokenHash } = getCodeAndHash(15 * 60 * 1000)
     await req.payload.update({
       collection: subscribersCollectionSlug,
       data: {
@@ -88,14 +84,19 @@ function createEndpointRequestMagicLink({
     const { hashToken: unsubscribeHash } = getHmacHash(email)
 
     // Send email
-    const magicLink = `${verifyURL?.href}${verifyURL?.search ? '&' : '?'}token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&verifyData=${encodeURIComponent(verifyData)}`
     const unsubscribeLink = !unsubscribeURL
       ? undefined
       : `${unsubscribeURL?.href}${unsubscribeURL?.search ? '&' : '?'}email=${encodeURIComponent(email)}&hash=${encodeURIComponent(unsubscribeHash)}`
-    const subject = data.subject || 'Your Magic Login Link'
+    // Carries only the email, never the code — clicking it lands on a page ready to type the
+    // code, it doesn't verify anything by itself.
+    const verifyLink = !verifyCodeURL
+      ? undefined
+      : `${verifyCodeURL.href}${verifyCodeURL.search ? '&' : '?'}email=${encodeURIComponent(email)}`
+    const subject = data.subject || 'Your Login Code'
     const message = `
-  ${data.message || '<p>You requested a magic link to log in. Click the button below</p>'}
-  <p><a href="${magicLink}"><button><b>Login</b></button></a></p>
+  ${data.message || '<p>You requested a login code. Enter the code below to log in</p>'}
+  <p style="font-size: 1.5em; font-weight: bold; letter-spacing: 0.2em;">${code}</p>
+  ${verifyLink ? `<p>Or <a href="${verifyLink}">click here to enter it</a></p>` : ``}
   ${unsubscribeLink ? `<p>Click here to <a href="${unsubscribeLink}">unsubscribe</a></p>` : ``}
   `
 
@@ -104,32 +105,30 @@ function createEndpointRequestMagicLink({
       subject,
       to: user.email,
     })
-    //   req.payload.logger.info(`email result: ${JSON.stringify(emailResult)}`)
-    // return data; // Return data to allow normal submission if needed
     if (!emailResult) {
       return Response.json(
         {
           error: 'Unknown email result',
           now: new Date().toISOString(),
-        } as RequestMagicLinkResponse,
+        } as RequestCodeResponse,
         { status: 400 },
       )
     }
-    req.payload.logger.info(`requestMagicLinkHandler email sent \n ${magicLink}`)
+    req.payload.logger.info(`requestCodeHandler email sent \n ${code}`)
     return Response.json({
       emailResult,
       now: new Date().toISOString(),
-    } as RequestMagicLinkResponse)
+    } as RequestCodeResponse)
   }
 
-  /** Endpoint config for requesting a magic link. Mount as POST /emailToken. */
-  const requestMagicLinkEndpoint: Endpoint = {
-    handler: requestMagicLinkHandler,
+  /** Endpoint config for requesting a login code. Mount as POST /emailCode. */
+  const requestCodeEndpoint: Endpoint = {
+    handler: requestCodeHandler,
     method: 'post',
-    path: '/emailToken',
+    path: '/emailCode',
   }
 
-  return requestMagicLinkEndpoint
+  return requestCodeEndpoint
 }
 
-export default createEndpointRequestMagicLink
+export default createEndpointRequestCode

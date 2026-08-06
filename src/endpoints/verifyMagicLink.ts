@@ -1,8 +1,7 @@
 import type { CollectionSlug, Endpoint, PayloadHandler } from 'payload'
-import type { Subscriber } from 'src/copied/payload-types.js'
 
 import { defaultCollectionSlug } from '../collections/Subscribers.js'
-import { getHash, getTokenAndHash } from '../helpers/token.js'
+import { verifySecretAndLogin } from '../helpers/verifyAndLogin.js'
 
 export type VerifyMagicLinkResponse =
   | {
@@ -35,10 +34,8 @@ function createEndpointVerifyMagicLink({
    * @returns 200 with `message`, `now` and Set-Cookie on success; 400 with `error` and `now` on bad data, invalid token, or expiry
    */
   const verifyMagicLinkHandler: PayloadHandler = async (req) => {
-    // req.payload.logger.info('verifyMagicLinkHandler')
     const reqData = req?.json ? await req.json() : {}
     const { email, token }: { email: string; token: string } = reqData // if by POST reqData
-    // const { email, token } = req.routeParams // if by path
 
     if (!email || !token) {
       req.payload.logger.info('verifyMagicLinkHandler Bad data')
@@ -48,161 +45,12 @@ function createEndpointVerifyMagicLink({
       )
     }
 
-    const userResults = await req.payload.find({
-      collection: subscribersCollectionSlug,
-      where: {
-        email: { equals: email },
-      },
+    return verifySecretAndLogin({
+      email,
+      req,
+      secret: token,
+      subscribersCollectionSlug,
     })
-
-    type SubscriberType = {
-      // @ts-expect-error Why is this not correct, isn't it how Payload does it?
-      collection: subscribersCollectionSlug
-    } & Subscriber
-
-    const user = userResults.docs[0] as SubscriberType
-
-    if (!user) {
-      req.payload.logger.info('verifyMagicLinkHandler no user')
-      return Response.json(
-        { error: 'Bad data', now: new Date().toISOString() } as VerifyMagicLinkResponse,
-        { status: 400 },
-      )
-    }
-
-    const { tokenHash } = getHash(token)
-
-    // req.payload.logger.info(
-    //   `verifyMagicLinkHandler ${email} \n ${tokenHash} \n ${user.verificationTokenExpires} \n ${user.verificationToken}`,
-    // )
-    if (!user.verificationTokenExpires || tokenHash != user.verificationToken) {
-      req.payload.logger.info(`Token not verified: ${tokenHash} != ${user.verificationToken}`)
-      return Response.json(
-        { error: 'Token not verified', now: new Date().toISOString() } as VerifyMagicLinkResponse,
-        { status: 400 },
-      )
-    }
-
-    if (new Date(Date.now()) > new Date(user.verificationTokenExpires)) {
-      req.payload.logger.info('verifyMagicLinkHandler Token expired')
-      return Response.json(
-        { error: 'Token expired', now: new Date().toISOString() } as VerifyMagicLinkResponse,
-        { status: 400 },
-      )
-    }
-
-    // req.payload.logger.info(
-    //   `verifyMagicLinkHandler user found and token validated, prepping to authencticate ${user.email}`,
-    // )
-    // Update user with token password
-    await req.payload.update({
-      collection: subscribersCollectionSlug,
-      data: {
-        password: tokenHash,
-      },
-      disableTransaction: true,
-      where: {
-        email: { equals: user.email },
-      },
-    })
-    // req.payload.logger.info(
-    //   'verifyMagicLinkHandler user found and token validated, prepping to authencticate DONE',
-    // )
-
-    // Log the user in via Payload headers
-    let headers
-    try {
-      const loginReq = await fetch(
-        `${req.payload.config.serverURL}/api/${subscribersCollectionSlug}/login`,
-        {
-          body: JSON.stringify({
-            email,
-            password: tokenHash,
-          }),
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
-        },
-      )
-      if (loginReq && loginReq.ok) {
-        headers = loginReq.headers
-      }
-    } catch (error) {
-      // console.log(error)
-      req.payload.logger.info(
-        `verifyMagicLinkHandler catch error ${JSON.stringify(error, undefined, 2)}`,
-      )
-      throw new Error(
-        `verifyMagicLinkHandler catch error: ${JSON.stringify(error, undefined, 2)}`,
-        { cause: error },
-      )
-      // return Response.json({ error } as VerifyMagicLinkResponse, { status: 400 })
-    }
-
-    const status: 'pending' | 'subscribed' | 'unsubscribed' | undefined =
-      user?.status == 'pending' ? 'subscribed' : user?.status
-
-    const { tokenHash: tokenHash2 } = getTokenAndHash() // Unknowable
-    const data = {
-      password: tokenHash2,
-      status,
-      verificationToken: '',
-      verificationTokenExpires: null,
-    }
-    let updateResult
-    try {
-      // Update user
-      updateResult = await req.payload.update({
-        collection: subscribersCollectionSlug,
-        data,
-        where: {
-          email: { equals: user.email },
-        },
-      })
-    } catch (error) {
-      // console.log(error)
-      req.payload.logger.info(
-        `verifyMagicLinkHandler update catch error ${JSON.stringify(error, undefined, 2)}`,
-      )
-      throw new Error(
-        `verifyMagicLinkHandler update catch error: ${JSON.stringify(error, undefined, 2)}`,
-        { cause: error },
-      )
-      // return Response.json({ error } as VerifyMagicLinkResponse, { status: 400 })
-    }
-
-    function keepOnlySetCookie(originalHeaders: Headers): Headers {
-      // Use getSetCookie() to get all values as an array
-      const setCookieValues = originalHeaders.getSetCookie()
-
-      // Create a new Headers object
-      const newHeaders = new Headers()
-
-      // Append each 'set-cookie' value individually
-      for (const cookieValue of setCookieValues) {
-        newHeaders.append('set-cookie', cookieValue)
-      }
-
-      return newHeaders
-    }
-
-    const newHeaders = headers ? keepOnlySetCookie(headers) : undefined
-    // req.payload.logger.info(
-    //   `verifyMagicLinkHandler headers ${JSON.stringify(headers?.entries(), undefined, 2)}`,
-    // )
-    // req.payload.logger.info(
-    //   `verifyMagicLinkHandler newHeaders ${JSON.stringify(newHeaders?.entries(), undefined, 2)}`,
-    // )
-
-    return Response.json(
-      {
-        message: 'Token verified',
-        now: new Date().toISOString(),
-      } as VerifyMagicLinkResponse,
-      { headers: newHeaders },
-    )
   }
 
   /** Endpoint config for verifying magic link and logging in. Mount as POST /verifyToken. */
