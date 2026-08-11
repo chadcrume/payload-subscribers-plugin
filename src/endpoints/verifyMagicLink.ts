@@ -49,6 +49,7 @@ function createEndpointVerifyMagicLink({
       email,
       req,
       secret: token,
+      secretLabel: 'Token',
       subscribersCollectionSlug,
     })
   }

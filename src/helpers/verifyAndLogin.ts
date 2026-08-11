@@ -24,6 +24,8 @@ export type VerifyAndLoginResult =
  * @param options.email - Email of the subscriber to verify
  * @param options.req - Payload request (used for payload API access, serverURL, and logging)
  * @param options.secret - The submitted magic-link token or code to check against verificationToken
+ * @param options.secretLabel - What to call the secret in user-facing messages ("Token" for the
+ * magic-link flow, "Code" for the login-code flow). Defaults to "Token".
  * @param options.subscribersCollectionSlug - Collection slug for subscribers
  * @returns A Response: 200 with `message`/`now` and Set-Cookie headers on success; 400 with `error`/`now` otherwise
  */
@@ -31,11 +33,13 @@ export async function verifySecretAndLogin({
   email,
   req,
   secret,
+  secretLabel = 'Token',
   subscribersCollectionSlug,
 }: {
   email: string
   req: PayloadRequest
   secret: string
+  secretLabel?: string
   subscribersCollectionSlug: CollectionSlug
 }): Promise<Response> {
   const userResults = await req.payload.find({
@@ -63,17 +67,17 @@ export async function verifySecretAndLogin({
   const { tokenHash } = getHash(secret)
 
   if (!user.verificationTokenExpires || tokenHash != user.verificationToken) {
-    req.payload.logger.info(`Token not verified: ${tokenHash} != ${user.verificationToken}`)
+    req.payload.logger.info(`${secretLabel} not verified: ${tokenHash} != ${user.verificationToken}`)
     return Response.json(
-      { error: 'Token not verified', now: new Date().toISOString() } as VerifyAndLoginResult,
+      { error: `${secretLabel} not verified`, now: new Date().toISOString() } as VerifyAndLoginResult,
       { status: 400 },
     )
   }
 
   if (new Date(Date.now()) > new Date(user.verificationTokenExpires)) {
-    req.payload.logger.info('verifySecretAndLogin Token expired')
+    req.payload.logger.info(`verifySecretAndLogin ${secretLabel} expired`)
     return Response.json(
-      { error: 'Token expired', now: new Date().toISOString() } as VerifyAndLoginResult,
+      { error: `${secretLabel} expired`, now: new Date().toISOString() } as VerifyAndLoginResult,
       { status: 400 },
     )
   }
@@ -160,7 +164,7 @@ export async function verifySecretAndLogin({
 
   return Response.json(
     {
-      message: 'Token verified',
+      message: `${secretLabel} verified`,
       now: new Date().toISOString(),
     } as VerifyAndLoginResult,
     { headers: newHeaders },

@@ -49,6 +49,7 @@ function createEndpointVerifyCode({
       email,
       req,
       secret: code,
+      secretLabel: 'Code',
       subscribersCollectionSlug,
     })
   }
