@@ -6,6 +6,8 @@ export const defaultTokenExpiration = 30 * 60 // 30 minutes
 
 export const defaultCollectionSlug = 'subscribers'
 
+export const subscribersAdminGroup = 'Subscribers'
+
 export const SubscribersCollectionFactory = ({
   slug,
   tokenExpiration = defaultTokenExpiration,
@@ -23,7 +25,7 @@ export const SubscribersCollectionFactory = ({
       read: ({ req }) => (req.user ? true : false),
       update: ({ req }) => (req.user ? true : false),
     },
-    admin: { useAsTitle: 'email' },
+    admin: { group: subscribersAdminGroup, useAsTitle: 'email' },
     auth: {
       tokenExpiration,
       // verify: true, // Require email verification before being allowed to authenticate
