@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { subscribersAdminGroup } from './Subscribers.js'
+
 export const OptInChannels: CollectionConfig = {
   slug: 'opt-in-channels',
   access: {
@@ -12,6 +14,7 @@ export const OptInChannels: CollectionConfig = {
     update: ({ req }) => (req.user ? true : false),
   },
   admin: {
+    group: subscribersAdminGroup,
     useAsTitle: 'title', // Specify the field to use as the title
   },
   fields: [

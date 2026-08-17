@@ -5,6 +5,7 @@ import OptInChannels from './collections/OptInChannels.js'
 import {
   defaultTokenExpiration,
   SubscribersCollectionFactory,
+  subscribersAdminGroup,
   subscribersCollectionFields,
 } from './collections/Subscribers.js'
 import getOptInChannelsEndpoint from './endpoints/getOptInChannels.js'
@@ -140,6 +141,9 @@ export const payloadSubscribersPlugin =
           // Throw error? Or override?
           subscribersCollection.admin.useAsTitle = 'email'
         }
+      }
+      if (!subscribersCollection.admin.group) {
+        subscribersCollection.admin.group = subscribersAdminGroup
       }
       config.collections.push(subscribersCollection)
     } else {
