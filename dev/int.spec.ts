@@ -54,6 +54,7 @@ describe('Plugin integration tests', () => {
 
     expect(docs).toHaveLength(1)
     expect(docs[0].title).toBe('seeded-by-plugin')
+    expect(docs[0].active).toBe(false)
     optInID = docs[0].id
   })
 

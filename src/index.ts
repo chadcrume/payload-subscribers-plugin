@@ -236,39 +236,20 @@ export const payloadSubscribersPlugin =
       // console.log('Object.keys(payload.collections)', Object.keys(payload.collections))
       const { totalDocs: totalOptIns } = await payload.count({
         collection: 'opt-in-channels',
-        where: {
-          title: {
-            equals: 'seeded-by-plugin',
-          },
-        },
       })
 
       if (totalOptIns === 0) {
         await payload.create({
           collection: 'opt-in-channels',
           data: {
-            active: true,
+            active: false,
             title: 'seeded-by-plugin',
           },
         })
       }
 
-      // const { seededChannel } = await payload.find({
-      //   collection: 'opt-in-channels',
-      //   where: {
-      //     title: {
-      //       equals: 'seeded-by-plugin',
-      //     },
-      //   },
-      // })
-
       const { totalDocs: totalSubscribers } = await payload.count({
         collection: subscribersCollection.slug as CollectionSlug,
-        where: {
-          email: {
-            equals: testData.testEmail,
-          },
-        },
       })
 
       const { tokenHash } = getTokenAndHash() // Unknowable
