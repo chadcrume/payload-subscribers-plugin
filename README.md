@@ -46,7 +46,7 @@ export default buildConfig({
       // Specify the collection to use as the subscribers collection
       //  - Optional. If not specified, the plugin will add a 'subscribers' collection.
       //  - Sets auth if not already
-      //  - Adds (or overrides) fields: email, firstName, status, optIns,
+      //  - Adds (or overrides) fields: email, fullName, status, optIns,
       //    verificationToken, verificationTokenExpires, and source
       subscribersCollectionSlug?: CollectionSlug
 
@@ -172,7 +172,7 @@ Seeded when plugin inits.
 
 - Fields
   - email: text
-  - first name: text
+  - full name: text
   - status: Subscribed | Unsubscribed | Pending verification (default)
   - opt-ins: referenceTo optInChannels hasMany
   - source: text
