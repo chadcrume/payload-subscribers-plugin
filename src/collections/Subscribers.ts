@@ -47,9 +47,9 @@ export const subscribersCollectionFields: Field[] = [
     unique: true, // Ensures no duplicate emails
   },
   {
-    name: 'firstName',
+    name: 'fullName',
     type: 'text',
-    label: 'First Name',
+    label: 'Full Name',
   },
   {
     name: 'status',

@@ -216,7 +216,7 @@ export interface User {
  */
 export interface Subscriber {
   id: string;
-  firstName?: string | null;
+  fullName?: string | null;
   status: 'subscribed' | 'unsubscribed' | 'pending';
   source?: string | null;
   verificationToken?: string | null;
@@ -401,7 +401,7 @@ export interface OptInChannelsSelect<T extends boolean = true> {
  * via the `definition` "subscribers_select".
  */
 export interface SubscribersSelect<T extends boolean = true> {
-  firstName?: T;
+  fullName?: T;
   status?: T;
   source?: T;
   verificationToken?: T;
