@@ -22,6 +22,18 @@ That is all this plugin does currently. Potential features might include email a
 pnpm add payload-subscribers-plugin
 ```
 
+### Compatibility
+
+Supports Payload `^3.0.0` and Next.js `^15.0.0 || ^16.0.0`.
+
+If you're on a relational database (Postgres/SQLite) and upgrade Payload to `3.90.0` or
+later, Payload requires a migration for the `resetPasswordRequestedAt` field it adds to
+auth-enabled collections — including this plugin's subscribers collection, since it has
+`auth` enabled. Run `payload migrate:create` and `payload migrate` after upgrading. This
+does not affect MongoDB, which is schemaless. See the
+[Payload v3.90.0 release notes](https://github.com/payloadcms/payload/releases/tag/v3.90.0)
+for the full list of changes in that release.
+
 ## Usage
 
 You need to have an email adapter configured in your Payload config.
